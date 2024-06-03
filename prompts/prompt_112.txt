@@ -1,0 +1,1254 @@
+Can you label this program for me while keeping the code all in one part?:
+
+viewof showSites = Inputs.toggle({label: "Sites", value: true})
+
+viewof showDelaunayEdges = Inputs.toggle({label: "Delaunay Edges", value: true})
+
+viewof showVoronoiEdges = Inputs.toggle({label: "Voronoi Edges", value: true})
+
+viewof showVoronoiCells = Inputs.toggle({label: "Voronoi Cells", value: true})
+
+mutable particle_count = 17
+
+viewof color1 = Inputs.color({ value: "#ff0000", width: 10 })
+
+viewof color2 = Inputs.color({value: '#00ff00', width: 10 })
+
+viewof color3 = Inputs.color({ value: "#0000ff", width: 10 })
+
+viewof exponent = Inputs.range([.5, 6], {label: "Exponent", value: 2});
+
+{
+  const rgbScale = d3
+    .scaleLinear()
+    .domain([0, 0.5, 1])
+    .range([
+      { r: 1, g: 0, b: 0 },
+      { r: 0, g: 1, b: 0 },
+      { r: 0, g: 0, b: 1 }
+    ]);
+
+  const domain = d3.range(0, 1.001, 0.001);
+  const rgb = domain.map(rgbScale);
+  const data = domain
+    .map((x) => ({ x, ...rgbScale(x) }))
+    .flatMap(({ x, r, g, b }) => [
+      { x, y: sig(r), c: "red" },
+      { x, y: sig(g), c: "green" },
+      { x, y: sig(b), c: "blue" }
+    ]);
+
+  const data_ = domain.map((x, i) => ({
+    x,
+    y: rgb[i].r,
+    c: "blue",
+    r: rgb[i].r,
+    stroke: "red"
+  }));
+
+  console.log(data);
+
+  // Define the plot
+  const plot = Plot.plot({
+    width: width,
+    height: 200,
+    x: {
+      domain: [0, 1],
+      visible: false,
+      tickCount: 0,
+      labelVisible: false
+    },
+    y: {
+      domain: [0, 1],
+      visible: false,
+      label: "Color value",
+      nice: true,
+      tickCount: false,
+      labelVisible: false
+    },
+    marks: [
+      //Plot.line(data),
+      Plot.line(data, {
+        x: "x",
+        y: "y",
+        z: "c",
+        stroke: "c"
+      })
+    ]
+  });
+
+  // Add the color value line to the plot
+  //  Plot.lineY([0, .5, 1], colorValues);
+
+  // Display the plot
+  return plot;
+}
+
+sig = {
+  const { pow, abs, cos, sign, PI } = Math;
+  const c = (x) => -cos(x * 1 * PI); // + cos(x * 70 * 1 * PI) / 7;
+  return (x) => 0.5 + (pow(abs(c(x)), exponent) * sign(c(x))) / 2;
+
+  //Math.pow(0.5 - Math.cos(x * 1 * Math.PI) / 2, exponent) + Math.random() / 1000
+  //(Math.pow(Math.abs(2 * (x - 0.5)), 0.4) * Math.sign(x - 0.5) + 1) / 2
+
+  //return f;
+}
+
+viewof n = Inputs.range([0, 1000], {label: 'Count', step: 1, value: particle_count})
+
+canvas = {
+  console.log("canvas loaded");
+  const c = context.canvas;
+
+  const find = (p) => {
+    const delaunay = d3.Delaunay.from(particles);
+    const pointify = (i) => {
+      let q = particles[i];
+      q.index = i;
+      return q;
+    };
+    const i = delaunay.find(...p);
+    return i >= 0 ? pointify(i) : null;
+  };
+
+  const close_enough = (p0, p1) => distance(p0, p1) < 10;
+
+  c.onpointerdown = (event) => {
+    event.preventDefault();
+    const mouse = d3.pointer(event);
+    const closest = find(mouse);
+
+    console.log("down", mouse, closest);
+
+    if (closest && close_enough(mouse, closest)) {
+      mutable selected = closest.index;
+    } else {
+      mutable selected = particles.length;
+      particles.push(mouse);
+      mutable particle_count = particles.length;
+    }
+  };
+
+  c.onpointermove = (event) => {
+    event.preventDefault();
+    const ptr = d3.pointer(event);
+    if (selected != null) {
+      particles[selected] = ptr;
+      mutable marked = null;
+      draw();
+    }
+    const closest = find(ptr);
+    mutable marked = close_enough(ptr, closest) ? closest : null;
+  };
+
+  c.onpointerup = (event) => {
+    event.preventDefault();
+    mutable selected = null;
+  };
+
+  c.onpointerout = (event) => {
+    event.preventDefault();
+    if (selected != null) {
+      particles.splice(selected, 1);
+      mutable particle_count = particles.length;
+      mutable selected = null;
+      mutable marked = null;
+      draw();
+    }
+  };
+
+  //return c;
+}
+
+mutable selected = null
+
+mutable marked = null
+
+function draw() {
+  mutable drawtime++;
+}
+
+mutable drawtime = 0;
+
+{
+  drawtime;
+  console.log("draw");
+  const delaunay = d3.Delaunay.from(particles);
+
+  const rgbScale = d3
+    .scalePow()
+    .exponent(1)
+    .domain([0, 0.5, 1])
+    .range([color1, color2, color3]);
+
+  const rgbScale_ = d3
+    .scaleLinear()
+    .domain([0, 0.5, 1])
+    .range([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ]);
+
+  const colorFromD = d3
+    .scaleSequential()
+    .domain([0, Math.max(width, height) / 2])
+    .interpolator(rgbScale);
+
+  const colorFromD_ = d3
+    .scaleSequential()
+    .domain([0, Math.max(width, height) / 2])
+    .interpolator(rgbScale_);
+
+  const ff = (v) => Math.round(255 * v);
+  const vals = (c) => c.map((v) => ff(sig(v))).join(",");
+  const css = (c) => "rgb(" + vals(c) + ")";
+  const s = (c) => d3.color(css(c)); //({ r: sig(r), g: sig(g), b: sig(b) });
+  console.log("c:", s([0, 1, 0]));
+
+  const getColor = (d) => context.clearRect(0, 0, width, height);
+
+  if (showVoronoiCells || showVoronoiEdges) {
+    const voronoi = delaunay.voronoi([1.5, 1.5, width - 1.5, height - 1.5]);
+    const polygons = [...voronoi.cellPolygons()];
+
+    const c = [width / 2, height / 2];
+    for (const p of polygons) {
+      const s = particles[p.index];
+      context.beginPath();
+      voronoi.renderCell(p.index, context);
+
+      if (showVoronoiCells) {
+        const d = distance(s, c);
+        context.fillStyle = d3.color(css(colorFromD_(d)));
+        context.fill();
+      }
+
+      if (showVoronoiEdges) {
+        context.strokeStyle = "#000";
+        context.stroke();
+      }
+    }
+  }
+
+
+
+  if (showDelaunayEdges) {
+    const { halfedges, triangles, hull } = delaunay;
+
+    const edges = [
+      ...Array.from(hull, (i, k) => [i, hull[(k + 1) % hull.length]]),
+      ...Array.from(halfedges, (i, j) =>
+        i > j ? [[triangles[i], triangles[j]]] : []
+      ).flat()
+    ].map(([p, q], i) => ({ i, p: particles[p], q: particles[q] }));
+
+    const edgeLengths = edges.map((e) => {
+      var dx = e.p[0] - e.q[0];
+      var dy = e.p[1] - e.q[1];
+      return Math.sqrt(dx * dx + dy * dy);
+    });
+
+    var opacity = d3
+      .scalePow()
+      .exponent(0.01)
+      .domain(d3.extent(edgeLengths))
+      .range([1, 0].map((opacity) => d3.color("white").copy({ opacity })));
+
+    console.log([0, 100, 200, 400, 800].map(opacity));
+
+    const colorFromD = d3.scaleSequential().interpolator(opacity);
+    context.beginPath();
+    for (const { i, p, q } of edges) {
+      context.beginPath();
+      context.moveTo(...p);
+      context.lineTo(...q);
+      const color = d3.color(colorFromD(edgeLengths[i]));
+      context.strokeStyle = d3.color(colorFromD(edgeLengths[i]));
+      context.stroke();
+    }
+  }
+
+  if (showSites) {
+    context.beginPath();
+    delaunay.renderPoints(context, 2);
+    context.fillStyle = "white";
+    context.fill();
+  }
+
+  if (marked) {
+    context.beginPath();
+    context.arc(...marked, 5, 0, 2 * Math.PI);
+    context.strokeStyle = "white";
+    context.stroke();
+  }
+
+  return context.canvas;
+}
+
+mutable delaunay = d3.Delaunay.from(particles)
+
+mutable voronoi = delaunay.voronoi([-1.5, -1.5, width+1.5, height+1.5])
+
+distance = (p, m) => {
+  const a = p[0] - m[0];
+  const b = p[1] - m[1];
+  return Math.sqrt(a * a + b * b);
+}
+
+recount = {
+  const random = () => [Math.random() * width - 5, Math.random() * height - 5];
+  const square = (i) => [Math.random() * width - 5, Math.random() * height - 5];
+
+  while (particles.length < n) particles.push(random(particles.length));
+  while (particles.length > n) particles.pop();
+
+  draw();
+  return particles.length;
+}
+
+mutable particles = []
+
+context = DOM.context2d(width, height);
+
+height = width * 2/3
+
+function ramp(color, n = 512) {
+  const canvas = DOM.canvas(n, 1);
+  const context = canvas.getContext("2d");
+  canvas.style.margin = "0 -14px";
+  canvas.style.width = "calc(100% + 28px)";
+  canvas.style.height = "40px";
+  canvas.style.imageRendering = "pixelated";
+  for (let i = 0; i < n; ++i) {
+    context.fillStyle = color(i / (n - 1));
+    context.fillRect(i, 0, 1, 1);
+  }
+  return canvas;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program without separating the code into different parts:
+
+The program is a visualization script using D3.js and other libraries. It provides options for the user to control various aspects of the visualization, such as toggling visibility of sites, Delaunay edges, Voronoi edges, and Voronoi cells. It also allows the user to control the number of particles and the color scheme.
+
+Key Components:
+
+1. **User Inputs**:
+    - **Toggles**: These allow the user to control the visibility of different elements in the visualization.
+        ```javascript
+        viewof showSites = Inputs.toggle({label: "Sites", value: true})
+        viewof showDelaunayEdges = Inputs.toggle({label: "Delaunay Edges", value: true})
+        viewof showVoronoiEdges = Inputs.toggle({label: "Voronoi Edges", value: true})
+        viewof showVoronoiCells = Inputs.toggle({label: "Voronoi Cells", value: true})
+        ```
+
+    - **Particle Count**:
+        ```javascript
+        mutable particle_count = 17
+        viewof n = Inputs.range([0, 1000], {label: 'Count', step: 1, value: particle_count})
+        ```
+
+    - **Color Selection**:
+        ```javascript
+        viewof color1 = Inputs.color({ value: "#ff0000", width: 10 })
+        viewof color2 = Inputs.color({value: '#00ff00', width: 10 })
+        viewof color3 = Inputs.color({ value: "#0000ff", width: 10 })
+        ```
+
+    - **Exponent Control**:
+        ```javascript
+        viewof exponent = Inputs.range([.5, 6], {label: "Exponent", value: 2})
+        ```
+
+2. **Visualization Setup**:
+    - **D3.js and other libraries setup**:
+        ```javascript
+        d3 = require("d3@6", "d3-voronoi-map@2")
+        ```
+
+    - **Canvas setup**:
+        ```javascript
+        canvas = {
+          console.log("canvas loaded");
+          const c = context.canvas;
+          ...
+          // Event handling for pointer down, move, up, and out events.
+          ...
+        }
+        ```
+
+3. **Drawing Functions**:
+    - **Draw function**:
+        This function contains the core logic for drawing the Voronoi and Delaunay visualizations, including the rendering of particles, Voronoi and Delaunay edges, and sites.
+        ```javascript
+        function draw() {
+          mutable drawtime++;
+          ...
+          if (showVoronoiCells || showVoronoiEdges) {
+            ...
+          }
+          if (showDelaunayEdges) {
+            ...
+          }
+          if (showSites) {
+            ...
+          }
+          if (marked) {
+            ...
+          }
+          return context.canvas;
+        }
+        ```
+
+4. **Data Preparation**:
+    - **Color scale and data preparation**:
+        ```javascript
+        {
+          const rgbScale = d3
+            .scaleLinear()
+            .domain([0, 0.5, 1])
+            .range([
+              { r: 1, g: 0, b: 0 },
+              { r: 0, g: 1, b: 0 },
+              { r: 0, g: 0, b: 1 }
+            ]);
+          ...
+          const data_ = domain.map((x, i) => ({
+            x,
+            y: rgb[i].r,
+            c: "blue",
+            r: rgb[i].r,
+            stroke: "red"
+          }));
+          ...
+          const plot = Plot.plot({
+            ...
+          });
+          return plot;
+        }
+        ```
+
+5. **Utilities**:
+    - **Utility functions**:
+        Functions such as `sig` (to calculate sigmoid function) and `distance` (to calculate distance) are used for visualization calculations.
+        ```javascript
+        sig = {
+          const { pow, abs, cos, sign, PI } = Math;
+          ...
+          return (x) => 0.5 + (pow(abs(c(x)), exponent) * sign(c(x))) / 2;
+        }
+        ...
+        distance = (p, m) => {
+          ...
+        }
+        ```
+
+Overall, the program is well-organized, providing multiple inputs and controls for the user to customize the visualization according to their preferences.
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Started NEW Chat here:
+
+Can you label this program for me while keeping the code all in one part?:
+
+viewof showSites = Inputs.toggle({label: "Sites", value: true})
+
+viewof showDelaunayEdges = Inputs.toggle({label: "Delaunay Edges", value: true})
+
+viewof showVoronoiEdges = Inputs.toggle({label: "Voronoi Edges", value: true})
+
+viewof showVoronoiCells = Inputs.toggle({label: "Voronoi Cells", value: true})
+
+mutable particle_count = 17
+
+viewof color1 = Inputs.color({ value: "#ff0000", width: 10 })
+
+viewof color2 = Inputs.color({value: '#00ff00', width: 10 })
+
+viewof color3 = Inputs.color({ value: "#0000ff", width: 10 })
+
+viewof exponent = Inputs.range([.5, 6], {label: "Exponent", value: 2});
+
+{
+  const rgbScale = d3
+    .scaleLinear()
+    .domain([0, 0.5, 1])
+    .range([
+      { r: 1, g: 0, b: 0 },
+      { r: 0, g: 1, b: 0 },
+      { r: 0, g: 0, b: 1 }
+    ]);
+
+  const domain = d3.range(0, 1.001, 0.001);
+  const rgb = domain.map(rgbScale);
+  const data = domain
+    .map((x) => ({ x, ...rgbScale(x) }))
+    .flatMap(({ x, r, g, b }) => [
+      { x, y: sig(r), c: "red" },
+      { x, y: sig(g), c: "green" },
+      { x, y: sig(b), c: "blue" }
+    ]);
+
+  const data_ = domain.map((x, i) => ({
+    x,
+    y: rgb[i].r,
+    c: "blue",
+    r: rgb[i].r,
+    stroke: "red"
+  }));
+
+  console.log(data);
+
+  // Define the plot
+  const plot = Plot.plot({
+    width: width,
+    height: 200,
+    x: {
+      domain: [0, 1],
+      visible: false,
+      tickCount: 0,
+      labelVisible: false
+    },
+    y: {
+      domain: [0, 1],
+      visible: false,
+      label: "Color value",
+      nice: true,
+      tickCount: false,
+      labelVisible: false
+    },
+    marks: [
+      //Plot.line(data),
+      Plot.line(data, {
+        x: "x",
+        y: "y",
+        z: "c",
+        stroke: "c"
+      })
+    ]
+  });
+
+  // Add the color value line to the plot
+  //  Plot.lineY([0, .5, 1], colorValues);
+
+  // Display the plot
+  return plot;
+}
+
+sig = {
+  const { pow, abs, cos, sign, PI } = Math;
+  const c = (x) => -cos(x * 1 * PI); // + cos(x * 70 * 1 * PI) / 7;
+  return (x) => 0.5 + (pow(abs(c(x)), exponent) * sign(c(x))) / 2;
+
+  //Math.pow(0.5 - Math.cos(x * 1 * Math.PI) / 2, exponent) + Math.random() / 1000
+  //(Math.pow(Math.abs(2 * (x - 0.5)), 0.4) * Math.sign(x - 0.5) + 1) / 2
+
+  //return f;
+}
+
+viewof n = Inputs.range([0, 1000], {label: 'Count', step: 1, value: particle_count})
+
+canvas = {
+  console.log("canvas loaded");
+  const c = context.canvas;
+
+  const find = (p) => {
+    const delaunay = d3.Delaunay.from(particles);
+    const pointify = (i) => {
+      let q = particles[i];
+      q.index = i;
+      return q;
+    };
+    const i = delaunay.find(...p);
+    return i >= 0 ? pointify(i) : null;
+  };
+
+  const close_enough = (p0, p1) => distance(p0, p1) < 10;
+
+  c.onpointerdown = (event) => {
+    event.preventDefault();
+    const mouse = d3.pointer(event);
+    const closest = find(mouse);
+
+    console.log("down", mouse, closest);
+
+    if (closest && close_enough(mouse, closest)) {
+      mutable selected = closest.index;
+    } else {
+      mutable selected = particles.length;
+      particles.push(mouse);
+      mutable particle_count = particles.length;
+    }
+  };
+
+  c.onpointermove = (event) => {
+    event.preventDefault();
+    const ptr = d3.pointer(event);
+    if (selected != null) {
+      particles[selected] = ptr;
+      mutable marked = null;
+      draw();
+    }
+    const closest = find(ptr);
+    mutable marked = close_enough(ptr, closest) ? closest : null;
+  };
+
+  c.onpointerup = (event) => {
+    event.preventDefault();
+    mutable selected = null;
+  };
+
+  c.onpointerout = (event) => {
+    event.preventDefault();
+    if (selected != null) {
+      particles.splice(selected, 1);
+      mutable particle_count = particles.length;
+      mutable selected = null;
+      mutable marked = null;
+      draw();
+    }
+  };
+
+  //return c;
+}
+
+mutable selected = null
+
+mutable marked = null
+
+function draw() {
+  mutable drawtime++;
+}
+
+mutable drawtime = 0;
+
+{
+  drawtime;
+  console.log("draw");
+  const delaunay = d3.Delaunay.from(particles);
+
+  const rgbScale = d3
+    .scalePow()
+    .exponent(1)
+    .domain([0, 0.5, 1])
+    .range([color1, color2, color3]);
+
+  const rgbScale_ = d3
+    .scaleLinear()
+    .domain([0, 0.5, 1])
+    .range([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ]);
+
+  const colorFromD = d3
+    .scaleSequential()
+    .domain([0, Math.max(width, height) / 2])
+    .interpolator(rgbScale);
+
+  const colorFromD_ = d3
+    .scaleSequential()
+    .domain([0, Math.max(width, height) / 2])
+    .interpolator(rgbScale_);
+
+  const ff = (v) => Math.round(255 * v);
+  const vals = (c) => c.map((v) => ff(sig(v))).join(",");
+  const css = (c) => "rgb(" + vals(c) + ")";
+  const s = (c) => d3.color(css(c)); //({ r: sig(r), g: sig(g), b: sig(b) });
+  console.log("c:", s([0, 1, 0]));
+
+  const getColor = (d) => context.clearRect(0, 0, width, height);
+
+  if (showVoronoiCells || showVoronoiEdges) {
+    const voronoi = delaunay.voronoi([1.5, 1.5, width - 1.5, height - 1.5]);
+    const polygons = [...voronoi.cellPolygons()];
+
+    const c = [width / 2, height / 2];
+    for (const p of polygons) {
+      const s = particles[p.index];
+      context.beginPath();
+      voronoi.renderCell(p.index, context);
+
+      if (showVoronoiCells) {
+        const d = distance(s, c);
+        context.fillStyle = d3.color(css(colorFromD_(d)));
+        context.fill();
+      }
+
+      if (showVoronoiEdges) {
+        context.strokeStyle = "#000";
+        context.stroke();
+      }
+    }
+  }
+
+
+
+  if (showDelaunayEdges) {
+    const { halfedges, triangles, hull } = delaunay;
+
+    const edges = [
+      ...Array.from(hull, (i, k) => [i, hull[(k + 1) % hull.length]]),
+      ...Array.from(halfedges, (i, j) =>
+        i > j ? [[triangles[i], triangles[j]]] : []
+      ).flat()
+    ].map(([p, q], i) => ({ i, p: particles[p], q: particles[q] }));
+
+    const edgeLengths = edges.map((e) => {
+      var dx = e.p[0] - e.q[0];
+      var dy = e.p[1] - e.q[1];
+      return Math.sqrt(dx * dx + dy * dy);
+    });
+
+    var opacity = d3
+      .scalePow()
+      .exponent(0.01)
+      .domain(d3.extent(edgeLengths))
+      .range([1, 0].map((opacity) => d3.color("white").copy({ opacity })));
+
+    console.log([0, 100, 200, 400, 800].map(opacity));
+
+    const colorFromD = d3.scaleSequential().interpolator(opacity);
+    context.beginPath();
+    for (const { i, p, q } of edges) {
+      context.beginPath();
+      context.moveTo(...p);
+      context.lineTo(...q);
+      const color = d3.color(colorFromD(edgeLengths[i]));
+      context.strokeStyle = d3.color(colorFromD(edgeLengths[i]));
+      context.stroke();
+    }
+  }
+
+  if (showSites) {
+    context.beginPath();
+    delaunay.renderPoints(context, 2);
+    context.fillStyle = "white";
+    context.fill();
+  }
+
+  if (marked) {
+    context.beginPath();
+    context.arc(...marked, 5, 0, 2 * Math.PI);
+    context.strokeStyle = "white";
+    context.stroke();
+  }
+
+  return context.canvas;
+}
+
+mutable delaunay = d3.Delaunay.from(particles)
+
+mutable voronoi = delaunay.voronoi([-1.5, -1.5, width+1.5, height+1.5])
+
+distance = (p, m) => {
+  const a = p[0] - m[0];
+  const b = p[1] - m[1];
+  return Math.sqrt(a * a + b * b);
+}
+
+recount = {
+  const random = () => [Math.random() * width - 5, Math.random() * height - 5];
+  const square = (i) => [Math.random() * width - 5, Math.random() * height - 5];
+
+  while (particles.length < n) particles.push(random(particles.length));
+  while (particles.length > n) particles.pop();
+
+  draw();
+  return particles.length;
+}
+
+mutable particles = []
+
+context = DOM.context2d(width, height);
+
+height = width * 2/3
+
+function ramp(color, n = 512) {
+  const canvas = DOM.canvas(n, 1);
+  const context = canvas.getContext("2d");
+  canvas.style.margin = "0 -14px";
+  canvas.style.width = "calc(100% + 28px)";
+  canvas.style.height = "40px";
+  canvas.style.imageRendering = "pixelated";
+  for (let i = 0; i < n; ++i) {
+    context.fillStyle = color(i / (n - 1));
+    context.fillRect(i, 0, 1, 1);
+  }
+  return canvas;
+}
+For your references, here are 2 examples of labeled programs:
+
+Program 1:
+
+Label: createSvgComponent()
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) )
+const g = svg . attr ( 'width' , width + margin . left )
+. attr ( 'height' , height + margin . top + margin . bottom )
+. append ( 'g' )
+. attr ( 'transform' , 'translate(' + margin . left + ',0)' )
+
+Label: svgAppend()
+g . append ( 'g' )
+. attr ( 'transform' , 'translate(0,' + height + ')' )
+. call ( d3 . axisBottom ( x_scale ) )
+g . append ( 'g' )
+. call ( d3 . axisLeft ( y_scale ) )
+
+Label: svgAppend()
+svg . selectAll ( '.bar' )
+. data ( data )
+. enter ( ) . append ( 'rect' )
+. attr ( 'fill' , '#0077C0' )
+. attr ( 'x' , ( d , i ) => x_scale ( d . category ) + margin . left * 1.5 )
+. attr ( 'y' , ( d ) => y_scale ( d . value ) )
+. attr ( 'width' , 50 )
+. attr ( 'height' , ( d ) => height - y_scale ( d . value ) )
+
+return svg . node ( )
+}
+
+Label: scaleComponent()
+ x_scale . domain ( data . map ( ( d ) => d . category ) )
+
+Label: filterData()
+ data = [ 'A' , 'B' , 'C' , 'D' , 'E' , 'F' , 'G' , 'H' ] . map ( ( d ) => ( {
+value : d3 . randomUniform ( ) ( ) , category : d } ) )
+
+Label: scaleComponent()
+ y_scale = d3 . scaleLinear ( )
+. domain ( [ 0 , 1 ] )
+. range ( [ height , 0 ] )
+
+Label: scaleComponent()
+ x_scale = d3 . scaleBand ( )
+. rangeRound ( [ 0 , width - margin . left - margin . right ] )
+
+Label: setHeight()
+ height = 350
+
+Label: setMargin()
+ margin = ( { top : 50 , right : 50 , bottom : 50 , left : 50 } )
+
+Label: setD3Version()
+ d3 = require ( "d3@5" )
+
+Program 2:
+
+Label: scaleComponent()
+// xScale will help us set the x position of the bars
+xScale = d3 . scaleBand ( ) //Ordinal scale
+. domain ( d3 . range ( dataset . length ) ) //sets the input domain for the scale
+. rangeRound ( [ 0 , w ] ) //enables rounding of the range
+. paddingInner ( 0.05 ) ; //spacing between each bar
+
+Label: scaleComponent()
+ //yScale will help us map data to the height of bars in the barchart
+yScale = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( dataset ) ] ) //sets the upper end of the input domain to the largest data value in dataset
+. range ( [ 0 , h ] ) ;
+
+Label: createSvgComponent()
+ //Create SVG element
+svg = d3 . select ( body )
+. append ( "svg" )
+. attr ( "width" , w )
+. attr ( "height" , h ) ;
+
+Label: svgAppend()
+ //Create bars
+svg . selectAll ( "rect" )
+. data ( dataset )
+. enter ( )
+. append ( "rect" )
+. attr ( "x" , function ( d , i ) { // position in x-axis
+return xScale ( i ) ; // we will pass the values from the dataset
+} )
+. attr ( "y" , function ( d ) {
+return h - yScale ( d ) ;
+} )
+. attr ( "width" , xScale . bandwidth ( ) ) //Asks for the bandwith of the scale
+. attr ( "height" , function ( d ) {
+return yScale ( d ) ;
+} )
+. attr ( "fill" , function ( d ) {
+return "rgb(" + Math . round ( d * 8 ) + ",0," + Math . round ( d * 10 ) + ")" ; //Change the color of the bar depending on the value
+} ) ;
+
+Label: interaction()
+ d3 . select ( button )
+. on ( "click" , function ( ) {
+newData ( ) ; //Changes de values of the data
+updateBar ( ) ; //Updates the bar chart
+} ) ;
+
+Label: interaction()
+ function newData ( ) {
+while ( dataset . length > 0 ) { //Clear the current dataset
+dataset . pop ( ) ;
+}
+for ( var i = 0 ; i < 20 ; i ++ ) { //Loop 20 times
+var newNumber = Math . floor ( Math . random ( ) * 20 ) + 5 ; //New random integer (5-25)
+dataset . push ( newNumber ) ; //Add new number to array
+}
+}
+
+Label: interaction()
+ function updateBar ( ) {
+//Update all rects
+svg . selectAll ( "rect" )
+. data ( dataset )
+. transition ( ) // <---- Here is the transition
+. duration ( 2000 ) // 2 seconds
+. attr ( "y" , function ( d ) {
+return h - yScale ( d ) ;
+} )
+. attr ( "height" , function ( d ) {
+return yScale ( d ) ;
+} )
+. attr ( "fill" , function ( d ) {
+return "rgb(" + Math . round ( d * 8 ) + ",0," + Math . round ( d * 10 ) + ")" ;
+} ) ;
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Sure, I can provide labels for your code to help you understand what different parts are doing. Here's the program with labels inserted as comments throughout:
+
+```javascript
+// Define toggles for user inputs
+viewof showSites = Inputs.toggle({ label: "Sites", value: true });
+viewof showDelaunayEdges = Inputs.toggle({ label: "Delaunay Edges", value: true });
+viewof showVoronoiEdges = Inputs.toggle({ label: "Voronoi Edges", value: true });
+viewof showVoronoiCells = Inputs.toggle({ label: "Voronoi Cells", value: true });
+
+// Initial particle count
+mutable particle_count = 17;
+
+// Define color inputs
+viewof color1 = Inputs.color({ value: "#ff0000", width: 10 });
+viewof color2 = Inputs.color({ value: '#00ff00', width: 10 });
+viewof color3 = Inputs.color({ value: "#0000ff", width: 10 });
+
+// Define range for exponent input
+viewof exponent = Inputs.range([.5, 6], { label: "Exponent", value: 2 });
+
+// Define color scale using D3 scaleLinear
+const rgbScale = d3
+  .scaleLinear()
+  .domain([0, 0.5, 1])
+  .range([
+    { r: 1, g: 0, b: 0 },
+    { r: 0, g: 1, b: 0 },
+    { r: 0, g: 0, b: 1 }
+  ]);
+
+// Prepare data based on the domain and the rgb scale
+const domain = d3.range(0, 1.001, 0.001);
+const rgb = domain.map(rgbScale);
+const data = domain
+  .map((x) => ({ x, ...rgbScale(x) }))
+  .flatMap(({ x, r, g, b }) => [
+    { x, y: sig(r), c: "red" },
+    { x, y: sig(g), c: "green" },
+    { x, y: sig(b), c: "blue" }
+  ]);
+
+// Define plot using Plot.plot
+const plot = Plot.plot({
+  width: width,
+  height: 200,
+  x: {
+    domain: [0, 1],
+    visible: false,
+    tickCount: 0,
+    labelVisible: false
+  },
+  y: {
+    domain: [0, 1],
+    visible: false,
+    label: "Color value",
+    nice: true,
+    tickCount: false,
+    labelVisible: false
+  },
+  marks: [
+    Plot.line(data, {
+      x: "x",
+      y: "y",
+      z: "c",
+      stroke: "c"
+    })
+  ]
+});
+
+// Return the plot
+return plot;
+
+// Define sigmoid function
+sig = {
+  const { pow, abs, cos, sign, PI } = Math;
+  const c = (x) => -cos(x * 1 * PI);
+  return (x) => 0.5 + (pow(abs(c(x)), exponent) * sign(c(x))) / 2;
+};
+
+// Define range for particle count input
+viewof n = Inputs.range([0, 1000], { label: 'Count', step: 1, value: particle_count });
+
+// Define canvas for drawing
+canvas = {
+  console.log("canvas loaded");
+  const c = context.canvas;
+
+  // Function to find the closest particle
+  const find = (p) => {
+    const delaunay = d3.Delaunay.from(particles);
+    const pointify = (i) => {
+      let q = particles[i];
+      q.index = i;
+      return q;
+    };
+    const i = delaunay.find(...p);
+    return i >= 0 ? pointify(i) : null;
+  };
+
+  // Function to determine if two points are close enough
+  const close_enough = (p0, p1) => distance(p0, p1) < 10;
+
+  // Event handler for pointer down event
+  c.onpointerdown = (event) => {
+    event.preventDefault();
+    const mouse = d3.pointer(event);
+    const closest = find(mouse);
+
+    console.log("down", mouse, closest);
+
+    if (closest && close_enough(mouse, closest)) {
+      mutable selected = closest.index;
+    } else {
+      mutable selected = particles.length;
+      particles.push(mouse);
+      mutable particle_count = particles.length;
+    }
+  };
+
+  // Event handler for pointer move event
+  c.onpointermove = (event) => {
+    event.preventDefault();
+    const ptr = d3.pointer(event);
+    if (selected != null) {
+      particles[selected] = ptr;
+      mutable marked = null;
+      draw();
+    }
+    const closest = find(ptr);
+    mutable marked = close_enough(ptr, closest) ? closest : null;
+  };
+
+  // Event handler for pointer up event
+  c.onpointerup = (event) => {
+    event.preventDefault();
+    mutable selected = null;
+  };
+
+  // Event handler for pointer out event
+  c.onpointerout = (event) => {
+    event.preventDefault();
+    if (selected != null) {
+      particles.splice(selected, 1);
+      mutable particle_count = particles.length;
+      mutable selected = null;
+      mutable marked = null;
+      draw();
+    }
+  };
+
+  // Return the canvas context
+  return c;
+}
+
+// Variables for selected particle and marked particle
+mutable selected = null;
+mutable marked = null;
+
+// Draw function to handle rendering
+function draw() {
+  mutable drawtime++;
+}
+
+// Variable to track draw count
+mutable drawtime = 0;
+
+// Draw function to handle drawing on the canvas
+{
+  drawtime;
+  console.log("draw");
+  const delaunay = d3.Delaunay.from(particles);
+
+  // Define color scales
+  const rgbScale = d3
+    .scalePow()
+    .exponent(1)
+    .domain([0, 0.5, 1])
+    .range([color1, color2, color3]);
+
+  const rgbScale_ = d3
+    .scaleLinear()
+    .domain([0, 0.5, 1])
+    .range([
+      [1, 0, 0],
+      [0, 1, 0],
+      [0, 0, 1]
+    ]);
+
+  const colorFromD = d3
+    .scaleSequential()
+    .domain([0, Math.max(width, height) / 2])
+    .interpolator(rgbScale);
+
+  const colorFromD_ = d3
+    .scaleSequential()
+    .domain([0, Math.max(width, height) / 2])
+    .interpolator(rgbScale_);
+
+  // Functions for handling colors and drawing
+  const ff = (v) => Math.round(255 * v);
+  const vals = (c) => c.map((v) => ff(sig(v))).join(",");
+  const css = (c) => "rgb(" + vals(c) + ")";
+  const s = (c) => d3.color(css(c));
+
+  console.log("c:", s([0, 1, 0]));
+
+  // Function to clear the canvas
+  const getColor = (d) => context.clearRect(0, 0, width, height);
+
+  // Draw Voronoi cells and edges if enabled
+  if (showVoronoiCells || showVoronoiEdges) {
+    const voronoi = delaunay.voronoi([1.5, 1.5, width - 1.5, height - 1.5]);
+    const polygons = [...voronoi.cellPolygons()];
+
+    const c = [width / 2, height / 2];
+    for (const p of polygons) {
+      const s = particles[p.index];
+      context.beginPath();
+      voronoi.renderCell(p.index, context);
+
+      if (showVoronoiCells) {
+        const d = distance(s, c);
+        context.fillStyle = d3.color(css(colorFromD_(d)));
+        context.fill();
+      }
+
+      if (showVoronoiEdges) {
+        context.strokeStyle = "#000";
+        context.stroke();
+      }
+    }
+  }
+
+  // Draw Delaunay edges if enabled
+  if (showDelaunayEdges) {
+    const { halfedges, triangles, hull } = delaunay;
+
+    const edges = [
+      ...Array.from(hull, (i, k) => [i, hull[(k + 1) % hull.length]]),
+      ...Array.from(halfedges, (i, j) =>
+        i > j ? [[triangles[i], triangles[j]]] : []
+      ).flat()
+    ].map(([p, q], i) => ({ i, p: particles[p], q: particles[q] }));
+
+    const edgeLengths = edges.map((e) => {
+      var dx = e.p[0] - e.q[0];
+      var dy = e.p[1] - e.q[1];
+      return Math.sqrt(dx * dx + dy * dy);
+    });
+
+    // Define opacity scale
+    var opacity = d3
+      .scalePow()
+      .exponent(0.01)
+      .domain(d3.extent(edgeLengths))
+      .range([1, 0].map((opacity) => d3.color("white").copy({ opacity })));
+
+    console.log([0, 100, 200, 400, 800].map(opacity));
+
+    const colorFromD = d3.scaleSequential().interpolator(opacity);
+    context.beginPath();
+    for (const { i, p, q } of edges) {
+      context.beginPath();
+      context.moveTo(...p);
+      context.line
+
+To(...q);
+      const color = d3.color(colorFromD(edgeLengths[i]));
+      context.strokeStyle = d3.color(colorFromD(edgeLengths[i]));
+      context.stroke();
+    }
+  }
+
+  // Draw sites if enabled
+  if (showSites) {
+    context.beginPath();
+    delaunay.renderPoints(context, 2);
+    context.fillStyle = "white";
+    context.fill();
+  }
+
+  // Draw marked particle
+  if (marked) {
+    context.beginPath();
+    context.arc(...marked, 5, 0, 2 * Math.PI);
+    context.strokeStyle = "white";
+    context.stroke();
+  }
+
+  return context.canvas;
+}
+
+// Initialize Delaunay and Voronoi
+mutable delaunay = d3.Delaunay.from(particles);
+mutable voronoi = delaunay.voronoi([-1.5, -1.5, width + 1.5, height + 1.5]);
+
+// Calculate distance between two points
+distance = (p, m) => {
+  const a = p[0] - m[0];
+  const b = p[1] - m[1];
+  return Math.sqrt(a * a + b * b);
+};
+
+// Recount particles to match desired count
+recount = {
+  const random = () => [Math.random() * width - 5, Math.random() * height - 5];
+  while (particles.length < n) particles.push(random(particles.length));
+  while (particles.length > n) particles.pop();
+  draw();
+  return particles.length;
+}
+
+// Initialize particles
+mutable particles = [];
+
+// Initialize context for drawing
+context = DOM.context2d(width, height);
+
+// Define height relative to width
+height = width * 2/3;
+
+// Define ramp function for displaying color gradients
+function ramp(color, n = 512) {
+  const canvas = DOM.canvas(n, 1);
+  const context = canvas.getContext("2d");
+  canvas.style.margin = "0 -14px";
+  canvas.style.width = "calc(100% + 28px)";
+  canvas.style.height = "40px";
+  canvas.style.imageRendering = "pixelated";
+  for (let i = 0; i < n; ++i) {
+    context.fillStyle = color(i / (n - 1));
+    context.fillRect(i, 0, 1, 1);
+  }
+  return canvas;
+}
+```
+
+These labels provide a high-level overview of the program, indicating the purpose of different sections and blocks of code. Let me know if you need any more specific comments or further assistance!

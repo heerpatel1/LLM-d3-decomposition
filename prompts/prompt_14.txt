@@ -1,0 +1,677 @@
+Can you label this program for me without changing its order?:
+
+viewof chart = {
+  const width = 600;
+  const height = 300;
+  const data = await FileAttachment("faithful.json").json();
+
+  let chartContainer = d3.create('div')
+    .attr('class', 'chart-container');
+
+  chartContainer.call(
+    boxPlot()
+      .width(width)
+      .height(height)
+      .margin({
+       top: 70,
+        right: 70,
+        bottom: 70,
+        left: 70,
+      })
+      .data(data)
+      .xMin(15)
+      .xMax(120)
+      .xLabel('Time between eruptions (minutes) →')
+      .title('Summary statistics of time between eruptions of Old Faithful')
+      .boxWidth(50)
+      .radius(5)
+      .hoverOffsetX(70)
+      .hoverOffsetY(55)
+  );
+
+  return chartContainer.node();
+}
+
+function boxPlot() {
+  let width;
+  let height;
+  let margin;
+  let data;
+  let xMin;
+  let xMax;
+  let xLabel;
+  let title;
+  let boxWidth;
+  let color = 'rgb(122, 255, 248, 0.7)';
+  let strokeWidth = 1.5;
+  let opacity = 1.0;
+  let radius;
+  let fontSize = 15;
+  let hoverOffsetX = 0;
+  let hoverOffsetY = 0;
+  let removeAxis = false;
+
+  const boxPlot = (selection) => {
+    const svg = selection
+      .selectAll('svg.box-plot')
+      .data([null])
+      .join('svg')
+      .attr('class', 'box-plot')
+      .attr('width', width)
+      .attr('height', height);
+
+    svg
+      .attr('font-family', 'sans-serif')
+      .attr('font-size', fontSize);
+
+    let xRange = d3.extent(data);
+    xRange[0] = xMin ?? xRange[0];
+    xRange[1] = xMax ?? xRange[1];
+
+    const x = d3.scaleLinear()
+      .domain(xRange)
+      .range([margin.left, width - margin.right]);
+
+    const q1 = d3.quantile(data, 0.25);
+    const q2 = d3.quantile(data, 0.5);
+    const q3 = d3.quantile(data, 0.75);
+    const iqr = q3 - q1;
+    let min = q1 - iqr * 1.5;
+    const dataMin = d3.min(data);
+    min = dataMin > min ? dataMin : min;
+    let max = q3 + iqr * 1.5;
+    const dataMax = d3.max(data);
+    max = dataMax < max ? dataMax : max;
+    const outliers = data.filter(d => (d < min) || (d > max));
+
+    const tooltip = selection.selectAll('div.tooltip')
+      .data([null])
+      .join('div')
+      .attr('class', 'tooltip')
+      .style('position', 'absolute')
+      .style('opacity', 0);
+
+    svg
+      .on('mouseover', function(event) {
+        const message = `
+        Minimum: ${min.toFixed(2)}<br>
+        25th percentile: ${q1.toFixed(2)}<br>
+        Median: ${q2.toFixed(2)}<br>
+        75th percentile: ${q3.toFixed(2)}<br>
+        Maximum: ${max.toFixed(2)}<br>
+        Inter-quartile range: ${iqr.toFixed(2)}
+        `;
+        tooltip
+          .style('opacity', 1)
+          .style('border-color', color)
+          .html(message);
+      })
+      .on('mouseout', () => {
+        tooltip
+          .style('opacity', 0);
+      })
+      .on('mousemove', function(event) {
+        tooltip
+          .style('left', (event.pageX + hoverOffsetX) + 'px')
+          .style('top', (event.pageY + hoverOffsetY) + 'px');
+      });
+
+    svg
+      .selectAll('circle')
+      .data(outliers)
+      .join('circle')
+      .attr('cx', (d) => x(d))
+      .attr('cy', () => (height / 2 + (Math.random() * (boxWidth / 2) - (boxWidth / 4))) )
+      .attr('r', radius)
+      .attr('fill', color)
+      .attr('opacity', opacity)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    svg
+      .selectAll('rect')
+      .data([null])
+      .join('rect')
+      .attr('x', x(q1))
+      .attr('y', height / 2 - boxWidth / 2)
+      .attr('width', x(q3) - x(q1))
+      .attr('height', boxWidth)
+      .attr('fill', color)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    svg
+      .selectAll('#median')
+      .data([null])
+      .join('line')
+      .attr('id', 'median')
+      .attr('x1', x(q2))
+      .attr('y1', height / 2 - boxWidth / 2)
+      .attr('x2', x(q2))
+      .attr('y2', height / 2 + boxWidth / 2)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth * 2);
+
+    svg
+      .selectAll('#lower-whisker')
+      .data([null])
+      .join('line')
+      .attr('id', 'lower-whisker')
+      .attr('x1', x(min))
+      .attr('y1', height / 2)
+      .attr('x2', x(q1))
+      .attr('y2', height / 2)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    svg
+      .selectAll('#lower-whisker-edge')
+      .data([null])
+      .join('line')
+      .attr('id', 'lower-whisker-edge')
+      .attr('x1', x(min))
+      .attr('y1', height / 2 - boxWidth / 4)
+      .attr('x2', x(min))
+      .attr('y2', height / 2 + boxWidth / 4)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    svg
+      .selectAll('#upper-whisker')
+      .data([null])
+      .join('line')
+      .attr('id', 'upper-whisker')
+      .attr('x1', x(q3))
+      .attr('y1', height / 2)
+      .attr('x2', x(max))
+      .attr('y2', height / 2)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    svg
+      .selectAll('#upper-whisker-edge')
+      .data([null])
+      .join('line')
+      .attr('id', 'upper-whisker-edge')
+      .attr('x1', x(max))
+      .attr('y1', height / 2 - boxWidth / 4)
+      .attr('x2', x(max))
+      .attr('y2', height / 2 + boxWidth / 4)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    if (!removeAxis) {
+      svg
+        .selectAll('.x-axis')
+        .data([null])
+        .join('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x));
+
+      if (xLabel) {
+        svg
+          .selectAll('.x-axis-label')
+          .data([null])
+          .join('text')
+          .attr('class', 'x-axis-label')
+          .attr('text-anchor', 'end')
+          .attr('x', width)
+          .attr('y',  height - margin.bottom / 3)
+          .text(xLabel)
+          .style('font-size', fontSize * (3/4));
+      }
+    }
+
+    if (title) {
+      svg
+        .selectAll('.title')
+        .data([null])
+        .join('text')
+        .attr('class', 'title')
+        .text(title)
+        .attr('text-anchor', 'middle')
+        .attr('x',  width / 2)
+        .attr('y', margin.top / 2);
+    }
+  }
+
+  boxPlot.width = function (_) {
+    return arguments.length ? ((width = +_), boxPlot) : width;
+  }
+
+  boxPlot.height = function (_) {
+    return arguments.length ? ((height = +_), boxPlot) : height;
+  }
+
+  boxPlot.margin = function (_) {
+    return arguments.length ? ((margin = _), boxPlot) : margin;
+  }
+
+  boxPlot.data = function (_) {
+    return arguments.length ? ((data = _), boxPlot) : data;
+  }
+
+  boxPlot.xMin = function (_) {
+    return arguments.length ? ((xMin = +_), boxPlot) : xMin;
+  }
+
+  boxPlot.xMax = function (_) {
+    return arguments.length ? ((xMax = +_), boxPlot) : xMax;
+  }
+
+  boxPlot.xLabel = function (_) {
+    return arguments.length ? ((xLabel = _), boxPlot) : xLabel;
+  }
+
+  boxPlot.title = function (_) {
+    return arguments.length ? ((title = _), boxPlot) : title;
+  }
+
+  boxPlot.boxWidth = function (_) {
+    return arguments.length ? ((boxWidth = +_), boxPlot) : boxWidth;
+  }
+
+  boxPlot.color = function (_) {
+    return arguments.length ? ((color = _), boxPlot) : color;
+  }
+
+  boxPlot.strokeWidth = function (_) {
+    return arguments.length ? ((strokeWidth = +_), boxPlot) : strokeWidth;
+  }
+
+  boxPlot.opacity = function (_) {
+    return arguments.length ? ((opacity = +_), boxPlot) : opacity;
+  }
+
+  boxPlot.radius = function (_) {
+    return arguments.length ? ((radius = +_), boxPlot) : radius;
+  }
+
+  boxPlot.fontSize = function (_) {
+    return arguments.length ? ((fontSize = +_), boxPlot) : fontSize;
+  }
+
+  boxPlot.hoverOffsetX = function (_) {
+    return arguments.length ? ((hoverOffsetX = +_), boxPlot) : hoverOffsetX;
+  }
+
+  boxPlot.hoverOffsetY = function (_) {
+    return arguments.length ? ((hoverOffsetY = +_), boxPlot) : hoverOffsetY;
+  }
+
+  boxPlot.removeAxis = function (_) {
+    return arguments.length ? ((removeAxis = _), boxPlot) : removeAxis;
+  }
+
+  return boxPlot;
+}
+
+<style>
+  .tooltip {
+    padding: 8px 12px;
+    color: white;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.2);
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    font-family: "Helvetica", sans-serif;
+    font-size: 12px;
+    background: rgba(20,10,30,0.6);
+    transition: 0.2s opacity ease-out, 0.1s border-color ease-out;
+  }
+</style>
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Define function for creating a box plot chart
+viewof chart = {
+  const width = 600;
+  const height = 300;
+  const data = await FileAttachment("faithful.json").json();
+
+  let chartContainer = d3.create('div')
+    .attr('class', 'chart-container');
+
+  chartContainer.call(
+    boxPlot()
+      .width(width)
+      .height(height)
+      .margin({
+       top: 70,
+        right: 70,
+        bottom: 70,
+        left: 70,
+      })
+      .data(data)
+      .xMin(15)
+      .xMax(120)
+      .xLabel('Time between eruptions (minutes) →')
+      .title('Summary statistics of time between eruptions of Old Faithful')
+      .boxWidth(50)
+      .radius(5)
+      .hoverOffsetX(70)
+      .hoverOffsetY(55)
+  );
+
+  return chartContainer.node();
+}
+
+// Define function for creating a box plot
+function boxPlot() {
+  let width;
+  let height;
+  let margin;
+  let data;
+  let xMin;
+  let xMax;
+  let xLabel;
+  let title;
+  let boxWidth;
+  let color = 'rgb(122, 255, 248, 0.7)';
+  let strokeWidth = 1.5;
+  let opacity = 1.0;
+  let radius;
+  let fontSize = 15;
+  let hoverOffsetX = 0;
+  let hoverOffsetY = 0;
+  let removeAxis = false;
+
+  // Function to create the box plot
+  const boxPlot = (selection) => {
+    // Select SVG element
+    const svg = selection
+      .selectAll('svg.box-plot')
+      .data([null])
+      .join('svg')
+      .attr('class', 'box-plot')
+      .attr('width', width)
+      .attr('height', height);
+
+    // Set font attributes for SVG
+    svg
+      .attr('font-family', 'sans-serif')
+      .attr('font-size', fontSize);
+
+    // Calculate x range
+    let xRange = d3.extent(data);
+    xRange[0] = xMin ?? xRange[0];
+    xRange[1] = xMax ?? xRange[1];
+
+    // Define x scale
+    const x = d3.scaleLinear()
+      .domain(xRange)
+      .range([margin.left, width - margin.right]);
+
+    // Calculate quartiles and outliers
+    const q1 = d3.quantile(data, 0.25);
+    const q2 = d3.quantile(data, 0.5);
+    const q3 = d3.quantile(data, 0.75);
+    const iqr = q3 - q1;
+    let min = q1 - iqr * 1.5;
+    const dataMin = d3.min(data);
+    min = dataMin > min ? dataMin : min;
+    let max = q3 + iqr * 1.5;
+    const dataMax = d3.max(data);
+    max = dataMax < max ? dataMax : max;
+    const outliers = data.filter(d => (d < min) || (d > max));
+
+    // Create tooltip element
+    const tooltip = selection.selectAll('div.tooltip')
+      .data([null])
+      .join('div')
+      .attr('class', 'tooltip')
+      .style('position', 'absolute')
+      .style('opacity', 0);
+
+    // Define tooltip behavior
+    svg
+      .on('mouseover', function(event) {
+        const message = `
+        Minimum: ${min.toFixed(2)}<br>
+        25th percentile: ${q1.toFixed(2)}<br>
+        Median: ${q2.toFixed(2)}<br>
+        75th percentile: ${q3.toFixed(2)}<br>
+        Maximum: ${max.toFixed(2)}<br>
+        Inter-quartile range: ${iqr.toFixed(2)}
+        `;
+        tooltip
+          .style('opacity', 1)
+          .style('border-color', color)
+          .html(message);
+      })
+      .on('mouseout', () => {
+        tooltip
+          .style('opacity', 0);
+      })
+      .on('mousemove', function(event) {
+        tooltip
+          .style('left', (event.pageX + hoverOffsetX) + 'px')
+          .style('top', (event.pageY + hoverOffsetY) + 'px');
+      });
+
+    // Render outliers
+    svg
+      .selectAll('circle')
+      .data(outliers)
+      .join('circle')
+      .attr('cx', (d) => x(d))
+      .attr('cy', () => (height / 2 + (Math.random() * (boxWidth / 2) - (boxWidth / 4))) )
+      .attr('r', radius)
+      .attr('fill', color)
+      .attr('opacity', opacity)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    // Render box
+    svg
+      .selectAll('rect')
+      .data([null])
+      .join('rect')
+      .attr('x', x(q1))
+      .attr('y', height / 2 - boxWidth / 2)
+      .attr('width', x(q3) - x(q1))
+      .attr('height', boxWidth)
+      .attr('fill', color)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    // Render median line
+    svg
+      .selectAll('#median')
+      .data([null])
+      .join('line')
+      .attr('id', 'median')
+      .attr('x1', x(q2))
+      .attr('y1', height / 2 - boxWidth / 2)
+      .attr('x2', x(q2))
+      .attr('y2', height / 2 + boxWidth / 2)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth * 2);
+
+    // Render lower whisker
+    svg
+      .selectAll('#lower-whisker')
+      .data([null])
+      .join('line')
+      .attr('id', 'lower-whisker')
+      .attr('x1', x(min))
+      .attr('y1', height / 2)
+      .attr('x2', x(q1))
+      .attr('y2', height / 2)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    // Render lower whisker edge
+    svg
+      .selectAll('#lower-whisker-edge')
+      .data([null])
+      .join('line')
+      .attr('id', 'lower-whisker-edge')
+      .attr('x1', x(min))
+      .attr('y1', height / 2 - boxWidth / 4)
+      .attr('x2', x(min))
+      .attr('y2', height / 2
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+Can you label the rest of the program?
+
+
+```javascript
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    // Render upper whisker
+    svg
+      .selectAll('#upper-whisker')
+      .data([null])
+      .join('line')
+      .attr('id', 'upper-whisker')
+      .attr('x1', x(q3))
+      .attr('y1', height / 2)
+      .attr('x2', x(max))
+      .attr('y2', height / 2)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    // Render upper whisker edge
+    svg
+      .selectAll('#upper-whisker-edge')
+      .data([null])
+      .join('line')
+      .attr('id', 'upper-whisker-edge')
+      .attr('x1', x(max))
+      .attr('y1', height / 2 - boxWidth / 4)
+      .attr('x2', x(max))
+      .attr('y2', height / 2 + boxWidth / 4)
+      .attr('stroke', 'black')
+      .attr('stroke-width', strokeWidth);
+
+    // Render x-axis and label if axis is not removed
+    if (!removeAxis) {
+      svg
+        .selectAll('.x-axis')
+        .data([null])
+        .join('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x));
+
+      if (xLabel) {
+        svg
+          .selectAll('.x-axis-label')
+          .data([null])
+          .join('text')
+          .attr('class', 'x-axis-label')
+          .attr('text-anchor', 'end')
+          .attr('x', width)
+          .attr('y',  height - margin.bottom / 3)
+          .text(xLabel)
+          .style('font-size', fontSize * (3/4));
+      }
+    }
+
+    // Render title
+    if (title) {
+      svg
+        .selectAll('.title')
+        .data([null])
+        .join('text')
+        .attr('class', 'title')
+        .text(title)
+        .attr('text-anchor', 'middle')
+        .attr('x',  width / 2)
+        .attr('y', margin.top / 2);
+    }
+  }
+
+  // Setters for configuration properties
+  boxPlot.width = function (_) {
+    return arguments.length ? ((width = +_), boxPlot) : width;
+  }
+
+  boxPlot.height = function (_) {
+    return arguments.length ? ((height = +_), boxPlot) : height;
+  }
+
+  boxPlot.margin = function (_) {
+    return arguments.length ? ((margin = _), boxPlot) : margin;
+  }
+
+  boxPlot.data = function (_) {
+    return arguments.length ? ((data = _), boxPlot) : data;
+  }
+
+  boxPlot.xMin = function (_) {
+    return arguments.length ? ((xMin = +_), boxPlot) : xMin;
+  }
+
+  boxPlot.xMax = function (_) {
+    return arguments.length ? ((xMax = +_), boxPlot) : xMax;
+  }
+
+  boxPlot.xLabel = function (_) {
+    return arguments.length ? ((xLabel = _), boxPlot) : xLabel;
+  }
+
+  boxPlot.title = function (_) {
+    return arguments.length ? ((title = _), boxPlot) : title;
+  }
+
+  boxPlot.boxWidth = function (_) {
+    return arguments.length ? ((boxWidth = +_), boxPlot) : boxWidth;
+  }
+
+  boxPlot.color = function (_) {
+    return arguments.length ? ((color = _), boxPlot) : color;
+  }
+
+  boxPlot.strokeWidth = function (_) {
+    return arguments.length ? ((strokeWidth = +_), boxPlot) : strokeWidth;
+  }
+
+  boxPlot.opacity = function (_) {
+    return arguments.length ? ((opacity = +_), boxPlot) : opacity;
+  }
+
+  boxPlot.radius = function (_) {
+    return arguments.length ? ((radius = +_), boxPlot) : radius;
+  }
+
+  boxPlot.fontSize = function (_) {
+    return arguments.length ? ((fontSize = +_), boxPlot) : fontSize;
+  }
+
+  boxPlot.hoverOffsetX = function (_) {
+    return arguments.length ? ((hoverOffsetX = +_), boxPlot) : hoverOffsetX;
+  }
+
+  boxPlot.hoverOffsetY = function (_) {
+    return arguments.length ? ((hoverOffsetY = +_), boxPlot) : hoverOffsetY;
+  }
+
+  boxPlot.removeAxis = function (_) {
+    return arguments.length ? ((removeAxis = _), boxPlot) : removeAxis;
+  }
+
+  return boxPlot;
+}
+
+// Styling for tooltip
+<style>
+  .tooltip {
+    padding: 8px 12px;
+    color: white;
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.5);
+    box-shadow: 0 1px 4px 0 rgba(0,0,0,0.2);
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+    font-family: "Helvetica", sans-serif;
+    font-size: 12px;
+    background: rgba(20,10,30,0.6);
+    transition: 0.2s opacity ease-out, 0.1s border-color ease-out;
+  }
+</style>
+```

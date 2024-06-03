@@ -1,0 +1,240 @@
+Can you label this program for me?:
+
+chart = {
+const links = skillsnodes1 . links . map ( d => Object . create ( d ) ) ;
+const nodes = skillsnodes1 . nodes . map ( d => Object . create ( d ) ) ;
+
+const simulation = d3 . forceSimulation ( nodes )
+. force ( "link" , d3 . forceLink ( links ) . id ( d => d . id ) )
+. force ( "charge" , d3 . forceManyBody ( ) . strength ( - 60 ) )
+. force ( "center" , d3 . forceCenter ( width / 2 , height / 2 ) )
+. force ( "collision" , d3 . forceCollide ( ) . radius ( 30 ) )
+. force ( "x" , d3 . forceX ( ) . x ( ( d ) => d . x ) . strength ( 0.05 ) . x ( function ( d ) { return Math . max ( 0 , d . x - width + 5 ) ; } ) )
+. force ( "y" , d3 . forceY ( ) . y ( ( d ) => d . y ) . strength ( 0.05 ) . y ( function ( d ) { return Math . max ( 0 , d . y - height + 5 ) ; } ) ) ;
+
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+const link = svg . append ( "g" )
+. attr ( "stroke" , "#999" )
+. attr ( "stroke-opacity" , 0.6 )
+. selectAll ( "line" )
+. data ( links )
+. join ( "line" )
+. attr ( "stroke-width" , d => Math . sqrt ( d . value ) ) ;
+
+const node = svg . append ( "g" )
+. selectAll ( ".node" )
+. data ( nodes )
+. join ( "g" )
+. attr ( 'class' , 'node' )
+. attr ( 'style' , 'cursor: grab;' )
+. call ( drag ( simulation ) ) ;
+
+node . append ( 'circle' )
+. attr ( "r" , 3 )
+. attr ( "fill" , "purple" ) ;
+
+node . append ( "text" )
+. text ( function ( d ) {
+return d . id ;
+} )
+. style ( 'fill' , '#000' )
+. style ( 'font-size' , '12px' )
+. attr ( 'x' , 6 )
+. attr ( 'y' , 3 ) ;
+
+
+simulation . on ( "tick" , ( ) => {
+link
+. attr ( "x1" , d => d . source . x )
+. attr ( "y1" , d => d . source . y )
+. attr ( "x2" , d => d . target . x )
+. attr ( "y2" , d => d . target . y ) ;
+
+node
+. attr ( "transform" , d => `translate(${ d . x }, ${ d . y })` ) ;
+} ) ;
+
+invalidation . then ( ( ) => simulation . stop ( ) ) ;
+
+return svg . node ( ) ;
+}
+
+ data = FileAttachment ( "rapper-graph-nodelink.json" ) . json ( )
+
+ height = 600
+
+ color = {
+const scale = d3 . scaleOrdinal ( d3 . schemeCategory10 ) ;
+return d => scale ( d . group ) ;
+}
+
+ drag = simulation => {
+
+function dragstarted ( d ) {
+if ( ! d3 . event . active ) simulation . alphaTarget ( 0.3 ) . restart ( ) ;
+d . fx = d . x ;
+d . fy = d . y ;
+}
+
+function dragged ( d ) {
+d . fx = d3 . event . x ;
+d . fy = d3 . event . y ;
+}
+
+function dragended ( d ) {
+if ( ! d3 . event . active ) simulation . alphaTarget ( 0 ) ;
+d . fx = null ;
+d . fy = null ;
+}
+
+return d3 . drag ( )
+. on ( "start" , dragstarted )
+. on ( "drag" , dragged )
+. on ( "end" , dragended ) ;
+}
+
+ d3 = require ( "d3@5" )
+
+ skillsnodes1 = FileAttachment ( "skillsnodes1.json" ) . json ( )
+
+ skillsnodesx = FileAttachment ( "skillsnodesx.json" ) . json ( )
+
+//////////////////////////////////////////////////////////////////////////////
+Here's the labeled program:
+
+```javascript
+// Define the chart function
+chart = {
+    // Create copies of links and nodes arrays
+    const links = skillsnodes1.links.map(d => Object.create(d));
+    const nodes = skillsnodes1.nodes.map(d => Object.create(d));
+
+    // Define simulation with forces
+    const simulation = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id))
+        .force("charge", d3.forceManyBody().strength(-60))
+        .force("center", d3.forceCenter(width / 2, height / 2))
+        .force("collision", d3.forceCollide().radius(30))
+        .force("x", d3.forceX().x((d) => d.x).strength(0.05).x(function(d) { return Math.max(0, d.x - width + 5); }))
+        .force("y", d3.forceY().y((d) => d.y).strength(0.05).y(function(d) { return Math.max(0, d.y - height + 5); }));
+
+    // Create SVG element
+    const svg = d3.create("svg")
+        .attr("viewBox", [0, 0, width, height]);
+
+    // Append links
+    const link = svg.append("g")
+        .attr("stroke", "#999")
+        .attr("stroke-opacity", 0.6)
+        .selectAll("line")
+        .data(links)
+        .join("line")
+        .attr("stroke-width", d => Math.sqrt(d.value));
+
+    // Append nodes
+    const node = svg.append("g")
+        .selectAll(".node")
+        .data(nodes)
+        .join("g")
+        .attr('class', 'node')
+        .attr('style', 'cursor: grab;')
+        .call(drag(simulation));
+
+    // Append circle to nodes
+    node.append('circle')
+        .attr("r", 3)
+        .attr("fill", "purple");
+
+    // Append text to nodes
+    node.append("text")
+        .text(function(d) {
+            return d.id;
+        })
+        .style('fill', '#000')
+        .style('font-size', '12px')
+        .attr('x', 6)
+        .attr('y', 3);
+
+    // Update positions on tick event
+    simulation.on("tick", () => {
+        link
+            .attr("x1", d => d.source.x)
+            .attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x)
+            .attr("y2", d => d.target.y);
+
+        node
+            .attr("transform", d => `translate(${d.x}, ${d.y})`);
+    });
+
+    // Stop simulation on invalidation
+    invalidation.then(() => simulation.stop());
+
+    // Return the SVG node
+    return svg.node();
+}
+
+// Load data files
+data = FileAttachment("rapper-graph-nodelink.json").json();
+height = 600;
+
+// Define color scale function
+color = {
+    const scale = d3.scaleOrdinal(d3.schemeCategory10);
+    return d => scale(d.group);
+}
+
+// Define drag function for simulation
+drag = simulation => {
+    function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+        d.fx = d.x;
+        d.fy = d.y;
+    }
+
+    function dragged(d) {
+        d.fx = d3.event.x;
+        d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+        if (!d3.event.active) simulation.alphaTarget(0);
+        d.fx = null;
+        d.fy = null;
+    }
+
+    return d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended);
+}
+
+// Import D3 library
+d3 = require("d3@5");
+
+// Load JSON data files
+skillsnodes1 = FileAttachment("skillsnodes1.json").json();
+skillsnodesx = FileAttachment("skillsnodesx.json").json();
+```
+
+This labels different parts of the code:
+
+1. **Definition of the chart function**:
+   - Contains code to create a force-directed graph visualization using D3.js.
+
+2. **Data Loading**:
+   - Loads JSON data files for the visualization.
+
+3. **Definition of Color Scale Function**:
+   - Defines a color scale function based on the group attribute of the nodes.
+
+4. **Definition of Drag Function**:
+   - Defines a drag function to enable dragging of nodes in the simulation.
+
+5. **Import D3 Library**:
+   - Imports the D3.js library.
+
+6. **Load JSON Data Files**:
+   - Loads JSON data files for the visualization.

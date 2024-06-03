@@ -1,0 +1,516 @@
+Can you label this program for me without changing its order?:
+
+xAxis1 = g => g
+. call ( g => g . append ( "g" )
+. attr ( "transform" , `translate(0,${ margin margin . top })` )
+. call ( d3 d3 . axisTop ( x x ) . ticks ( null , "d" ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) ) ) // enlève la barre horizontale de l'axe x
+// .call(g => g.selectAll(".tick")
+//     .style("color", "green"))
+
+ yAxis = g => g
+. attr ( "transform" , `translate(${ margin margin . left },0)` )
+. call ( d3 d3 . axisLeft ( y y ) . tickSize ( 0 ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) ) // enlève la barre verticale de l'axe y
+
+ axis = {
+const svg = d3 d3 . create ( "svg" ) // On crée un élément svg que l'on réfère comme tel
+. attr ( "viewBox" , [ 0 , 0 , width width , innerHeight innerHeight + margin margin . top + margin margin . bottom ] ) // Change les attributs du svg, ici définie le format du graphique comme une boîte aux dimensions indiquées
+
+svg . append ( "g" ) // Nous ajoutons un g imbriqué dans l'élément svg
+. call ( xAxis1 xAxis1 ) ; // construit l'axe x
+
+svg . append ( "g" )
+. call ( yAxis yAxis ) ; // construit l'axe y
+
+return svg . node ( ) ;
+}
+
+ // Nous commençons par définir l'axe x comme précédemment:
+xAxis = g => g
+. call ( g => g . append ( "g" )
+. attr ( "transform" , `translate(0,${ margin margin . top })` )
+. call ( d3 d3 . axisTop ( x x ) . ticks ( null , "d" ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) ) ) // enlève la barre horizontale
+
+// L'ajout de la barre horizontale avec l'appel d'un nouveau g
+. call ( g => g . append ( "g" )
+. attr ( "transform" , `translate(0,${ innerHeight innerHeight + margin margin . top + 3 })` )
+. call ( d3 d3 . axisBottom ( x x )
+. tickValues ( [ data data . year ] )
+. tickFormat ( x => x )
+. tickSize ( - innerHeight innerHeight - 10 ) )
+
+// Ajout de la légende pour cette barre horizontale
+. call ( g => g . select ( ".tick text" )
+. clone ( )
+. attr ( "dy" , "2em" )
+. style ( "font-weight" , "bold" )
+. text ( "Measles vaccine introduced" ) )
+
+. call ( g => g . select ( ".domain" ) . remove ( ) ) ) ;
+
+ x = d3 d3 . scaleLinear ( )
+. domain ( [ d3 d3 . min ( data data . years ) , d3 d3 . max ( data data . years ) + 1 ] )
+. rangeRound ( [ margin margin . left , width width - margin margin . right ] )
+
+ y = d3 d3 . scaleBand ( )
+. domain ( data data . names )
+. rangeRound ( [ margin margin . top , margin margin . top + innerHeight innerHeight ] )
+
+ color = d3 d3 . scaleSequentialSqrt ( [ 0 , d3 d3 . max ( data data . values , d => d3 d3 . max ( d ) ) ] , d3 d3 . interpolatePuRd )
+
+ color2 = d3 d3 . scaleSqrt ( )
+. interpolate ( ( ) => color_interpolator color_interpolator )
+. domain ( [ 0 , d3 d3 . max ( data data . values , d => d3 d3 . max ( d ) ) ] )
+
+ color_interpolator = d3 d3 . piecewise ( d3 d3 . interpolateRgb . gamma ( 0.8 ) , [ "rgb(231, 240, 250)" , "rgb(231, 240, 250)" , "rgb(5, 155, 210)" , "green" , "rgb(246, 213, 63)" , "rgb(226, 148, 33)" , "rgb(226, 148, 33)" , "rgb(226, 148, 33)" , "rgb(239, 87, 53)" , "rgb(239, 87, 53)" , "rgb(239, 87, 53)" , "rgb(239, 87, 53)" ] )
+
+ rectangle = {
+const svg = d3 d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width width , innerHeight innerHeight + margin margin . top + margin margin . bottom ] )
+
+const id_pays = 23
+const id_annee = 1
+
+
+// Construction d'un seul rectangle (une donnée) :
+svg . append ( "rect" )
+. attr ( "transform" , `translate(0,${ y y ( data data . names [ id_pays ] ) })` ) // position sur les y
+. attr ( "x" , x x ( data data . years [ id_annee ] ) + 1 ) // position sur les x
+. attr ( "width" , x x ( data data . years [ id_annee ] + 1 ) - x x ( data data . years [ id_annee ] ) - 1 ) // largeur
+. attr ( "height" , y y . bandwidth ( ) - 1 ) // longueur
+. attr ( "fill" , isNaN ( data data . values [ id_pays ] [ id_annee ] ) ? "#eee" : data data . values [ id_pays ] [ id_annee ] === 0 ? "#fff" : color color ( data data . values [ id_pays ] [ id_annee ] ) ) ; // couleur
+
+
+return svg . node ( ) ;
+}
+
+ graph0 = {
+const svg = d3 d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width width , innerHeight innerHeight + margin margin . top + margin margin . bottom ] )
+
+// Axes
+svg . append ( "g" )
+. call ( xAxis xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis yAxis ) ;
+
+// Données
+const beauGraph = svg . append ( "g" )
+. selectAll ( "g" )
+. data ( data data . values )
+. join ( "g" )
+. attr ( "transform" , ( d , i ) => `translate(0,${ y y ( data data . names [ i ] ) })` )
+. selectAll ( "rect" )
+. data ( d => d )
+. join ( "rect" )
+. attr ( "x" , ( d , i ) => x x ( data data . years [ i ] ) + 1 )
+. attr ( "width" , ( d , i ) => x x ( data data . years [ i ] + 1 ) - x x ( data data . years [ i ] ) - 1 ) //largeur
+. attr ( "height" , y y . bandwidth ( ) - 1 ) // longueur
+. attr ( "fill" , d => isNaN ( d ) ? "#eee" : d === 0 ? "#fff" : color color ( d ) )
+
+return svg . node ( ) ;
+}
+
+
+ legend legend ( {
+color color ,
+title : "Measles cases per 100,000 people" ,
+width : 360
+} )
+
+legend({
+  color,
+  title: "Measles cases per 100,000 people",
+  width: 360
+})
+
+ animate = {
+const svg = d3 d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width width , innerHeight innerHeight + margin margin . top + margin margin . bottom ] )
+
+var tooltip = addTooltip addTooltip ( ) ;
+// Axes
+svg . append ( "g" )
+. call ( xAxis xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis yAxis ) ;
+
+// Données
+const beauGraph = svg . append ( "g" )
+. selectAll ( "g" )
+. data ( data data . values )
+. join ( "g" )
+. attr ( "transform" , ( d , i ) => `translate(0,${ y y ( data data . names [ i ] ) })` )
+. selectAll ( "rect" )
+. data ( d => d )
+. join ( "rect" )
+. attr ( "x" , ( d , i ) => x x ( data data . years [ i ] ) + 1 )
+. attr ( "width" , ( d , i ) => x x ( data data . years [ i ] + 1 ) - x x ( data data . years [ i ] ) - 1 ) //largeur
+. attr ( "height" , y y . bandwidth ( ) - 1 ) // longueur
+. attr ( "fill" , d => isNaN ( d ) ? "#eee" : d === 0 ? "#fff" : color color ( d ) )
+
+
+// Ajout de l'évènement lorsque l'on passe la souris
+beauGraph . on ( "mouseover" , function ( d , i ) {
+d3 d3 . select ( this ) . transition ( )
+. duration ( '50' )
+. attr ( 'opacity' , '4' )
+. style ( "cursor" , "pointer" )
+. attr ( "stroke" , "black" )
+. attr ( "stroke-width" , 2.8 )
+. append ( "text" )
+} )
+beauGraph . on ( "mouseout" , function ( d , i ) {
+d3 d3 . select ( this ) . transition ( )
+. duration ( '50' )
+. attr ( 'opacity' , '1' )
+. attr ( "stroke" , "white" )
+. attr ( "stroke-width" , 0 )
+} )
+
+return svg . node ( ) ;
+}
+
+
+ creation = {
+const svg = d3 d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width width , innerHeight innerHeight + margin margin . top + margin margin . bottom ] )
+
+var tooltip = addTooltip addTooltip ( ) ;
+// Axes
+svg . append ( "g" )
+. call ( xAxis xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis yAxis ) ;
+
+// Données
+const beauGraph = svg . append ( "g" )
+. selectAll ( "g" )
+. data ( data data . values )
+. join ( "g" )
+. attr ( "transform" , ( d , i ) => `translate(0,${ y y ( data data . names [ i ] ) })` )
+. selectAll ( "rect" )
+. data ( d => d )
+. join ( "rect" )
+. attr ( "x" , ( d , i ) => x x ( data data . years [ i ] ) + 1 )
+. attr ( "width" , ( d , i ) => x x ( data data . years [ i ] + 1 ) - x x ( data data . years [ i ] ) - 1 ) //largeur
+. attr ( "height" , y y . bandwidth ( ) - 1 ) // longueur
+. attr ( "fill" , d => isNaN ( d ) ? "#eee" : d === 0 ? "#fff" : color color ( d ) )
+
+
+// Ajout de l'évènement lorsque l'on passe la souris
+beauGraph . on ( "mouseover" , function ( d , i ) {
+d3 d3 . select ( this ) . transition ( )
+. duration ( '50' )
+. attr ( 'opacity' , '4' )
+. style ( "cursor" , "pointer" )
+. attr ( "stroke" , "black" )
+. attr ( "stroke-width" , 2.8 )
+. append ( "text" )
+tooltip . style ( "display" , null ) ; // fonction parametrant l'info-bulle
+} )
+beauGraph . on ( "mouseout" , function ( d , i ) {
+d3 d3 . select ( this ) . transition ( )
+. duration ( '50' )
+. attr ( 'opacity' , '1' )
+. attr ( "stroke" , "white" )
+. attr ( "stroke-width" , 0 )
+tooltip . style ( "display" , "none" ) ;
+} )
+// Partie à compléter
+//beauGraph.on("mosemove", function (d, i) {
+//d3.select(this).transition()
+//....
+//....
+//....
+
+return svg . node ( ) ;
+}
+
+
+
+ function addTooltip ( ) {
+var tooltip = d3 d3 . select ( "g" )
+. attr ( "id" , "tooltip" )
+. style ( "display" , "none" ) ;
+
+// On crée ici le tooltip avec une pointe vers le bas
+tooltip . append ( "polyline" )
+. attr ( "points" , "0,0 0,40 55,40 60,45 65,40 120,40 120,0 0,0" ) // dim à modifier en fonction du graph
+. style ( "fill" , "#fafafa" )
+. style ( "stroke" , "#3498db" )
+. style ( "opacity" , "0.9" )
+. style ( "stroke-width" , "1" )
+. attr ( "transform" , "translate(-60, -55)" ) ;
+
+// On crée un élément qui contiendra le texte
+var text = tooltip . append ( "text" )
+. style ( "font-size" , "13px" )
+. style ( "font-family" , "Segoe UI" )
+. style ( "color" , "#333333" )
+. style ( "fill" , "#333333" )
+. attr ( "transform" , "translate(-50, -40)" ) ;
+
+text . append ( "title" )
+. attr ( "x" , 1 ) // remplacer 1 par l'endroit où mettre le texte sur les x
+. attr ( "y" , 1 ) // remplacer 1 par l'endroit où mettre le texte sur les Y
+. style ( "font-weight" , "600" )
+. style ( "font-size" , "16px" )
+. text ( "le texte à afficher" ) ;
+
+
+return tooltip ;
+}
+
+
+
+
+ format = {
+const f = d3 d3 . format ( ",d" ) ;
+return d => isNaN ( d ) ? "N/A cases"
+: d === 0 ? "0 cases"
+: d < 1 ? "<1 case"
+: d < 1.5 ? "1 case"
+: `${ f ( d ) } cases` ;
+}
+
+ innerHeight = height height * data data . names . length
+
+ height = 16
+
+ margin = ( { top : 20 , right : 1 , bottom : 40 , left : 40 } )
+
+ d3 = require require ( "d3@6" )
+
+ import { legend } from "@d3/color-legend"
+
+//////////////////////////////////////////////////////////////////////////////////////
+Here are the labels for the provided program without changing its order:
+
+```javascript
+xAxis1 = g => g
+  .call(g => g.append("g")
+    .attr("transform", `translate(0,${margin.top})`)
+    .call(d3.axisTop(x).ticks(null, "d"))
+    .call(g => g.select(".domain").remove())) // removes the x-axis horizontal bar
+
+yAxis = g => g
+  .attr("transform", `translate(${margin.left},0)`)
+  .call(d3.axisLeft(y).tickSize(0))
+  .call(g => g.select(".domain").remove()); // removes the y-axis vertical bar
+
+axis = {
+  const svg = d3.create("svg") // creates an svg element
+    .attr("viewBox", [0, 0, width, innerHeight + margin.top + margin.bottom]); // sets svg format
+
+  svg.append("g") // adds a g element nested within the svg element
+    .call(xAxis1); // constructs the x-axis
+
+  svg.append("g")
+    .call(yAxis); // constructs the y-axis
+
+  return svg.node();
+}
+
+xAxis = g => g
+  .call(g => g.append("g")
+    .attr("transform", `translate(0,${margin.top})`)
+    .call(d3.axisTop(x).ticks(null, "d"))
+    .call(g => g.select(".domain").remove())) // removes the horizontal bar
+
+  .call(g => g.append("g") // adds the horizontal bar with a new g call
+    .attr("transform", `translate(0,${innerHeight + margin.top + 3})`)
+    .call(d3.axisBottom(x)
+      .tickValues([data.year])
+      .tickFormat(x => x)
+      .tickSize(-innerHeight - 10))
+
+    // adds legend for this horizontal bar
+    .call(g => g.select(".tick text")
+      .clone()
+      .attr("dy", "2em")
+      .style("font-weight", "bold")
+      .text("Measles vaccine introduced"))
+
+    .call(g => g.select(".domain").remove()));
+
+x = d3.scaleLinear()
+  .domain([d3.min(data.years), d3.max(data.years) + 1])
+  .rangeRound([margin.left, width - margin.right]);
+
+y = d3.scaleBand()
+  .domain(data.names)
+  .rangeRound([margin.top, margin.top + innerHeight]);
+
+color = d3.scaleSequentialSqrt([0, d3.max(data.values, d => d3.max(d))], d3.interpolatePuRd);
+
+color2 = d3.scaleSqrt()
+  .interpolate(() => color_interpolator)
+  .domain([0, d3.max(data.values, d => d3.max(d))]);
+
+color_interpolator = d3.piecewise(d3.interpolateRgb.gamma(0.8), ["rgb(231, 240, 250)", "rgb(231, 240, 250)", "rgb(5, 155, 210)", "green", "rgb(246, 213, 63)", "rgb(226, 148, 33)", "rgb(226, 148, 33)", "rgb(226, 148, 33)", "rgb(239, 87, 53)", "rgb(239, 87, 53)", "rgb(239, 87, 53)", "rgb(239, 87, 53)"]);
+
+rectangle = {
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, width, innerHeight + margin.top + margin.bottom]);
+
+  const id_pays = 23;
+  const id_annee = 1;
+
+  // Constructs a single rectangle (data):
+  svg.append("rect")
+    .attr("transform", `translate(0,${y(data.names[id_pays])})`)
+    .attr("x", x(data.years[id_annee]) + 1)
+    .attr("width", x(data.years[id_annee] + 1) - x(data.years[id_annee]) - 1)
+    .attr("height", y.bandwidth() - 1)
+    .attr("fill", isNaN(data.values[id_pays][id_annee]) ? "#eee" : data.values[id_pays][id_annee] === 0 ? "#fff" : color(data.values[id_pays][id_annee]));
+
+  return svg.node();
+}
+
+graph0 = {
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, width, innerHeight + margin.top + margin.bottom]);
+
+  // Axes
+  svg.append("g")
+    .call(xAxis);
+
+  svg.append("g")
+    .call(yAxis);
+
+  // Data
+  const beauGraph = svg.append("g")
+    .selectAll("g")
+    .data(data.values)
+    .join("g")
+    .attr("transform", (d, i) => `translate(0,${y(data.names[i])})`)
+    .selectAll("rect")
+    .data(d => d)
+    .join("rect")
+    .attr("x", (d, i) => x(data.years[i]) + 1)
+    .attr("width", (d, i) => x(data.years[i] + 1) - x(data.years[i]) - 1)
+    .attr("height", y.bandwidth() - 1)
+    .attr("fill", d => isNaN(d) ? "#eee" : d === 0 ? "#fff" : color(d));
+
+  return svg.node();
+}
+
+legend({
+  color,
+  title: "Measles cases per 100,000 people",
+  width: 360
+})
+
+animate = {
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, width, innerHeight + margin.top + margin.bottom]);
+
+  var tooltip = addTooltip();
+
+  // Axes
+  svg.append("g")
+    .call(xAxis);
+
+  svg.append("g")
+    .call(yAxis);
+
+  // Data
+  const beauGraph = svg.append("g")
+    .selectAll("g")
+    .data(data.values)
+    .join("g")
+    .attr("transform", (d, i) => `translate(0,${y(data.names[i])})`)
+    .selectAll("rect")
+    .data(d => d)
+    .join("rect")
+    .attr("x", (d, i) => x(data.years[i]) + 1)
+    .attr("width", (d, i) => x(data.years[i] + 1) - x(data.years[i]) - 1)
+    .attr("height", y.bandwidth() - 1)
+    .attr("fill", d => isNaN(d) ? "#eee" : d === 0 ? "#fff" : color(d));
+
+  // Mouseover event
+  beauGraph.on("mouseover", function(d, i) {
+    d3.select(this).transition()
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+Can you generate the labels for the rest of the program?
+
+Certainly! Here are the labels for the remaining parts of the program:
+
+```javascript
+// Mouseover event
+  beauGraph.on("mouseover", function(d, i) {
+    d3.select(this).transition()
+      .duration('50')
+      .attr('opacity', '4')
+      .style("cursor", "pointer")
+      .attr("stroke", "black")
+      .attr("stroke-width", 2.8)
+      .append("text");
+    })
+
+// Mouseout event
+  beauGraph.on("mouseout", function(d, i) {
+    d3.select(this).transition()
+      .duration('50')
+      .attr('opacity', '1')
+      .attr("stroke", "white")
+      .attr("stroke-width", 0)
+    })
+
+// Tooltip creation function
+function addTooltip() {
+  var tooltip = d3.select("g")
+    .attr("id", "tooltip")
+    .style("display", "none");
+
+  tooltip.append("polyline")
+    .attr("points", "0,0 0,40 55,40 60,45 65,40 120,40 120,0 0,0")
+    .style("fill", "#fafafa")
+    .style("stroke", "#3498db")
+    .style("opacity", "0.9")
+    .style("stroke-width", "1")
+    .attr("transform", "translate(-60, -55)");
+
+  var text = tooltip.append("text")
+    .style("font-size", "13px")
+    .style("font-family", "Segoe UI")
+    .style("color", "#333333")
+    .style("fill", "#333333")
+    .attr("transform", "translate(-50, -40)");
+
+  text.append("title")
+    .attr("x", 1)
+    .attr("y", 1)
+    .style("font-weight", "600")
+    .style("font-size", "16px")
+    .text("le texte à afficher");
+
+  return tooltip;
+}
+
+// Data format function
+function format() {
+  const f = d3.format(",d");
+  return d => isNaN(d) ? "N/A cases" : d === 0 ? "0 cases" : d < 1 ? "<1 case" : d < 1.5 ? "1 case" : `${f(d)} cases`;
+}
+
+// Calculation for innerHeight
+innerHeight = height * data.names.length;
+
+// Margin object
+margin = { top: 20, right: 1, bottom: 40, left: 40 };
+
+// Import statements
+d3 = require("d3@6");
+import { legend } from "@d3/color-legend";
+```
+
+These labels should provide clarity and organization to the program

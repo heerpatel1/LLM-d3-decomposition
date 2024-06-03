@@ -1,0 +1,2641 @@
+Can you label this program ENTIRELY while preserving its order?:
+
+chart2 = {
+    const height =3000
+  ;
+  const svg = d3.select(DOM.svg(width, height));
+
+  const gSvg = svg.append("g")
+
+    const yScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+     .range([0,height]);
+ const xScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([0, width]);
+
+var area = d3.area()
+.curve(d3.curveBasis)
+    .y(d => yScale(d.data.time))
+    .x0(d => xScale(d[0]))
+    .x1(d => xScale(d[1]));
+
+   svg.append("g")
+    .selectAll("path")
+    .data(series3)
+    .join("path")
+      .attr("fill", d => "#"+(d.key))
+      .attr("d", area)
+      .attr("stroke", 10)
+
+
+ svg.append('text')
+    .text("DUAL ")
+    .attr('x', 1)
+    .attr('y', 3000-50)
+   .style('font-family', 'sans-serif')
+    .style('font-size', 300)
+  .style("fill", "#bb0000")
+  .attr("opacity", 1)
+
+
+
+
+   return svg.node();
+ }
+
+chart = {
+
+
+  //DEFINING THE SVG
+  const height =450;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+  //const svg= d3.create("svg").attr("viewBox", [0,0,width,height]);
+
+  const gSvg = svg.append("g")
+    //.attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  ////////////////////////////////////////////////////////DEFINING BAR CHART
+  const xScale = d3.scaleBand()
+    .domain(data.map(d=> d.time))
+    .range([margin.left, width]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([height-50,(height/2)+20]);
+
+
+   const rects = gSvg.selectAll("g").data(series).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+    .data(d => d)
+    .join("rect")
+    .attr("x", d => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE AREA CHART
+
+ const xline =  d3.scaleLinear()
+    .domain(d3.extent(emissionacc, d => d.day))
+     .range([margin.left, width]);
+
+ const yline = d3.scaleLinear()
+    .domain([0, d3.max(emissionacc, d => d.amount)])
+    .range([height/2 , margin.top])
+
+ const area = d3.area()
+// .curve(d3.curveNatural)
+    .x(d => xline(d.day))
+    .y0(d => yline(0))
+    .y1(d => yline(d.amount))
+
+  const yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(yline))
+    .call(g => g.select(".domain"))
+    .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 20)
+        .attr("text-anchor", "start")
+        //.attr("font-weight", "bold")
+          .attr("font-size", 12)
+          .style("fill", "#bb0000")
+        .text("Accumulated CO2 (kg)"));
+
+  const xAxis = g => g
+    .attr("transform", `translate(0,${(height/2)})`)
+    .call(d3.axisBottom(xline)
+            .ticks(width / 80)
+            .tickSizeOuter(0))
+
+ svg.append("path")
+      .datum(emissionacc)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "#bb0000")
+      .attr("d", area)
+      .attr("opacity", 0.5)
+
+  svg.append("g")
+      .call(xAxis)
+      .style('font-size', '12')
+
+  svg.append("g")
+      .call(yAxis)
+      .style('font-size', '12')
+      .style('color', "#bb0000");
+
+  ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , height-50])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+
+///////////////////////////////////////////////////// ///ADDING TEXT
+  svg.append('text')
+    .text("My car ")
+    .attr('x', 20)
+    .attr('y', 100)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .style("fill", "#bb0000")
+  .attr("opacity", 0.5)
+  svg.append('text')
+    .text("My view ")
+    .attr('x', 20)
+    .attr('y', 300)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .attr("opacity", 0.5)
+   svg.append('text')
+    .text("My snow ")
+    .attr('x', 20)
+    .attr('y', 450)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 20)
+  .attr("opacity", 0.5)
+
+   ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+   .range([height , height-50])
+
+var linetemp = d3.line()
+    .defined(d => !isNaN(d.day) && !isNaN(d.air))
+    .x(d => xa(d.day))
+    .y(d => ya(d.air))
+
+  svg.append("path")
+      .datum(weather)
+       .attr("stroke", function() {if(weather.air > 0) {return "lightyellow"    } else {return "lightpurple"    }
+                                  })
+      .attr("fill", "none")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("d", linetemp)
+
+
+
+   return svg.node();
+ }
+
+viewof value = html`<input type="range"  min="0" max="59" step="1"   style="margin: 0; width: 950px;"/>`
+
+viewof ch3 = checkbox({
+  //description: "Click to act",
+  options: [{ value: "toggle", label: " OR CLICK TO ACT" }],
+  valuebutton: "toggle"
+})
+
+chart4 = {
+
+
+///just changing from name to consecutive integers
+ let datecode= function() {if(value<15) {return value+117}
+                                  else  { if(value>42) {return value+258}
+                                       else 	{ return value+186 }             }        };
+
+//DEFINING THE SVG
+  const height =600;
+  const width= 1000;
+  const band= 600;
+
+
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+/// ADD BACKGROUND
+  svg.append('rect')
+             .attr('x', 0)
+             .attr('y', 0)
+             .attr('height', height)
+             .attr('width', width)
+             .attr('fill', 'black')
+             .style("opacity",0.1)
+
+
+/// ADD COLOR BARS
+  const xScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+    .range([0, width]);
+
+ const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([7*height/8,height/8]);
+
+  const rects = svg.selectAll("g")
+           .data(series2)
+           .enter()
+           .append("g")
+           .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+           .data(d => d)
+           .join("rect")
+           .attr("x", (width/2)-(band/2))
+           .attr("y", d=> (yScale(d[1])))
+           .attr("height", d=> (yScale(d[0]) - yScale(d[1])))
+           .attr("width", band)
+            .attr("stroke-width", 2)
+           .style("opacity",  function(d) { if(d.data.time == datecode(value) )
+                                         { return 0.8 } else {return 0.05} })
+
+
+
+
+///ADD LINES
+
+ function randValue2(max) {  return Math.random() * max; }
+
+svg.selectAll('line')
+            .data(d3.range((emissionacc[value].amount)/2).map((d) => d) )
+           .join("line")
+           .each(function(e) {
+                   var size =  randValue2(height );
+                   var sizew =  randValue2(width );
+                   d3.select(this)
+                     .attr('y1', size)
+                     .attr('y2', size)
+                     .attr('x1', sizew-200 )
+                     .attr('x2', sizew+200)
+              })
+            .attr('stroke', 'red')
+            .style("opacity",  function(d) { if(ch3=="toggle" )
+                                         { return 0} else {return 0.2} })
+           .style("stroke-dasharray", ("1, 1"))
+                          .attr("stroke-width", 5)
+
+
+
+  ;
+
+
+
+
+   return svg.node();
+ }
+
+data = Object.assign(d3.csvParse(await FileAttachment("Book18@3.csv").text(), d3.autoType))
+
+series = d3.stack()
+            .keys(data.columns.slice(1))
+ //.offset(d3.stackOffsetWiggle)
+ //  .order(d3.stackOrderInsideOut)
+
+   .order(d3.stackOrderNone)
+            (data)
+
+series2 = d3.stack()
+            .keys(data.columns.slice(1))
+// .offset(d3.stackOffsetWiggle)
+  //.order(d3.stackOrderDescending)
+
+  .order(d3.stackOrderNone)
+            (data)
+
+data2 = data.map(d => Object.entries(d).map((e) => ( { [e[0]]: e[1] } )).sort((a,b) => b - a).slice(0,12))
+
+data3 = data.map(d => Object.entries(d).map((e) => ( { "label":e[0],"value": e[1] } )) .sort((a,b) => b.value - a.value).slice(0,13))
+
+data4= data3
+.map(d => d.map(  (e)=> ( [{  [d[0].label]:d[0].value ,
+                              [d[1].label]:d[1].value,
+                              [d[2].label]:d[2].value,
+                              [d[3].label]:d[3].value,
+                              [d[4].label]:d[4].value,
+                              [d[5].label]:d[5].value,
+                              [d[6].label]:d[6].value,
+                              [d[7].label]:d[7].value,
+                              [d[8].label]:d[8].value,
+                              [d[9].label]:d[9].value,
+                              [d[10].label]:d[10].value,
+                              [d[11].label]:d[11].value,
+                              [d[12].label]:d[12].value,
+
+                       }] ) ).slice(12))
+
+data5=data4 .map(d => d[0][0]    );
+
+series3 = d3.stack()
+            .keys(data.columns.slice(1))
+    .order(d3.stackOrderReverse)
+ //  .order(d3.stackOrderNone)
+            (data)
+
+emissionacc=Object.assign(d3.csvParse(await FileAttachment("emissionacc@4.txt").text(), d3.autoType))
+
+weather=Object.assign(d3.csvParse(await FileAttachment("weather.csv").text(), d3.autoType))
+
+chart3 = {
+    const height =100;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+  const gSvg = svg.append("g")
+    .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  const xScale = d3.scaleBand()
+    .domain(data5.map(function(d){return d.time;}))
+    .range([0, width]);
+
+
+ const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([height,0]);
+
+
+  const rects = gSvg.selectAll("g").data(series3).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+   .data(d => d)
+   .join("rect")
+    .attr("x", (d, i) => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+
+
+   return svg.node();
+ }
+
+weatherchart={
+  //DEFINING THE SVG
+  const height =50
+  ;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , margin.top])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+ ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+    .range([height , margin.top])
+var linetemp = d3.line()
+    .defined(d => !isNaN(d.day) && !isNaN(d.air))
+    .x(d => xa(d.day))
+    .y(d => ya(d.air))
+
+  svg.append("path")
+      .datum(weather)
+      .attr("fill", "none")
+      .attr("stroke", "purple")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("d", linetemp);
+
+
+   return svg.node();
+ }
+
+margin = ({top: 20, right:20, bottom:20, left: 150})
+
+function checkbox(config = {}) {
+  let {
+    value: formValue,
+    title,
+    description,
+    submit,
+    disabled,
+    options
+  } = Array.isArray(config) ? { options: config } : config;
+  options = options.map(o =>
+    typeof o === "string" ? { value: o, label: o } : o
+  );
+  const form = input({
+    type: "checkbox",
+    title,
+    description,
+    submit,
+    getValue: input => {
+      if (input.length)
+        return Array.prototype.filter
+          .call(input, i => i.checked)
+          .map(i => i.value);
+      return input.checked ? input.value : false;
+    },
+    form: html`
+      <form>
+        ${options.map(({ value, label }, i) => {
+          const input = html`<input type=checkbox name=input ${
+            (formValue || []).indexOf(value) > -1 ? "checked" : ""
+          } style="vertical-align: top; ${
+            i === 0 ? `margin-left: 1px;` : ``
+          }" />`;
+          input.setAttribute("value", value);
+          if (disabled) input.setAttribute("disabled", disabled);
+          const tag = html`<label style="display: inline-block; margin: 5px 10px 3px 0; font-size: 15; font-color="grey">
+           ${input}
+           ${label}
+          </label>`;
+          return tag;
+        })}
+      </form>
+    `
+  });
+  form.output.remove();
+  return form;
+}
+
+function input(config) {
+  let {
+    form,
+    type = "text",
+    attributes = {},
+    action,
+    getValue,
+    title,
+    description,
+    format,
+    display,
+    submit,
+    options
+  } = config;
+  const wrapper = html`<div></div>`;
+  if (!form)
+    form = html`<form>
+	<input name=input type=${type} />
+  </form>`;
+  Object.keys(attributes).forEach(key => {
+    const val = attributes[key];
+    if (val != null) form.input.setAttribute(key, val);
+  });
+  if (submit)
+    form.append(
+      html`<input name=submit type=submit style="margin: 0 0.75em" value="${
+        typeof submit == "string" ? submit : "Submit"
+      }" />`
+    );
+  form.append(
+    html`<output name=output style="font: 14px Menlo, Consolas, monospace; margin-left: 0.5em;"></output>`
+  );
+  if (title)
+    form.prepend(
+      html`<div style="font: 700 0.9rem sans-serif; margin-bottom: 3px;">${title}</div>`
+    );
+  if (description)
+    form.append(
+      html`<div style="font-size: 0.85rem; font-style: italic; margin-top: 3px;">${description}</div>`
+    );
+  if (format)
+    format = typeof format === "function" ? format : d3format.format(format);
+  if (action) {
+    action(form);
+  } else {
+    const verb = submit
+      ? "onsubmit"
+      : type == "button"
+      ? "onclick"
+      : type == "checkbox" || type == "radio"
+      ? "onchange"
+      : "oninput";
+    form[verb] = e => {
+      e && e.preventDefault();
+      const value = getValue ? getValue(form.input) : form.input.value;
+      if (form.output) {
+        const out = display ? display(value) : format ? format(value) : value;
+        if (out instanceof window.Element) {
+          while (form.output.hasChildNodes()) {
+            form.output.removeChild(form.output.lastChild);
+          }
+          form.output.append(out);
+        } else {
+          form.output.value = out;
+        }
+      }
+      form.value = value;
+      if (verb !== "oninput")
+        form.dispatchEvent(new CustomEvent("input", { bubbles: true }));
+    };
+    if (verb !== "oninput")
+      wrapper.oninput = e => e && e.stopPropagation() && e.preventDefault();
+    if (verb !== "onsubmit") form.onsubmit = e => e && e.preventDefault();
+    form[verb]();
+  }
+  while (form.childNodes.length) {
+    wrapper.appendChild(form.childNodes[0]);
+  }
+  form.append(wrapper);
+  return form;
+}
+
+d3format = require("d3-format@1")
+
+d3 = require("d3@6")
+
+html`<style>
+/* required styles */
+* { font-family:   Arial, sans-serif;
+    margin: 0;
+}
+select {  font-size: 16px;
+}
+</style`
+
+html`<style>p { max-width: none; }</style>`
+
+/////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+```javascript
+// Define chart2 function
+chart2 = {
+    // Define chart height
+    const height = 3000;
+  ;
+  // Select SVG element
+  const svg = d3.select(DOM.svg(width, height));
+
+  // Append group element to SVG
+  const gSvg = svg.append("g")
+
+    // Define y-scale
+    const yScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+     .range([0, height]);
+ const xScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([0, width]);
+
+// Define area function
+var area = d3.area()
+.curve(d3.curveBasis)
+    .y(d => yScale(d.data.time))
+    .x0(d => xScale(d[0]))
+    .x1(d => xScale(d[1]));
+
+   // Append paths for each data series
+   svg.append("g")
+    .selectAll("path")
+    .data(series3)
+    .join("path")
+      .attr("fill", d => "#"+(d.key))
+      .attr("d", area)
+      .attr("stroke", 10)
+
+// Append text to SVG
+ svg.append('text')
+    .text("DUAL ")
+    .attr('x', 1)
+    .attr('y', 3000-50)
+   .style('font-family', 'sans-serif')
+    .style('font-size', 300)
+  .style("fill", "#bb0000")
+  .attr("opacity", 1)
+
+   // Return SVG node
+   return svg.node();
+ }
+
+// Define chart function
+chart = {
+
+
+  //DEFINING THE SVG
+  const height = 450;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+  //const svg= d3.create("svg").attr("viewBox", [0,0,width,height]);
+
+  const gSvg = svg.append("g")
+    //.attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  ////////////////////////////////////////////////////////DEFINING BAR CHART
+  const xScale = d3.scaleBand()
+    .domain(data.map(d=> d.time))
+    .range([margin.left, width]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([height-50,(height/2)+20]);
+
+
+   const rects = gSvg.selectAll("g").data(series).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+    .data(d => d)
+    .join("rect")
+    .attr("x", d => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE AREA CHART
+
+ const xline =  d3.scaleLinear()
+    .domain(d3.extent(emissionacc, d => d.day))
+     .range([margin.left, width]);
+
+ const yline = d3.scaleLinear()
+    .domain([0, d3.max(emissionacc, d => d.amount)])
+    .range([height/2 , margin.top])
+
+ const area = d3.area()
+// .curve(d3.curveNatural)
+    .x(d => xline(d.day))
+    .y0(d => yline(0))
+    .y1(d => yline(d.amount))
+
+  const yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(yline))
+    .call(g => g.select(".domain"))
+    .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 20)
+        .attr("text-anchor", "start")
+        //.attr("font-weight", "bold")
+          .attr("font-size", 12)
+          .style("fill", "#bb0000")
+        .text("Accumulated CO2 (kg)"));
+
+  const xAxis = g => g
+    .attr("transform", `translate(0,${(height/2)})`)
+    .call(d3.axisBottom(xline)
+            .ticks(width / 80)
+            .tickSizeOuter(0))
+
+ svg.append("path")
+      .datum(emissionacc)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "#bb0000")
+      .attr("d", area)
+      .attr("opacity", 0.5)
+
+  svg.append("g")
+      .call(xAxis)
+      .style('font-size', '12')
+
+  svg.append("g")
+      .call(yAxis)
+      .style('font-size', '12')
+      .style('color', "#bb0000");
+
+  ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , height-50])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+
+///////////////////////////////////////////////////// ///ADDING TEXT
+  svg.append('text')
+    .text("My car ")
+    .attr('x', 20)
+    .attr('y', 100)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .style("fill", "#bb0000")
+  .attr("opacity", 0.5)
+  svg.append('text')
+    .text("My view ")
+    .attr('x', 20)
+    .attr('y', 300)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .attr("opacity", 0.5)
+   svg.append('text')
+    .text("My snow ")
+    .attr('x', 20)
+    .attr('y', 450)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 20)
+  .attr("opacity", 0.5)
+
+   ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+Can you generate labels for the ENTIRE program? Also, you only applied a very limited number of labels.
+Please try again and label the key components of this program:
+chart2 = {
+    const height =3000
+  ;
+  const svg = d3.select(DOM.svg(width, height));
+
+  const gSvg = svg.append("g")
+
+    const yScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+     .range([0,height]);
+ const xScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([0, width]);
+
+var area = d3.area()
+.curve(d3.curveBasis)
+    .y(d => yScale(d.data.time))
+    .x0(d => xScale(d[0]))
+    .x1(d => xScale(d[1]));
+
+   svg.append("g")
+    .selectAll("path")
+    .data(series3)
+    .join("path")
+      .attr("fill", d => "#"+(d.key))
+      .attr("d", area)
+      .attr("stroke", 10)
+
+
+ svg.append('text')
+    .text("DUAL ")
+    .attr('x', 1)
+    .attr('y', 3000-50)
+   .style('font-family', 'sans-serif')
+    .style('font-size', 300)
+  .style("fill", "#bb0000")
+  .attr("opacity", 1)
+
+
+
+
+   return svg.node();
+ }
+
+chart = {
+
+
+  //DEFINING THE SVG
+  const height =450;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+  //const svg= d3.create("svg").attr("viewBox", [0,0,width,height]);
+
+  const gSvg = svg.append("g")
+    //.attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  ////////////////////////////////////////////////////////DEFINING BAR CHART
+  const xScale = d3.scaleBand()
+    .domain(data.map(d=> d.time))
+    .range([margin.left, width]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([height-50,(height/2)+20]);
+
+
+   const rects = gSvg.selectAll("g").data(series).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+    .data(d => d)
+    .join("rect")
+    .attr("x", d => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE AREA CHART
+
+ const xline =  d3.scaleLinear()
+    .domain(d3.extent(emissionacc, d => d.day))
+     .range([margin.left, width]);
+
+ const yline = d3.scaleLinear()
+    .domain([0, d3.max(emissionacc, d => d.amount)])
+    .range([height/2 , margin.top])
+
+ const area = d3.area()
+// .curve(d3.curveNatural)
+    .x(d => xline(d.day))
+    .y0(d => yline(0))
+    .y1(d => yline(d.amount))
+
+  const yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(yline))
+    .call(g => g.select(".domain"))
+    .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 20)
+        .attr("text-anchor", "start")
+        //.attr("font-weight", "bold")
+          .attr("font-size", 12)
+          .style("fill", "#bb0000")
+        .text("Accumulated CO2 (kg)"));
+
+  const xAxis = g => g
+    .attr("transform", `translate(0,${(height/2)})`)
+    .call(d3.axisBottom(xline)
+            .ticks(width / 80)
+            .tickSizeOuter(0))
+
+ svg.append("path")
+      .datum(emissionacc)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "#bb0000")
+      .attr("d", area)
+      .attr("opacity", 0.5)
+
+  svg.append("g")
+      .call(xAxis)
+      .style('font-size', '12')
+
+  svg.append("g")
+      .call(yAxis)
+      .style('font-size', '12')
+      .style('color', "#bb0000");
+
+  ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , height-50])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+
+///////////////////////////////////////////////////// ///ADDING TEXT
+  svg.append('text')
+    .text("My car ")
+    .attr('x', 20)
+    .attr('y', 100)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .style("fill", "#bb0000")
+  .attr("opacity", 0.5)
+  svg.append('text')
+    .text("My view ")
+    .attr('x', 20)
+    .attr('y', 300)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .attr("opacity", 0.5)
+   svg.append('text')
+    .text("My snow ")
+    .attr('x', 20)
+    .attr('y', 450)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 20)
+  .attr("opacity", 0.5)
+
+   ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+   .range([height , height-50])
+
+var linetemp = d3.line()
+    .defined(d => !isNaN(d.day) && !isNaN(d.air))
+    .x(d => xa(d.day))
+    .y(d => ya(d.air))
+
+  svg.append("path")
+      .datum(weather)
+       .attr("stroke", function() {if(weather.air > 0) {return "lightyellow"    } else {return "lightpurple"    }
+                                  })
+      .attr("fill", "none")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("d", linetemp)
+
+
+
+   return svg.node();
+ }
+
+viewof value = html`<input type="range"  min="0" max="59" step="1"   style="margin: 0; width: 950px;"/>`
+
+viewof ch3 = checkbox({
+  //description: "Click to act",
+  options: [{ value: "toggle", label: " OR CLICK TO ACT" }],
+  valuebutton: "toggle"
+})
+
+chart4 = {
+
+
+///just changing from name to consecutive integers
+ let datecode= function() {if(value<15) {return value+117}
+                                  else  { if(value>42) {return value+258}
+                                       else 	{ return value+186 }             }        };
+
+//DEFINING THE SVG
+  const height =600;
+  const width= 1000;
+  const band= 600;
+
+
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+/// ADD BACKGROUND
+  svg.append('rect')
+             .attr('x', 0)
+             .attr('y', 0)
+             .attr('height', height)
+             .attr('width', width)
+             .attr('fill', 'black')
+             .style("opacity",0.1)
+
+
+/// ADD COLOR BARS
+  const xScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+    .range([0, width]);
+
+ const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([7*height/8,height/8]);
+
+  const rects = svg.selectAll("g")
+           .data(series2)
+           .enter()
+           .append("g")
+           .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+           .data(d => d)
+           .join("rect")
+           .attr("x", (width/2)-(band/2))
+           .attr("y", d=> (yScale(d[1])))
+           .attr("height", d=> (yScale(d[0]) - yScale(d[1])))
+           .attr("width", band)
+            .attr("stroke-width", 2)
+           .style("opacity",  function(d) { if(d.data.time == datecode(value) )
+                                         { return 0.8 } else {return 0.05} })
+
+
+
+
+///ADD LINES
+
+ function randValue2(max) {  return Math.random() * max; }
+
+svg.selectAll('line')
+            .data(d3.range((emissionacc[value].amount)/2).map((d) => d) )
+           .join("line")
+           .each(function(e) {
+                   var size =  randValue2(height );
+                   var sizew =  randValue2(width );
+                   d3.select(this)
+                     .attr('y1', size)
+                     .attr('y2', size)
+                     .attr('x1', sizew-200 )
+                     .attr('x2', sizew+200)
+              })
+            .attr('stroke', 'red')
+            .style("opacity",  function(d) { if(ch3=="toggle" )
+                                         { return 0} else {return 0.2} })
+           .style("stroke-dasharray", ("1, 1"))
+                          .attr("stroke-width", 5)
+
+
+
+  ;
+
+
+
+
+   return svg.node();
+ }
+
+data = Object.assign(d3.csvParse(await FileAttachment("Book18@3.csv").text(), d3.autoType))
+
+series = d3.stack()
+            .keys(data.columns.slice(1))
+ //.offset(d3.stackOffsetWiggle)
+ //  .order(d3.stackOrderInsideOut)
+
+   .order(d3.stackOrderNone)
+            (data)
+
+series2 = d3.stack()
+            .keys(data.columns.slice(1))
+// .offset(d3.stackOffsetWiggle)
+  //.order(d3.stackOrderDescending)
+
+  .order(d3.stackOrderNone)
+            (data)
+
+data2 = data.map(d => Object.entries(d).map((e) => ( { [e[0]]: e[1] } )).sort((a,b) => b - a).slice(0,12))
+
+data3 = data.map(d => Object.entries(d).map((e) => ( { "label":e[0],"value": e[1] } )) .sort((a,b) => b.value - a.value).slice(0,13))
+
+data4= data3
+.map(d => d.map(  (e)=> ( [{  [d[0].label]:d[0].value ,
+                              [d[1].label]:d[1].value,
+                              [d[2].label]:d[2].value,
+                              [d[3].label]:d[3].value,
+                              [d[4].label]:d[4].value,
+                              [d[5].label]:d[5].value,
+                              [d[6].label]:d[6].value,
+                              [d[7].label]:d[7].value,
+                              [d[8].label]:d[8].value,
+                              [d[9].label]:d[9].value,
+                              [d[10].label]:d[10].value,
+                              [d[11].label]:d[11].value,
+                              [d[12].label]:d[12].value,
+
+                       }] ) ).slice(12))
+
+data5=data4 .map(d => d[0][0]    );
+
+series3 = d3.stack()
+            .keys(data.columns.slice(1))
+    .order(d3.stackOrderReverse)
+ //  .order(d3.stackOrderNone)
+            (data)
+
+emissionacc=Object.assign(d3.csvParse(await FileAttachment("emissionacc@4.txt").text(), d3.autoType))
+
+weather=Object.assign(d3.csvParse(await FileAttachment("weather.csv").text(), d3.autoType))
+
+chart3 = {
+    const height =100;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+  const gSvg = svg.append("g")
+    .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  const xScale = d3.scaleBand()
+    .domain(data5.map(function(d){return d.time;}))
+    .range([0, width]);
+
+
+ const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([height,0]);
+
+
+  const rects = gSvg.selectAll("g").data(series3).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+   .data(d => d)
+   .join("rect")
+    .attr("x", (d, i) => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+
+
+   return svg.node();
+ }
+
+weatherchart={
+  //DEFINING THE SVG
+  const height =50
+  ;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , margin.top])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+ ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+    .range([height , margin.top])
+var linetemp = d3.line()
+    .defined(d => !isNaN(d.day) && !isNaN(d.air))
+    .x(d => xa(d.day))
+    .y(d => ya(d.air))
+
+  svg.append("path")
+      .datum(weather)
+      .attr("fill", "none")
+      .attr("stroke", "purple")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("d", linetemp);
+
+
+   return svg.node();
+ }
+
+margin = ({top: 20, right:20, bottom:20, left: 150})
+
+function checkbox(config = {}) {
+  let {
+    value: formValue,
+    title,
+    description,
+    submit,
+    disabled,
+    options
+  } = Array.isArray(config) ? { options: config } : config;
+  options = options.map(o =>
+    typeof o === "string" ? { value: o, label: o } : o
+  );
+  const form = input({
+    type: "checkbox",
+    title,
+    description,
+    submit,
+    getValue: input => {
+      if (input.length)
+        return Array.prototype.filter
+          .call(input, i => i.checked)
+          .map(i => i.value);
+      return input.checked ? input.value : false;
+    },
+    form: html`
+      <form>
+        ${options.map(({ value, label }, i) => {
+          const input = html`<input type=checkbox name=input ${
+            (formValue || []).indexOf(value) > -1 ? "checked" : ""
+          } style="vertical-align: top; ${
+            i === 0 ? `margin-left: 1px;` : ``
+          }" />`;
+          input.setAttribute("value", value);
+          if (disabled) input.setAttribute("disabled", disabled);
+          const tag = html`<label style="display: inline-block; margin: 5px 10px 3px 0; font-size: 15; font-color="grey">
+           ${input}
+           ${label}
+          </label>`;
+          return tag;
+        })}
+      </form>
+    `
+  });
+  form.output.remove();
+  return form;
+}
+
+function input(config) {
+  let {
+    form,
+    type = "text",
+    attributes = {},
+    action,
+    getValue,
+    title,
+    description,
+    format,
+    display,
+    submit,
+    options
+  } = config;
+  const wrapper = html`<div></div>`;
+  if (!form)
+    form = html`<form>
+	<input name=input type=${type} />
+  </form>`;
+  Object.keys(attributes).forEach(key => {
+    const val = attributes[key];
+    if (val != null) form.input.setAttribute(key, val);
+  });
+  if (submit)
+    form.append(
+      html`<input name=submit type=submit style="margin: 0 0.75em" value="${
+        typeof submit == "string" ? submit : "Submit"
+      }" />`
+    );
+  form.append(
+    html`<output name=output style="font: 14px Menlo, Consolas, monospace; margin-left: 0.5em;"></output>`
+  );
+  if (title)
+    form.prepend(
+      html`<div style="font: 700 0.9rem sans-serif; margin-bottom: 3px;">${title}</div>`
+    );
+  if (description)
+    form.append(
+      html`<div style="font-size: 0.85rem; font-style: italic; margin-top: 3px;">${description}</div>`
+    );
+  if (format)
+    format = typeof format === "function" ? format : d3format.format(format);
+  if (action) {
+    action(form);
+  } else {
+    const verb = submit
+      ? "onsubmit"
+      : type == "button"
+      ? "onclick"
+      : type == "checkbox" || type == "radio"
+      ? "onchange"
+      : "oninput";
+    form[verb] = e => {
+      e && e.preventDefault();
+      const value = getValue ? getValue(form.input) : form.input.value;
+      if (form.output) {
+        const out = display ? display(value) : format ? format(value) : value;
+        if (out instanceof window.Element) {
+          while (form.output.hasChildNodes()) {
+            form.output.removeChild(form.output.lastChild);
+          }
+          form.output.append(out);
+        } else {
+          form.output.value = out;
+        }
+      }
+      form.value = value;
+      if (verb !== "oninput")
+        form.dispatchEvent(new CustomEvent("input", { bubbles: true }));
+    };
+    if (verb !== "oninput")
+      wrapper.oninput = e => e && e.stopPropagation() && e.preventDefault();
+    if (verb !== "onsubmit") form.onsubmit = e => e && e.preventDefault();
+    form[verb]();
+  }
+  while (form.childNodes.length) {
+    wrapper.appendChild(form.childNodes[0]);
+  }
+  form.append(wrapper);
+  return form;
+}
+
+d3format = require("d3-format@1")
+
+d3 = require("d3@6")
+
+html`<style>
+/* required styles */
+* { font-family:   Arial, sans-serif;
+    margin: 0;
+}
+select {  font-size: 16px;
+}
+</style`
+
+html`<style>p { max-width: none; }</style>`
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Here are the labeled key components of the program:
+
+**chart2:**
+
+- **SVG Initialization:**
+  - `const svg = d3.select(DOM.svg(width, height));`
+- **Group Element:**
+  - `const gSvg = svg.append("g")`
+- **Scales:**
+  - `const yScale = d3.scaleBand()`
+  - `const xScale = d3.scaleLinear()`
+- **Area Generator:**
+  - `var area = d3.area()`
+- **Path Elements:**
+  - `svg.append("g")`
+- **Text Element:**
+  - `svg.append('text')`
+
+**chart:**
+
+- **SVG Initialization:**
+  - `const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));`
+- **Group Element:**
+  - `const gSvg = svg.append("g")`
+- **Scales:**
+  - `const xScale = d3.scaleBand()`
+  - `const yScale = d3.scaleLinear()`
+- **Rectangles:**
+  - `rects.selectAll("rect")`
+- **Area Chart:**
+  - `const area = d3.area()`
+- **Axes:**
+  - `const yAxis = g => g.call(d3.axisLeft(yline))`
+  - `const xAxis = g => g.call(d3.axisBottom(xline))`
+- **Text Elements:**
+  - `svg.append('text')`
+
+**chart4:**
+
+- **SVG Initialization:**
+  - `const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));`
+- **Background Rectangle:**
+  - `svg.append('rect')`
+- **Color Bars:**
+  - `rects.selectAll("rect")`
+- **Lines:**
+  - `svg.selectAll('line')`
+
+**chart3:**
+
+- **SVG Initialization:**
+  - `const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));`
+- **Group Element:**
+  - `const gSvg = svg.append("g")`
+- **Scales:**
+  - `const xScale = d3.scaleBand()`
+  - `const yScale = d3.scaleLinear()`
+- **Rectangles:**
+  - `rects.selectAll("rect")`
+
+**weatherchart:**
+
+- **SVG Initialization:**
+  - `const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));`
+- **Area Chart (Snow):**
+  - `const area2 = d3.area()`
+- **Line Chart (Temperature):**
+  - `var linetemp = d3.line()`
+
+**checkbox Function:**
+
+- **Checkbox Inputs:**
+  - `form.append(html`<input type=checkbox name=input ...`>`
+- **Checkbox Labels:**
+  - `form.append(html`<label ...>${input}</label>`>`
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Can you label this program ENTIRELY while preserving its order?:
+
+chart2 = {
+    const height =3000
+  ;
+  const svg = d3.select(DOM.svg(width, height));
+
+  const gSvg = svg.append("g")
+
+    const yScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+     .range([0,height]);
+ const xScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([0, width]);
+
+var area = d3.area()
+.curve(d3.curveBasis)
+    .y(d => yScale(d.data.time))
+    .x0(d => xScale(d[0]))
+    .x1(d => xScale(d[1]));
+
+   svg.append("g")
+    .selectAll("path")
+    .data(series3)
+    .join("path")
+      .attr("fill", d => "#"+(d.key))
+      .attr("d", area)
+      .attr("stroke", 10)
+
+
+ svg.append('text')
+    .text("DUAL ")
+    .attr('x', 1)
+    .attr('y', 3000-50)
+   .style('font-family', 'sans-serif')
+    .style('font-size', 300)
+  .style("fill", "#bb0000")
+  .attr("opacity", 1)
+
+
+
+
+   return svg.node();
+ }
+
+chart = {
+
+
+  //DEFINING THE SVG
+  const height =450;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+  //const svg= d3.create("svg").attr("viewBox", [0,0,width,height]);
+
+  const gSvg = svg.append("g")
+    //.attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  ////////////////////////////////////////////////////////DEFINING BAR CHART
+  const xScale = d3.scaleBand()
+    .domain(data.map(d=> d.time))
+    .range([margin.left, width]);
+
+  const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([height-50,(height/2)+20]);
+
+
+   const rects = gSvg.selectAll("g").data(series).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+    .data(d => d)
+    .join("rect")
+    .attr("x", d => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE AREA CHART
+
+ const xline =  d3.scaleLinear()
+    .domain(d3.extent(emissionacc, d => d.day))
+     .range([margin.left, width]);
+
+ const yline = d3.scaleLinear()
+    .domain([0, d3.max(emissionacc, d => d.amount)])
+    .range([height/2 , margin.top])
+
+ const area = d3.area()
+// .curve(d3.curveNatural)
+    .x(d => xline(d.day))
+    .y0(d => yline(0))
+    .y1(d => yline(d.amount))
+
+  const yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(yline))
+    .call(g => g.select(".domain"))
+    .call(g => g.select(".tick:last-of-type text").clone()
+        .attr("x", 20)
+        .attr("text-anchor", "start")
+        //.attr("font-weight", "bold")
+          .attr("font-size", 12)
+          .style("fill", "#bb0000")
+        .text("Accumulated CO2 (kg)"));
+
+  const xAxis = g => g
+    .attr("transform", `translate(0,${(height/2)})`)
+    .call(d3.axisBottom(xline)
+            .ticks(width / 80)
+            .tickSizeOuter(0))
+
+ svg.append("path")
+      .datum(emissionacc)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "#bb0000")
+      .attr("d", area)
+      .attr("opacity", 0.5)
+
+  svg.append("g")
+      .call(xAxis)
+      .style('font-size', '12')
+
+  svg.append("g")
+      .call(yAxis)
+      .style('font-size', '12')
+      .style('color', "#bb0000");
+
+  ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , height-50])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+
+///////////////////////////////////////////////////// ///ADDING TEXT
+  svg.append('text')
+    .text("My car ")
+    .attr('x', 20)
+    .attr('y', 100)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .style("fill", "#bb0000")
+  .attr("opacity", 0.5)
+  svg.append('text')
+    .text("My view ")
+    .attr('x', 20)
+    .attr('y', 300)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 30)
+  .attr("opacity", 0.5)
+   svg.append('text')
+    .text("My snow ")
+    .attr('x', 20)
+    .attr('y', 450)
+    .style('font-family', 'sans-serif')
+    .style('font-size', 20)
+  .attr("opacity", 0.5)
+
+   ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+   .range([height , height-50])
+
+var linetemp = d3.line()
+    .defined(d => !isNaN(d.day) && !isNaN(d.air))
+    .x(d => xa(d.day))
+    .y(d => ya(d.air))
+
+  svg.append("path")
+      .datum(weather)
+       .attr("stroke", function() {if(weather.air > 0) {return "lightyellow"    } else {return "lightpurple"    }
+                                  })
+      .attr("fill", "none")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("d", linetemp)
+
+
+
+   return svg.node();
+ }
+
+viewof value = html`<input type="range"  min="0" max="59" step="1"   style="margin: 0; width: 950px;"/>`
+
+viewof ch3 = checkbox({
+  //description: "Click to act",
+  options: [{ value: "toggle", label: " OR CLICK TO ACT" }],
+  valuebutton: "toggle"
+})
+
+chart4 = {
+
+
+///just changing from name to consecutive integers
+ let datecode= function() {if(value<15) {return value+117}
+                                  else  { if(value>42) {return value+258}
+                                       else 	{ return value+186 }             }        };
+
+//DEFINING THE SVG
+  const height =600;
+  const width= 1000;
+  const band= 600;
+
+
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+/// ADD BACKGROUND
+  svg.append('rect')
+             .attr('x', 0)
+             .attr('y', 0)
+             .attr('height', height)
+             .attr('width', width)
+             .attr('fill', 'black')
+             .style("opacity",0.1)
+
+
+/// ADD COLOR BARS
+  const xScale = d3.scaleBand()
+    .domain(data.map(function(d){return d.time;}))
+    .range([0, width]);
+
+ const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series, d => d3.max(d, d=> d[1]))])
+    .range([7*height/8,height/8]);
+
+  const rects = svg.selectAll("g")
+           .data(series2)
+           .enter()
+           .append("g")
+           .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+           .data(d => d)
+           .join("rect")
+           .attr("x", (width/2)-(band/2))
+           .attr("y", d=> (yScale(d[1])))
+           .attr("height", d=> (yScale(d[0]) - yScale(d[1])))
+           .attr("width", band)
+            .attr("stroke-width", 2)
+           .style("opacity",  function(d) { if(d.data.time == datecode(value) )
+                                         { return 0.8 } else {return 0.05} })
+
+
+
+
+///ADD LINES
+
+ function randValue2(max) {  return Math.random() * max; }
+
+svg.selectAll('line')
+            .data(d3.range((emissionacc[value].amount)/2).map((d) => d) )
+           .join("line")
+           .each(function(e) {
+                   var size =  randValue2(height );
+                   var sizew =  randValue2(width );
+                   d3.select(this)
+                     .attr('y1', size)
+                     .attr('y2', size)
+                     .attr('x1', sizew-200 )
+                     .attr('x2', sizew+200)
+              })
+            .attr('stroke', 'red')
+            .style("opacity",  function(d) { if(ch3=="toggle" )
+                                         { return 0} else {return 0.2} })
+           .style("stroke-dasharray", ("1, 1"))
+                          .attr("stroke-width", 5)
+
+
+
+  ;
+
+
+
+
+   return svg.node();
+ }
+
+data = Object.assign(d3.csvParse(await FileAttachment("Book18@3.csv").text(), d3.autoType))
+
+series = d3.stack()
+            .keys(data.columns.slice(1))
+ //.offset(d3.stackOffsetWiggle)
+ //  .order(d3.stackOrderInsideOut)
+
+   .order(d3.stackOrderNone)
+            (data)
+
+series2 = d3.stack()
+            .keys(data.columns.slice(1))
+// .offset(d3.stackOffsetWiggle)
+  //.order(d3.stackOrderDescending)
+
+  .order(d3.stackOrderNone)
+            (data)
+
+data2 = data.map(d => Object.entries(d).map((e) => ( { [e[0]]: e[1] } )).sort((a,b) => b - a).slice(0,12))
+
+data3 = data.map(d => Object.entries(d).map((e) => ( { "label":e[0],"value": e[1] } )) .sort((a,b) => b.value - a.value).slice(0,13))
+
+data4= data3
+.map(d => d.map(  (e)=> ( [{  [d[0].label]:d[0].value ,
+                              [d[1].label]:d[1].value,
+                              [d[2].label]:d[2].value,
+                              [d[3].label]:d[3].value,
+                              [d[4].label]:d[4].value,
+                              [d[5].label]:d[5].value,
+                              [d[6].label]:d[6].value,
+                              [d[7].label]:d[7].value,
+                              [d[8].label]:d[8].value,
+                              [d[9].label]:d[9].value,
+                              [d[10].label]:d[10].value,
+                              [d[11].label]:d[11].value,
+                              [d[12].label]:d[12].value,
+
+                       }] ) ).slice(12))
+
+data5=data4 .map(d => d[0][0]    );
+
+series3 = d3.stack()
+            .keys(data.columns.slice(1))
+    .order(d3.stackOrderReverse)
+ //  .order(d3.stackOrderNone)
+            (data)
+
+emissionacc=Object.assign(d3.csvParse(await FileAttachment("emissionacc@4.txt").text(), d3.autoType))
+
+weather=Object.assign(d3.csvParse(await FileAttachment("weather.csv").text(), d3.autoType))
+
+chart3 = {
+    const height =100;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+  const gSvg = svg.append("g")
+    .attr("transform", "translate("+margin.left+","+margin.top+")");
+
+  const xScale = d3.scaleBand()
+    .domain(data5.map(function(d){return d.time;}))
+    .range([0, width]);
+
+
+ const yScale = d3.scaleLinear()
+    .domain([0,d3.max(series3, d => d3.max(d, d=> d[1]))])
+    .range([height,0]);
+
+
+  const rects = gSvg.selectAll("g").data(series3).enter()
+    .append("g")
+   .attr("fill", d => "#"+(d.key)); //Color is assigned here
+
+  rects.selectAll("rect")
+   .data(d => d)
+   .join("rect")
+    .attr("x", (d, i) => xScale(d.data.time))
+    .attr("y", d=> yScale(d[1]))
+    .attr("height", d=> yScale(d[0]) - yScale(d[1]))
+    .attr("width", xScale.bandwidth())
+    .attr("stroke", "black")
+    .attr('stroke-width', 0.05);
+
+
+
+
+   return svg.node();
+ }
+
+weatherchart={
+  //DEFINING THE SVG
+  const height =50
+  ;
+  const svg = d3.select(DOM.svg(width+margin.left+margin.right, height+margin.top+margin.bottom));
+
+
+
+ ///////////////////////////////////////////////////////ADDIGN THE SNOW
+
+ const xt =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const yt = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+    .range([height , margin.top])
+
+ const area2 = d3.area()
+ .curve(d3.curveNatural)
+    .x(d => xt(d.day))
+    .y0(d => yt(0))
+    .y1(d => yt(d.snow))
+
+ svg.append("path")
+      .datum(weather)
+      .attr("stroke-linejoin", "round")
+      .attr("fill", "lightblue")
+      .attr("d", area2)
+      .attr("opacity", 0.5)
+ ///////////////////////////////////////////////////////////////ADDING THE AIR tEMP
+
+const xa =  d3.scaleLinear()
+    .domain(d3.extent(weather, d => d.day))
+     .range([margin.left, width]);
+
+ const ya = d3.scaleLinear()
+    .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+    .range([height , margin.top])
+var linetemp = d3.line()
+    .defined(d => !isNaN(d.day) && !isNaN(d.air))
+    .x(d => xa(d.day))
+    .y(d => ya(d.air))
+
+  svg.append("path")
+      .datum(weather)
+      .attr("fill", "none")
+      .attr("stroke", "purple")
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
+      .attr("d", linetemp);
+
+
+   return svg.node();
+ }
+
+margin = ({top: 20, right:20, bottom:20, left: 150})
+
+function checkbox(config = {}) {
+  let {
+    value: formValue,
+    title,
+    description,
+    submit,
+    disabled,
+    options
+  } = Array.isArray(config) ? { options: config } : config;
+  options = options.map(o =>
+    typeof o === "string" ? { value: o, label: o } : o
+  );
+  const form = input({
+    type: "checkbox",
+    title,
+    description,
+    submit,
+    getValue: input => {
+      if (input.length)
+        return Array.prototype.filter
+          .call(input, i => i.checked)
+          .map(i => i.value);
+      return input.checked ? input.value : false;
+    },
+    form: html`
+      <form>
+        ${options.map(({ value, label }, i) => {
+          const input = html`<input type=checkbox name=input ${
+            (formValue || []).indexOf(value) > -1 ? "checked" : ""
+          } style="vertical-align: top; ${
+            i === 0 ? `margin-left: 1px;` : ``
+          }" />`;
+          input.setAttribute("value", value);
+          if (disabled) input.setAttribute("disabled", disabled);
+          const tag = html`<label style="display: inline-block; margin: 5px 10px 3px 0; font-size: 15; font-color="grey">
+           ${input}
+           ${label}
+          </label>`;
+          return tag;
+        })}
+      </form>
+    `
+  });
+  form.output.remove();
+  return form;
+}
+
+function input(config) {
+  let {
+    form,
+    type = "text",
+    attributes = {},
+    action,
+    getValue,
+    title,
+    description,
+    format,
+    display,
+    submit,
+    options
+  } = config;
+  const wrapper = html`<div></div>`;
+  if (!form)
+    form = html`<form>
+	<input name=input type=${type} />
+  </form>`;
+  Object.keys(attributes).forEach(key => {
+    const val = attributes[key];
+    if (val != null) form.input.setAttribute(key, val);
+  });
+  if (submit)
+    form.append(
+      html`<input name=submit type=submit style="margin: 0 0.75em" value="${
+        typeof submit == "string" ? submit : "Submit"
+      }" />`
+    );
+  form.append(
+    html`<output name=output style="font: 14px Menlo, Consolas, monospace; margin-left: 0.5em;"></output>`
+  );
+  if (title)
+    form.prepend(
+      html`<div style="font: 700 0.9rem sans-serif; margin-bottom: 3px;">${title}</div>`
+    );
+  if (description)
+    form.append(
+      html`<div style="font-size: 0.85rem; font-style: italic; margin-top: 3px;">${description}</div>`
+    );
+  if (format)
+    format = typeof format === "function" ? format : d3format.format(format);
+  if (action) {
+    action(form);
+  } else {
+    const verb = submit
+      ? "onsubmit"
+      : type == "button"
+      ? "onclick"
+      : type == "checkbox" || type == "radio"
+      ? "onchange"
+      : "oninput";
+    form[verb] = e => {
+      e && e.preventDefault();
+      const value = getValue ? getValue(form.input) : form.input.value;
+      if (form.output) {
+        const out = display ? display(value) : format ? format(value) : value;
+        if (out instanceof window.Element) {
+          while (form.output.hasChildNodes()) {
+            form.output.removeChild(form.output.lastChild);
+          }
+          form.output.append(out);
+        } else {
+          form.output.value = out;
+        }
+      }
+      form.value = value;
+      if (verb !== "oninput")
+        form.dispatchEvent(new CustomEvent("input", { bubbles: true }));
+    };
+    if (verb !== "oninput")
+      wrapper.oninput = e => e && e.stopPropagation() && e.preventDefault();
+    if (verb !== "onsubmit") form.onsubmit = e => e && e.preventDefault();
+    form[verb]();
+  }
+  while (form.childNodes.length) {
+    wrapper.appendChild(form.childNodes[0]);
+  }
+  form.append(wrapper);
+  return form;
+}
+
+d3format = require("d3-format@1")
+
+d3 = require("d3@6")
+
+html`<style>
+/* required styles */
+* { font-family:   Arial, sans-serif;
+    margin: 0;
+}
+select {  font-size: 16px;
+}
+</style`
+
+html`<style>p { max-width: none; }</style>`
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+```javascript
+// Define chart2
+chart2 = {
+    // Define height constant
+    const height = 3000;
+
+    // Select SVG element and set its height
+    const svg = d3.select(DOM.svg(width, height));
+
+    // Append a group element to SVG
+    const gSvg = svg.append("g");
+
+    // Define yScale using scaleBand
+    const yScale = d3.scaleBand()
+        .domain(data.map(function(d) { return d.time; }))
+        .range([0, height]);
+
+    // Define xScale using scaleLinear
+    const xScale = d3.scaleLinear()
+        .domain([0, d3.max(series3, d => d3.max(d, d => d[1]))])
+        .range([0, width]);
+
+    // Define area generator
+    var area = d3.area()
+        .curve(d3.curveBasis)
+        .y(d => yScale(d.data.time))
+        .x0(d => xScale(d[0]))
+        .x1(d => xScale(d[1]));
+
+    // Append path elements to SVG for each data series
+    svg.append("g")
+        .selectAll("path")
+        .data(series3)
+        .join("path")
+        .attr("fill", d => "#" + (d.key))
+        .attr("d", area)
+        .attr("stroke", 10);
+
+    // Append text element for label
+    svg.append('text')
+        .text("DUAL ")
+        .attr('x', 1)
+        .attr('y', 3000 - 50)
+        .style('font-family', 'sans-serif')
+        .style('font-size', 300)
+        .style("fill", "#bb0000")
+        .attr("opacity", 1);
+
+    // Return SVG node
+    return svg.node();
+}
+
+// Define chart
+chart = {
+    // Define height and width constants
+    const height = 450;
+    const width = 1000;
+
+    // Select SVG element and set its dimensions
+    const svg = d3.select(DOM.svg(width + margin.left + margin.right, height + margin.top + margin.bottom));
+
+    // Append a group element to SVG
+    const gSvg = svg.append("g");
+
+    // Define xScale using scaleBand
+    const xScale = d3.scaleBand()
+        .domain(data.map(d => d.time))
+        .range([margin.left, width]);
+
+    // Define yScale using scaleLinear
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+        .range([height - 50, (height / 2) + 20]);
+
+    // Append rectangles to SVG for each data point
+    const rects = gSvg.selectAll("g")
+        .data(series)
+        .enter()
+        .append("g")
+        .attr("fill", d => "#" + (d.key)); //Color is assigned here
+
+    rects.selectAll("rect")
+        .data(d => d)
+        .join("rect")
+        .attr("x", d => xScale(d.data.time))
+        .attr("y", d => yScale(d[1]))
+        .attr("height", d => yScale(d[0]) - yScale(d[1]))
+        .attr("width", xScale.bandwidth())
+        .attr("stroke", "black")
+        .attr('stroke-width', 0.05);
+
+    // Define xline using scaleLinear
+    const xline = d3.scaleLinear()
+        .domain(d3.extent(emissionacc, d => d.day))
+        .range([margin.left, width]);
+
+    // Define yline using scaleLinear
+    const yline = d3.scaleLinear()
+        .domain([0, d3.max(emissionacc, d => d.amount)])
+        .range([height / 2, margin.top]);
+
+    // Define area generator
+    const area = d3.area()
+        .x(d => xline(d.day))
+        .y0(d => yline(0))
+        .y1(d => yline(d.amount));
+
+    // Define yAxis function
+    const yAxis = g => g
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(yline))
+        .call(g => g.select(".domain"))
+        .call(g => g.select(".tick:last-of-type text").clone()
+            .attr("x", 20)
+            .attr("text-anchor", "start")
+            .attr("font-size", 12)
+            .style("fill", "#bb0000")
+            .text("Accumulated CO2 (kg)"));
+
+    // Define xAxis function
+    const xAxis = g => g
+        .attr("transform", `translate(0,${(height / 2)})`)
+        .call(d3.axisBottom(xline)
+            .ticks(width / 80)
+            .tickSizeOuter(0));
+
+    // Append path element for area chart
+    svg.append("path")
+        .datum(emissionacc)
+        .attr("stroke-linejoin", "round")
+        .attr("fill", "#bb0000")
+        .attr("d", area)
+        .attr("opacity", 0.5);
+
+    // Append xAxis to SVG
+    svg.append("g")
+        .call(xAxis)
+        .style('font-size', '12');
+
+    // Append yAxis to SVG
+    svg.append("g")
+        .call(yAxis)
+        .style('font-size', '12')
+        .style('color', "#bb0000");
+
+    // Append text elements for labels
+    svg.append('text')
+        .text("My car ")
+        .attr('x', 20)
+        .attr('y', 100)
+        .style('font-family', 'sans-serif')
+        .style('font-size', 30)
+        .style("fill", "#bb0000")
+        .attr("opacity", 0.5);
+    svg.append('text')
+        .text("My view ")
+        .attr('x', 20)
+        .attr('y', 300)
+        .style('font-family', 'sans-serif')
+        .style('font-size', 30)
+        .attr("opacity", 0.5);
+    svg.append('text')
+        .text("My snow ")
+        .attr('x', 20)
+        .attr('y', 450)
+        .style('font-family', 'sans-serif')
+        .style('font-size', 20)
+        .attr("opacity", 0.5);
+
+    // Return SVG node
+    return svg.node();
+}
+
+// Define viewof value
+viewof value = html`<input type="range" min="0" max="59" step="1" style="margin: 0; width: 950px;"/>`;
+
+// Define viewof ch3
+viewof ch3 = checkbox({
+    options: [{ value: "toggle", label: " OR CLICK TO ACT" }],
+    valuebutton: "toggle"
+});
+
+// Define chart4
+chart4 = {
+    // Define datecode function
+    let datecode = function() {
+        if (value < 15) {
+            return value + 117;
+        } else {
+            if (value > 42) {
+                return value +
+
+//////////////////////////////////////////////////////////////////////
+Can you label the rest of the program?
+
+```javascript
+                258;
+            } else {
+                return value + 186;
+            }
+        }
+    };
+
+    // Define height, width, and band constants
+    const height = 600;
+    const width = 1000;
+    const band = 600;
+
+    // Select SVG element and set its dimensions
+    const svg = d3.select(DOM.svg(width + margin.left + margin.right, height + margin.top + margin.bottom));
+
+    // Append background rectangle to SVG
+    svg.append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('height', height)
+        .attr('width', width)
+        .attr('fill', 'black')
+        .style("opacity", 0.1);
+
+    // Define xScale using scaleBand
+    const xScale = d3.scaleBand()
+        .domain(data.map(function(d) { return d.time; }))
+        .range([0, width]);
+
+    // Define yScale using scaleLinear
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+        .range([7 * height / 8, height / 8]);
+
+    // Append color bars to SVG
+    const rects = svg.selectAll("g")
+        .data(series2)
+        .enter()
+        .append("g")
+        .attr("fill", d => "#" + (d.key)); //Color is assigned here
+
+    rects.selectAll("rect")
+        .data(d => d)
+        .join("rect")
+        .attr("x", (width / 2) - (band / 2))
+        .attr("y", d => (yScale(d[1])))
+        .attr("height", d => (yScale(d[0]) - yScale(d[1])))
+        .attr("width", band)
+        .attr("stroke-width", 2)
+        .style("opacity", function(d) {
+            if (d.data.time == datecode(value)) { return 0.8 } else { return 0.05 }
+        });
+
+    // Define function to generate random value
+    function randValue2(max) { return Math.random() * max; }
+
+    // Append lines to SVG
+    svg.selectAll('line')
+        .data(d3.range((emissionacc[value].amount) / 2).map((d) => d))
+        .join("line")
+        .each(function(e) {
+            var size = randValue2(height);
+            var sizew = randValue2(width);
+            d3.select(this)
+                .attr('y1', size)
+                .attr('y2', size)
+                .attr('x1', sizew - 200)
+                .attr('x2', sizew + 200)
+        })
+        .attr('stroke', 'red')
+        .style("opacity", function(d) {
+            if (ch3 == "toggle") { return 0 } else { return 0.2 }
+        })
+        .style("stroke-dasharray", ("1, 1"))
+        .attr("stroke-width", 5);
+
+    // Return SVG node
+    return svg.node();
+}
+
+// Define data, series, series2, data2, data3, data4, data5, series3, emissionacc, and weather
+data = Object.assign(d3.csvParse(await FileAttachment("Book18@3.csv").text(), d3.autoType));
+series = d3.stack()
+    .keys(data.columns.slice(1))
+    .order(d3.stackOrderNone)(data);
+series2 = d3.stack()
+    .keys(data.columns.slice(1))
+    .order(d3.stackOrderNone)(data);
+data2 = data.map(d => Object.entries(d).map((e) => ({ [e[0]]: e[1] })).sort((a, b) => b - a).slice(0, 12));
+data3 = data.map(d => Object.entries(d).map((e) => ({ "label": e[0], "value": e[1] })).sort((a, b) => b.value - a.value).slice(0, 13));
+data4 = data3
+    .map(d => d.map((e) => ([{
+        [d[0].label]: d[0].value,
+        [d[1].label]: d[1].value,
+        [d[2].label]: d[2].value,
+        [d[3].label]: d[3].value,
+        [d[4].label]: d[4].value,
+        [d[5].label]: d[5].value,
+        [d[6].label]: d[6].value,
+        [d[7].label]: d[7].value,
+        [d[8].label]: d[8].value,
+        [d[9].label]: d[9].value,
+        [d[10].label]: d[10].value,
+        [d[11].label]: d[11].value,
+        [d[12].label]: d[12].value,
+    }])));
+data5 = data4.map(d => d[0][0]);
+series3 = d3.stack()
+    .keys(data.columns.slice(1))
+    .order(d3.stackOrderReverse)(data);
+emissionacc = Object.assign(d3.csvParse(await FileAttachment("emissionacc@4.txt").text(), d3.autoType));
+weather = Object.assign(d3.csvParse(await FileAttachment("weather.csv").text(), d3.autoType));
+
+// Define chart3
+chart3 = {
+    const height = 100;
+    const svg = d3.select(DOM.svg(width + margin.left + margin.right, height + margin.top + margin.bottom));
+    const gSvg = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    const xScale = d3.scaleBand()
+        .domain(data5.map(function(d) { return d.time; }))
+        .range([0, width]);
+    const yScale = d3.scaleLinear()
+        .domain([0, d3.max(series3, d => d3.max(d, d => d[1]))])
+        .range([height, 0]);
+    const rects = gSvg.selectAll("g").data(series3).enter()
+        .append("g")
+        .attr("fill", d => "#" + (d.key)); //Color is assigned here
+    rects.selectAll("rect")
+        .data(d => d)
+        .join("rect")
+        .attr("x", (d, i) => xScale(d.data.time))
+        .attr("y", d => yScale(d[1]))
+        .attr("height", d => yScale(d[0]) - yScale(d[1]))
+        .attr("width", xScale.bandwidth())
+        .attr("stroke", "black")
+        .attr('stroke-width', 0.05);
+    return svg.node();
+}
+
+// Define weatherchart
+weatherchart = {
+    // Define height constant
+    const height = 50;
+
+    // Select SVG element and set its dimensions
+    const svg = d3.select(DOM.svg(width + margin.left + margin.right, height + margin.top + margin.bottom));
+
+    //
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Can you label the rest of program?
+
+```javascript
+    // Define xScale and yScale for snow area chart
+    const xt = d3.scaleLinear()
+        .domain(d3.extent(weather, d => d.day))
+        .range([margin.left, width]);
+
+    const yt = d3.scaleLinear()
+        .domain([d3.min(weather, d => d.snow), d3.max(weather, d => d.snow)])
+        .range([height, margin.top]);
+
+    // Define area generator for snow area chart
+    const area2 = d3.area()
+        .curve(d3.curveNatural)
+        .x(d => xt(d.day))
+        .y0(d => yt(0))
+        .y1(d => yt(d.snow));
+
+    // Append snow area chart to SVG
+    svg.append("path")
+        .datum(weather)
+        .attr("stroke-linejoin", "round")
+        .attr("fill", "lightblue")
+        .attr("d", area2)
+        .attr("opacity", 0.5);
+
+    // Define xScale and yScale for air temperature line chart
+    const xa = d3.scaleLinear()
+        .domain(d3.extent(weather, d => d.day))
+        .range([margin.left, width]);
+
+    const ya = d3.scaleLinear()
+        .domain([d3.min(weather, d => d.air), d3.max(weather, d => d.air)])
+        .range([height, margin.top]);
+
+    // Define line generator for air temperature line chart
+    var linetemp = d3.line()
+        .defined(d => !isNaN(d.day) && !isNaN(d.air))
+        .x(d => xa(d.day))
+        .y(d => ya(d.air));
+
+    // Append air temperature line chart to SVG
+    svg.append("path")
+        .datum(weather)
+        .attr("fill", "none")
+        .attr("stroke", "purple")
+        .attr("stroke-width", 1.5)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("d", linetemp);
+
+    // Return SVG node
+    return svg.node();
+}
+
+// Define margin object
+margin = ({ top: 20, right: 20, bottom: 20, left: 150 });
+
+// Define checkbox function
+function checkbox(config = {}) {
+    let {
+        value: formValue,
+        title,
+        description,
+        submit,
+        disabled,
+        options
+    } = Array.isArray(config) ? { options: config } : config;
+
+    options = options.map(o =>
+        typeof o === "string" ? { value: o, label: o } : o
+    );
+
+    const form = input({
+        type: "checkbox",
+        title,
+        description,
+        submit,
+        getValue: input => {
+            if (input.length)
+                return Array.prototype.filter
+                    .call(input, i => i.checked)
+                    .map(i => i.value);
+            return input.checked ? input.value : false;
+        },
+        form: html`
+            <form>
+                ${options.map(({ value, label }, i) => {
+                    const input = html`<input type=checkbox name=input ${
+                        (formValue || []).indexOf(value) > -1 ? "checked" : ""
+                    } style="vertical-align: top; ${
+                        i === 0 ? `margin-left: 1px;` : ``
+                    }" />`;
+                    input.setAttribute("value", value);
+                    if (disabled) input.setAttribute("disabled", disabled);
+                    const tag = html`<label style="display: inline-block; margin: 5px 10px 3px 0; font-size: 15; font-color="grey">
+                       ${input}
+                       ${label}
+                    </label>`;
+                    return tag;
+                })}
+            </form>
+        `
+    });
+
+    form.output.remove();
+    return form;
+}
+
+// Define input function
+function input(config) {
+    let {
+        form,
+        type = "text",
+        attributes = {},
+        action,
+        getValue,
+        title,
+        description,
+        format,
+        display,
+        submit,
+        options
+    } = config;
+
+    const wrapper = html`<div></div>`;
+
+    if (!form)
+        form = html`
+            <form>
+                <input name=input type=${type} />
+            </form>
+        `;
+
+    Object.keys(attributes).forEach(key => {
+        const val = attributes[key];
+        if (val != null) form.input.setAttribute(key, val);
+    });
+
+    if (submit)
+        form.append(
+            html`<input name=submit type=submit style="margin: 0 0.75em" value="${
+                typeof submit == "string" ? submit : "Submit"
+            }" />`
+        );
+
+    form.append(
+        html`<output name=output style="font: 14px Menlo, Consolas, monospace; margin-left: 0.5em;"></output>`
+    );
+
+    if (title)
+        form.prepend(
+            html`<div style="font: 700 0.9rem sans-serif; margin-bottom: 3px;">${title}</div>`
+        );
+
+    if (description)
+        form.append(
+            html`<div style="font-size: 0.85rem; font-style: italic; margin-top: 3px;">${description}</div>`
+        );
+
+    if (format)
+        format = typeof format === "function" ? format : d3format.format(format);
+
+    if (action) {
+        action(form);
+    } else {
+        const verb = submit
+            ? "onsubmit"
+            : type == "button"
+            ? "onclick"
+            : type == "checkbox" || type == "radio"
+            ? "onchange"
+            : "oninput";
+
+        form[verb] = e => {
+            e && e.preventDefault();
+            const value = getValue ? getValue(form.input) : form.input.value;
+            if (form.output) {
+                const out = display ? display(value) : format ? format(value) : value;
+                if (out instanceof window.Element) {
+                    while (form.output.hasChildNodes()) {
+                        form.output.removeChild(form.output.lastChild);
+                    }
+                    form.output.append(out);
+                } else {
+                    form.output.value = out;
+                }
+            }
+            form.value = value;
+            if (verb !== "oninput")
+                form.dispatchEvent(new CustomEvent("input", { bubbles: true }));
+        };
+
+        if (verb !== "oninput")
+            wrapper.oninput = e => e && e.stopPropagation() && e.preventDefault();
+
+        if (verb !== "onsubmit") form.onsubmit = e => e && e.preventDefault();
+
+        form[verb]();
+    }
+
+    while (form.childNodes.length) {
+        wrapper.appendChild(form.childNodes[0]);
+    }
+
+    form.append(wrapper);
+
+    return form;
+}
+
+// Import d3-format module
+d3format = require("d3-format@1");
+
+// Import d3 module
+d3 = require("d3@6");
+
+// Define inline HTML styles
+html`<style>
+    /* required styles */
+    * { font-family: Arial, sans-serif; margin: 0; }
+    select { font-size: 16px; }
+</style>`;
+
+html`<style>p { max-width: none; }</style>`;
+```

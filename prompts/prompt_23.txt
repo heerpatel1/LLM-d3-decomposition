@@ -1,0 +1,588 @@
+Can you label this program for me?:
+chart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [-width / 2, -height / 2, width, height])
+      .attr("font-size", 10)
+      .attr("font-family", "sans-serif")
+      .style("width", "100%")
+      .style("height", "auto");
+
+  const chords = chord(data);
+
+  const group = svg.append("g")
+    .selectAll("g")
+    .data(chords.groups)
+    .enter().append("g");
+
+  const groupPath = group.append("path")
+    .attr("class", "group")
+    .attr("fill", d => color(d.index))
+    .attr("stroke", d => d3.rgb(color(d.index)).darker())
+    .attr("d", arc)
+    .attr("id", function(d, i) { return "group" + d.index; }) //add id
+    .on("mouseover", fade(.1))
+    .on("mouseout", fade(opacityDefault));
+
+  // group.append("path")
+  //     .attr("fill", d => color(d.index))
+  //     .attr("stroke", d => d3.rgb(color(d.index)).darker())
+  //     .attr("id", function(d, i) { return "group" + d.index; }) //add id here
+  //     .attr("d", arc);
+
+  group.append("text")
+     .attr("x", 5)
+     .attr("dy", 15)
+     .append("textPath")
+     .attr("xlink:href", function(d) { return "#group" + d.index; })
+     .text(function(chords, i){return names[i];})
+     .style("fill", "black");
+    // group.append("text")
+    //   .each(d => { d.angle = (d.startAngle + d.endAngle) / 2; })
+    //   .attr("dy", "100")
+    //   .attr("transform", d => `
+    //     rotate(${(d.angle * 180 / Math.PI - 90)})
+    //     translate(${innerRadius + 26})
+    //     ${d.angle > Math.PI ? "rotate(180)" : ""}`)
+    //   .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+    //   .text(d => names[d.index]);
+
+  const groupTick = group.append("g")
+    .selectAll("g")
+    .data(d => groupTicks(d, 1e3))
+    .join("g")
+    .attr("transform", d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${outerRadius},0)`);
+
+  groupTick.append("line")
+      .attr("stroke", "#000")
+      .attr("x2", 6);
+
+  groupTick
+    .filter(d => d.value % 5e3 === 0)
+    .append("text")
+      .attr("x", 8)
+      .attr("dy", ".35em")
+      .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-16)" : null)
+      .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+      .text(d => formatValue(d.value));
+
+  const ribbons = svg.append("g")
+      .attr("fill-opacity", 0.67)
+    .selectAll("path")
+    .data(chords)
+    .enter().append("path")
+      .attr("class", "ribbons")
+      .attr("d", ribbon)
+      .attr("fill", d => color(d.target.index))
+      .attr("stroke", d => d3.rgb(color(d.target.index)).darker())
+    .on("mouseover", function(d) {
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", opacityDefault);
+      tooltip.html(d.source.value + " videos in " + names[d.source.index] + " are " + names[d.target.index])
+        .style("left", (d3.event.pageX + 5) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+      // fade other ribbons
+      ribbons
+        .filter(dd => dd !== d)
+        .transition()
+        .style('opacity', 0.1);
+      // fade other groups
+      groupPath
+        .filter((dd,i) => dd.index !== d.source.index && dd.index !== d.target.index)
+        .transition()
+        .style("opacity", 0.1);
+      })
+    .on("mouseout", function(d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+      // unfade ribbons
+      ribbons
+        .transition()
+        .style('opacity', opacityDefault);
+      // unfade groups
+      groupPath
+        .transition()
+        .style("opacity", opacityDefault);
+      });
+
+
+      //Returns an event handler for fading a given chord group.
+  function fade(opacity) {
+    return function(d,i) {
+       ribbons
+        .filter(function(dd) { return dd.source.index != d.index &&       dd.target.index != d.index; })
+        .transition()
+        .style("opacity", opacity);
+        // fade all other groups
+        groupPath
+          .filter(function(dd) { return dd.index != d.index; })
+          .transition()
+          .style("opacity", opacity);
+    };
+  }
+
+  return svg.node();
+}
+
+data = [[0, 0, 0, 0, 0, 0, 29757, 2407, 3278, 6403],
+ [0, 0, 0, 0, 0, 0, 15191, 2513, 3234, 5381],
+ [0, 0, 0, 0, 0, 0, 46856, 9948, 16428, 32172],
+ [0, 0, 0, 0, 0, 0, 8030, 3047, 6271, 17146],
+ [0, 0, 0, 0, 0, 0, 6906, 1326, 2294, 8127],
+ [0, 0, 0, 0, 0, 0, 9141, 1509, 2709, 6400],
+ [29757, 15191, 46856, 8030, 6906, 9141, 0, 0, 0, 0],
+ [2407, 2513, 9948, 3047, 1326, 1509, 0, 0, 0, 0],
+ [3278, 3234, 16428, 6271, 2294, 2709, 0, 0, 0, 0],
+ [6403, 5381, 32172, 17146, 8127, 6400, 0, 0, 0, 0]]
+
+// very popular, popular, not that popular, not popular (number of views)
+// category1, category2, category3, category4, category5, category6, others
+
+
+function groupTicks(d, step) {
+  const k = (d.endAngle - d.startAngle) / d.value;
+  return d3.range(0, d.value, step).map(value => {
+    return {value: value, angle: value * k + d.startAngle};
+  });
+}
+
+formatValue = d3.formatPrefix(",.0", 1e3)
+
+opacityDefault = 0.8
+
+chord = d3.chord()
+    .padAngle(0.05)
+    .sortSubgroups(d3.descending)
+
+arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius)
+
+
+ribbon = d3.ribbon()
+    .radius(innerRadius)
+
+tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("width","text.length + 'px'");
+
+color = d3.scaleOrdinal()
+    .domain(d3.range(names.length))
+    .range(["#828684", "#ded2c2", "#ebb48c", "#819582", "#d08a55", "#c2c9c9", "#ABA6BF", "#ecb7bf", "#583E2E", "#F1E0D6"])
+
+outerRadius = Math.min(width, height) * 0.5 - 30
+
+innerRadius = outerRadius - 20
+
+height = Math.min(640, width)
+
+names = ['Music', 'Comedy', 'Entertainment', 'News & Politics', 'Style', 'Film', "Very Popular", "Popular", "Normal", "Not Popular"]
+
+html`<style>
+svg
+{
+ font-family: sanserif;
+ font-size: 10;
+}
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  height: 20px;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: white;
+  font-size: .8em;
+}
+</style>`
+// Arial, Verdana,
+
+_ = require('lodash')
+
+d3 = require("d3@5")
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Here is your program labeled with shorter comments:
+
+```javascript
+// Label: Import necessary libraries
+d3 = require("d3@5");
+_ = require('lodash');
+
+// Label: Define data
+data = [
+  [0, 0, 0, 0, 0, 0, 29757, 2407, 3278, 6403],
+  [0, 0, 0, 0, 0, 0, 15191, 2513, 3234, 5381],
+  [0, 0, 0, 0, 0, 0, 46856, 9948, 16428, 32172],
+  [0, 0, 0, 0, 0, 0, 8030, 3047, 6271, 17146],
+  [0, 0, 0, 0, 0, 0, 6906, 1326, 2294, 8127],
+  [0, 0, 0, 0, 0, 0, 9141, 1509, 2709, 6400],
+  [29757, 15191, 46856, 8030, 6906, 9141, 0, 0, 0, 0],
+  [2407, 2513, 9948, 3047, 1326, 1509, 0, 0, 0, 0],
+  [3278, 3234, 16428, 6271, 2294, 2709, 0, 0, 0, 0],
+  [6403, 5381, 32172, 17146, 8127, 6400, 0, 0, 0, 0]
+];
+
+// Label: Define category names
+names = ['Music', 'Comedy', 'Entertainment', 'News & Politics', 'Style', 'Film', "Very Popular", "Popular", "Normal", "Not Popular"];
+
+// Label: Define dimensions
+height = Math.min(640, width);
+outerRadius = Math.min(width, height) * 0.5 - 30;
+innerRadius = outerRadius - 20;
+
+// Label: Define color scale
+color = d3.scaleOrdinal()
+    .domain(d3.range(names.length))
+    .range(["#828684", "#ded2c2", "#ebb48c", "#819582", "#d08a55", "#c2c9c9", "#ABA6BF", "#ecb7bf", "#583E2E", "#F1E0D6"]);
+
+// Label: Define format value function
+formatValue = d3.formatPrefix(",.0", 1e3);
+
+// Label: Define default opacity for ribbons and groups
+opacityDefault = 0.8;
+
+// Label: Define chord layout
+chord = d3.chord()
+    .padAngle(0.05)
+    .sortSubgroups(d3.descending);
+
+// Label: Define arc and ribbon functions
+arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+ribbon = d3.ribbon()
+    .radius(innerRadius);
+
+// Label: Define tooltip
+tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("width", "text.length + 'px'");
+
+// Label: Function to generate group ticks
+function groupTicks(d, step) {
+  const k = (d.endAngle - d.startAngle) / d.value;
+  return d3.range(0, d.value, step).map(value => {
+    return {value: value, angle: value * k + d.startAngle};
+  });
+}
+
+// Label: Create the chord diagram chart
+chart = {
+  const svg = d3.create("svg")
+    .attr("viewBox", [-width / 2, -height / 2, width, height])
+    .attr("font-size", 10)
+    .attr("font-family", "sans-serif")
+    .style("width", "100%")
+    .style("height", "auto");
+
+  const chords = chord(data);
+
+  const group = svg.append("g")
+    .selectAll("g")
+    .data(chords.groups)
+    .enter().append("g");
+
+  // Label: Create group paths
+  group.append("path")
+    .attr("class", "group")
+    .attr("fill", d => color(d.index))
+    .attr("stroke", d => d3.rgb(color(d.index)).darker())
+    .attr("d", arc)
+    .attr("id", d => "group" + d.index)
+    .on("mouseover", fade(0.1))
+    .on("mouseout", fade(opacityDefault));
+
+  // Label: Create group texts
+  group.append("text")
+    .attr("x", 5)
+    .attr("dy", 15)
+    .append("textPath")
+    .attr("xlink:href", d => "#group" + d.index)
+    .text((chords, i) => names[i])
+    .style("fill", "black");
+
+  // Label: Create group ticks
+  const groupTick = group.append("g")
+    .selectAll("g")
+    .data(d => groupTicks(d, 1e3))
+    .join("g")
+    .attr("transform", d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${outerRadius},0)`);
+
+  groupTick.append("line")
+    .attr("stroke", "#000")
+    .attr("x2", 6);
+
+  groupTick.filter(d => d.value % 5e3 === 0)
+    .append("text")
+    .attr("x", 8)
+    .attr("dy", ".35em")
+    .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-16)" : null)
+    .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+    .text(d => formatValue(d.value));
+
+  // Label: Create ribbons
+  const ribbons = svg.append("g")
+    .attr("fill-opacity", 0.67)
+    .selectAll("path")
+    .data(chords)
+    .enter().append("path")
+    .attr("class", "ribbons")
+    .attr("d", ribbon)
+    .attr("fill", d => color(d.target.index))
+    .attr("stroke", d => d3.rgb(color(d.target.index)).darker())
+    .on("mouseover", function(d) {
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", opacityDefault);
+      tooltip.html(d.source.value + " videos in " + names[d.source.index] + " are " + names[d.target.index])
+        .style("left", (d3.event.pageX + 5) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+      // Label: Fade other ribbons and groups
+      ribbons.filter(dd => dd !== d)
+        .transition()
+        .style('opacity', 0.1);
+      groupPath.filter((dd, i) => dd.index !== d.source.index && dd.index !== d.target.index)
+        .transition()
+        .style("opacity", 0.1);
+    })
+    .on("mouseout", function(d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+      // Label: Unfade ribbons and groups
+      ribbons.transition()
+        .style('opacity', opacityDefault);
+      groupPath.transition()
+        .style("opacity", opacityDefault);
+    });
+
+  // Label: Function to fade ribbons and groups on hover
+  function fade(opacity) {
+    return function(d, i) {
+      ribbons.filter(function(dd) { return dd.source.index != d.index && dd.target.index != d.index; })
+        .transition()
+        .style("opacity", opacity);
+      groupPath.filter(function(dd) { return dd.index != d.index; })
+        .transition()
+        .style("opacity", opacity);
+    };
+  }
+
+  // Label: Return the SVG node
+  return svg.node();
+}
+
+// Label: CSS for styling the chart and tooltip
+html`<style>
+svg {
+  font-family: sanserif;
+  font-size: 10;
+}
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  height: 20px;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: white;
+  font-size: .8em;
+}
+</style>`;
+```
+////////////////////////////////////////////////////////////////////////////////////////
+Can you label this program for me while preserving the order of the code?:Can you label this
+program for me?:
+
+Here is your program labeled while preserving the order of the code:
+
+```javascript
+// Chart setup and creation
+chart = {
+  // Create SVG element
+  const svg = d3.create("svg")
+      .attr("viewBox", [-width / 2, -height / 2, width, height])
+      .attr("font-size", 10)
+      .attr("font-family", "sans-serif")
+      .style("width", "100%")
+      .style("height", "auto");
+
+  // Create chord layout
+  const chords = chord(data);
+
+  // Append groups for each chord group
+  const group = svg.append("g")
+    .selectAll("g")
+    .data(chords.groups)
+    .enter().append("g");
+
+  // Create group paths (arcs) and set attributes and styles
+  const groupPath = group.append("path")
+    .attr("class", "group")
+    .attr("fill", d => color(d.index))
+    .attr("stroke", d => d3.rgb(color(d.index)).darker())
+    .attr("d", arc)
+    .attr("id", (d, i) => "group" + d.index)
+    .on("mouseover", fade(.1))
+    .on("mouseout", fade(opacityDefault));
+
+  // Append group texts and set attributes and styles
+  group.append("text")
+     .attr("x", 5)
+     .attr("dy", 15)
+     .append("textPath")
+     .attr("xlink:href", d => "#group" + d.index)
+     .text((chords, i) => names[i])
+     .style("fill", "black");
+
+  // Create and append group ticks
+  const groupTick = group.append("g")
+    .selectAll("g")
+    .data(d => groupTicks(d, 1e3))
+    .join("g")
+    .attr("transform", d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${outerRadius},0)`);
+
+  // Set attributes and styles for group tick lines and texts
+  groupTick.append("line")
+      .attr("stroke", "#000")
+      .attr("x2", 6);
+
+  groupTick.filter(d => d.value % 5e3 === 0)
+    .append("text")
+      .attr("x", 8)
+      .attr("dy", ".35em")
+      .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-16)" : null)
+      .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+      .text(d => formatValue(d.value));
+
+  // Create ribbons and set attributes and styles
+  const ribbons = svg.append("g")
+      .attr("fill-opacity", 0.67)
+    .selectAll("path")
+    .data(chords)
+    .enter().append("path")
+      .attr("class", "ribbons")
+      .attr("d", ribbon)
+      .attr("fill", d => color(d.target.index))
+      .attr("stroke", d => d3.rgb(color(d.target.index)).darker())
+    .on("mouseover", function(d) {
+      tooltip.transition()
+        .duration(200)
+        .style("opacity", opacityDefault);
+      tooltip.html(d.source.value + " videos in " + names[d.source.index] + " are " + names[d.target.index])
+        .style("left", (d3.event.pageX + 5) + "px")
+        .style("top", (d3.event.pageY - 28) + "px");
+      // Fade other ribbons and groups
+      ribbons.filter(dd => dd !== d)
+        .transition()
+        .style('opacity', 0.1);
+      groupPath.filter((dd, i) => dd.index !== d.source.index && dd.index !== d.target.index)
+        .transition()
+        .style("opacity", 0.1);
+    })
+    .on("mouseout", function(d) {
+      tooltip.transition()
+        .duration(500)
+        .style("opacity", 0);
+      // Unfade ribbons and groups
+      ribbons.transition()
+        .style('opacity', opacityDefault);
+      groupPath.transition()
+        .style("opacity", opacityDefault);
+      });
+
+  // Function to return event handler for fading a given chord group
+  function fade(opacity) {
+    return function(d, i) {
+       ribbons
+        .filter(function(dd) { return dd.source.index != d.index && dd.target.index != d.index; })
+        .transition()
+        .style("opacity", opacity);
+        // Fade all other groups
+        groupPath.filter(function(dd) { return dd.index != d.index; })
+          .transition()
+          .style("opacity", opacity);
+    };
+  }
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Define data
+data = [[0, 0, 0, 0, 0, 0, 29757, 2407, 3278, 6403],
+ [0, 0, 0, 0, 0, 0, 15191, 2513, 3234, 5381],
+ [0, 0, 0, 0, 0, 0, 46856, 9948, 16428, 32172],
+ [0, 0, 0, 0, 0, 0, 8030, 3047, 6271, 17146],
+ [0, 0, 0, 0, 0, 0, 6906, 1326, 2294, 8127],
+ [0, 0, 0, 0, 0, 0, 9141, 1509, 2709, 6400],
+ [29757, 15191, 46856, 8030, 6906, 9141, 0, 0, 0, 0],
+ [2407, 2513, 9948, 3047, 1326, 1509, 0, 0, 0, 0],
+ [3278, 3234, 16428, 6271, 2294, 2709, 0, 0, 0, 0],
+ [6403, 5381, 32172, 17146, 8127, 6400, 0, 0, 0, 0]];
+
+// Define function to generate group ticks
+function groupTicks(d, step) {
+  const k = (d.endAngle - d.startAngle) / d.value;
+  return d3.range(0, d.value, step).map(value => {
+    return {value: value, angle: value * k + d.startAngle};
+  });
+}
+
+// Define value formatting function
+formatValue = d3.formatPrefix(",.0", 1e3);
+
+// Define default opacity for groups and ribbons
+opacityDefault = 0.8;
+
+// Define chord layout
+chord = d3.chord()
+    .padAngle(0.05)
+    .sortSubgroups(d3.descending);
+
+// Define arc and ribbon functions
+arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+ribbon = d3.ribbon()
+    .radius(innerRadius);
+
+// Create tooltip for hover effects
+tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("width", "text.length + 'px'");
+
+// Define color scale
+color = d3.scaleOrdinal()
+    .domain(d3.range(names.length))
+    .range(["#828684", "#ded2c2", "#ebb48c", "#819582", "#d08a55", "#c2c9c9", "#ABA6BF", "#ecb7bf", "#583E2E", "#F1E0D6"]);
+
+// Define outer and inner radius
+outerRadius = Math.min(width, height) * 0.5 - 30;
+innerRadius = outerRadius - 20;
+
+// Define height
+height = Math.min(640, width);
+
+// Define category names
+names = ['Music', 'Comedy', 'Entertainment', 'News & Politics', 'Style', 'Film', "Very Popular", "Popular", "Normal", "Not Popular"];
+
+// Add CSS styles for the chart and tooltip
+html`<style>
+svg {
+ font-family: sanserif;
+ font-size: 10;
+}
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  height: 20px;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: white;
+  font-size: .8em;
+}
+</style>`;
+```
+This labeling preserves the order of the code while providing brief comments for clarity.

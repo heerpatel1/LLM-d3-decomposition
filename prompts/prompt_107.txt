@@ -1,0 +1,408 @@
+Can you label this program for me?:
+
+viewof display = {
+  const svg = d3.select(DOM.svg(width, height));
+  const particles = [
+    [width / 4, height / 4],
+    [width / 2, (height * 3) / 4],
+    [(width * 3) / 4, height / 4]
+  ];
+  const colors = ['#888888', '#888888', '#888888'];
+
+  function update() {
+    const delaunay = d3_delaunay.Delaunay.from(particles);
+    const voronoi = delaunay.voronoi([0.5, 0.5, width - 0.5, height - 0.5]);
+
+    svg.selectAll("g").remove();
+
+    svg
+      .append("g")
+      .attr("class", "paths")
+      .selectAll("path")
+      .data(
+        d3
+          .voronoi()
+          .extent([[0, 0], [width, height]])
+          .polygons(particles)
+      )
+      .enter()
+      .append("path")
+      .attr("stroke", "white")
+      .attr("fill", (d, i) => colors[i])
+      .attr("d", d => "M" + d.join("L") + "Z");
+
+    svg.selectAll(".point").remove();
+
+    const points = svg
+      .selectAll(".point")
+      .data(particles)
+      .enter()
+      .append("g")
+      .attr("class", "point")
+      .call(drag())
+      .on('click', (d, i) => {
+        d3.event.stopPropagation();
+        console.log("circle", d3.event);
+        if (d3.event.metaKey) {
+          particles.splice(i, 1);
+          colors.splice(i, 1);
+          update();
+        }
+      });
+
+    points
+      .append("circle")
+      .attr("r", 8)
+      .attr("cx", d => d[0])
+      .attr("cy", d => d[1]);
+
+    points
+      .append("foreignObject")
+      .attr("x", d => d[0] - 4)
+      .attr("y", d => d[1] - 4)
+      .attr("height", 8)
+      .attr("width", 8)
+      .on('click', d => {
+        console.log("FO", d3.event);
+      })
+      // .style("pointer-events", "none")
+      // .style("display", "none")
+      .append("xhtml:input")
+      .attr("type", "color")
+      // .attr("value", "#888888")
+      .attr("x", d => d[0] - 4)
+      .attr("y", d => d[1] - 4)
+      // .style("height", "20px")
+      // .style("width", "20px")
+      // .style("margin", "0px")
+      .style("opacity", "0")
+      .style("padding", "4px")
+      // .style("pointer-events", "none")
+      .on('click', d => {
+        console.log("color", d3.event);
+        if (d3.event.shiftKey) {
+          d3.event.stopPropagation();
+        } else {
+          d3.event.preventDefault();
+        }
+      })
+      .on('change', (d, i) => {
+        console.log(i, d3.event.target.value);
+        colors[i] = d3.event.target.value;
+        update();
+      });
+
+    svg.node().value = {
+      particles: particles,
+      colors: colors
+    };
+    svg.node().dispatchEvent(new CustomEvent("input"));
+  }
+
+  svg.on('click', () => {
+    particles.push([d3.event.layerX, d3.event.layerY]);
+    colors.push('#888888');
+    update();
+  });
+
+  function drag() {
+    function dragged(d) {
+      d[0] = d3.event.x;
+      d[1] = d3.event.y;
+      update();
+    }
+
+    return d3.drag().on("drag", dragged);
+  }
+
+  if (particles.length) {
+    update();
+  }
+
+  return svg.node();
+}
+
+display
+
+height = 600
+
+d3 = require('d3@5')
+
+d3_delaunay = require(`d3-delaunay@5.2`)
+
+import { footer } from "@rlesser/footer"
+
+As a reminder, here are 2 examples of labeled programs:
+
+Program 1:
+
+Label: createSvgComponent()
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) )
+const g = svg . attr ( 'width' , width + margin . left )
+. attr ( 'height' , height + margin . top + margin . bottom )
+. append ( 'g' )
+. attr ( 'transform' , 'translate(' + margin . left + ',0)' )
+
+Label: svgAppend()
+g . append ( 'g' )
+. attr ( 'transform' , 'translate(0,' + height + ')' )
+. call ( d3 . axisBottom ( x_scale ) )
+g . append ( 'g' )
+. call ( d3 . axisLeft ( y_scale ) )
+
+Label: svgAppend()
+svg . selectAll ( '.bar' )
+. data ( data )
+. enter ( ) . append ( 'rect' )
+. attr ( 'fill' , '#0077C0' )
+. attr ( 'x' , ( d , i ) => x_scale ( d . category ) + margin . left * 1.5 )
+. attr ( 'y' , ( d ) => y_scale ( d . value ) )
+. attr ( 'width' , 50 )
+. attr ( 'height' , ( d ) => height - y_scale ( d . value ) )
+
+return svg . node ( )
+}
+
+Label: scaleComponent()
+ x_scale . domain ( data . map ( ( d ) => d . category ) )
+
+Label: filterData()
+ data = [ 'A' , 'B' , 'C' , 'D' , 'E' , 'F' , 'G' , 'H' ] . map ( ( d ) => ( {
+value : d3 . randomUniform ( ) ( ) , category : d } ) )
+
+Label: scaleComponent()
+ y_scale = d3 . scaleLinear ( )
+. domain ( [ 0 , 1 ] )
+. range ( [ height , 0 ] )
+
+Label: scaleComponent()
+ x_scale = d3 . scaleBand ( )
+. rangeRound ( [ 0 , width - margin . left - margin . right ] )
+
+Label: setHeight()
+ height = 350
+
+Label: setMargin()
+ margin = ( { top : 50 , right : 50 , bottom : 50 , left : 50 } )
+
+Label: setD3Version()
+ d3 = require ( "d3@5" )
+
+Program 2:
+
+Label: scaleComponent()
+// xScale will help us set the x position of the bars
+xScale = d3 . scaleBand ( ) //Ordinal scale
+. domain ( d3 . range ( dataset . length ) ) //sets the input domain for the scale
+. rangeRound ( [ 0 , w ] ) //enables rounding of the range
+. paddingInner ( 0.05 ) ; //spacing between each bar
+
+Label: scaleComponent()
+ //yScale will help us map data to the height of bars in the barchart
+yScale = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( dataset ) ] ) //sets the upper end of the input domain to the largest data value in dataset
+. range ( [ 0 , h ] ) ;
+
+Label: createSvgComponent()
+ //Create SVG element
+svg = d3 . select ( body )
+. append ( "svg" )
+. attr ( "width" , w )
+. attr ( "height" , h ) ;
+
+Label: svgAppend()
+ //Create bars
+svg . selectAll ( "rect" )
+. data ( dataset )
+. enter ( )
+. append ( "rect" )
+. attr ( "x" , function ( d , i ) { // position in x-axis
+return xScale ( i ) ; // we will pass the values from the dataset
+} )
+. attr ( "y" , function ( d ) {
+return h - yScale ( d ) ;
+} )
+. attr ( "width" , xScale . bandwidth ( ) ) //Asks for the bandwith of the scale
+. attr ( "height" , function ( d ) {
+return yScale ( d ) ;
+} )
+. attr ( "fill" , function ( d ) {
+return "rgb(" + Math . round ( d * 8 ) + ",0," + Math . round ( d * 10 ) + ")" ; //Change the color of the bar depending on the value
+} ) ;
+
+Label: interaction()
+ d3 . select ( button )
+. on ( "click" , function ( ) {
+newData ( ) ; //Changes de values of the data
+updateBar ( ) ; //Updates the bar chart
+} ) ;
+
+Label: interaction()
+ function newData ( ) {
+while ( dataset . length > 0 ) { //Clear the current dataset
+dataset . pop ( ) ;
+}
+for ( var i = 0 ; i < 20 ; i ++ ) { //Loop 20 times
+var newNumber = Math . floor ( Math . random ( ) * 20 ) + 5 ; //New random integer (5-25)
+dataset . push ( newNumber ) ; //Add new number to array
+}
+}
+
+Label: interaction()
+ function updateBar ( ) {
+//Update all rects
+svg . selectAll ( "rect" )
+. data ( dataset )
+. transition ( ) // <---- Here is the transition
+. duration ( 2000 ) // 2 seconds
+. attr ( "y" , function ( d ) {
+return h - yScale ( d ) ;
+} )
+. attr ( "height" , function ( d ) {
+return yScale ( d ) ;
+} )
+. attr ( "fill" , function ( d ) {
+return "rgb(" + Math . round ( d * 8 ) + ",0," + Math . round ( d * 10 ) + ")" ;
+} ) ;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+Here's your program labeled without changing its order:
+
+```javascript
+// View element for displaying the visualization
+viewof display = {
+  const svg = d3.select(DOM.svg(width, height)); // Create an SVG element with specified width and height
+  const particles = [
+    [width / 4, height / 4], // Define particles at different positions
+    [width / 2, (height * 3) / 4],
+    [(width * 3) / 4, height / 4]
+  ];
+  const colors = ['#888888', '#888888', '#888888']; // Initial colors for the particles
+
+  // Function to update the visualization
+  function update() {
+    // Create a Delaunay triangulation and Voronoi diagram
+    const delaunay = d3_delaunay.Delaunay.from(particles);
+    const voronoi = delaunay.voronoi([0.5, 0.5, width - 0.5, height - 0.5]);
+
+    svg.selectAll("g").remove(); // Clear previous visualization
+
+    // Append a group element and draw the Voronoi polygons
+    svg
+      .append("g")
+      .attr("class", "paths")
+      .selectAll("path")
+      .data(
+        d3
+          .voronoi()
+          .extent([[0, 0], [width, height]])
+          .polygons(particles)
+      )
+      .enter()
+      .append("path")
+      .attr("stroke", "white")
+      .attr("fill", (d, i) => colors[i])
+      .attr("d", d => "M" + d.join("L") + "Z");
+
+    svg.selectAll(".point").remove(); // Clear previous points
+
+    // Append group elements for each particle
+    const points = svg
+      .selectAll(".point")
+      .data(particles)
+      .enter()
+      .append("g")
+      .attr("class", "point")
+      .call(drag()) // Enable dragging functionality
+      .on('click', (d, i) => {
+        d3.event.stopPropagation();
+        console.log("circle", d3.event);
+        if (d3.event.metaKey) {
+          // Remove a particle when the meta key is pressed
+          particles.splice(i, 1);
+          colors.splice(i, 1);
+          update();
+        }
+      });
+
+    // Append circles to represent the particles
+    points
+      .append("circle")
+      .attr("r", 8)
+      .attr("cx", d => d[0])
+      .attr("cy", d => d[1]);
+
+    // Append foreignObject elements for color input
+    points
+      .append("foreignObject")
+      .attr("x", d => d[0] - 4)
+      .attr("y", d => d[1] - 4)
+      .attr("height", 8)
+      .attr("width", 8)
+      .on('click', d => {
+        console.log("FO", d3.event);
+      })
+      .append("xhtml:input")
+      .attr("type", "color")
+      .style("opacity", "0")
+      .style("padding", "4px")
+      .on('click', d => {
+        console.log("color", d3.event);
+        if (d3.event.shiftKey) {
+          d3.event.stopPropagation();
+        } else {
+          d3.event.preventDefault();
+        }
+      })
+      .on('change', (d, i) => {
+        console.log(i, d3.event.target.value);
+        colors[i] = d3.event.target.value; // Update color for the corresponding particle
+        update();
+      });
+
+    // Update the node value and dispatch an input event
+    svg.node().value = {
+      particles: particles,
+      colors: colors
+    };
+    svg.node().dispatchEvent(new CustomEvent("input"));
+  }
+
+  // Handle click events on the SVG element to add new particles
+  svg.on('click', () => {
+    particles.push([d3.event.layerX, d3.event.layerY]);
+    colors.push('#888888');
+    update();
+  });
+
+  // Define a function for dragging particles
+  function drag() {
+    function dragged(d) {
+      d[0] = d3.event.x; // Update particle x position
+      d[1] = d3.event.y; // Update particle y position
+      update();
+    }
+
+    return d3.drag().on("drag", dragged);
+  }
+
+  // If there are existing particles, perform an initial update
+  if (particles.length) {
+    update();
+  }
+
+  return svg.node();
+};
+
+// Set height of the visualization
+height = 600;
+
+// Import necessary D3 and D3-Delaunay modules
+d3 = require('d3@5');
+d3_delaunay = require(`d3-delaunay@5.2`);
+
+// Import footer module (unused in this program)
+import { footer } from "@rlesser/footer";
+```

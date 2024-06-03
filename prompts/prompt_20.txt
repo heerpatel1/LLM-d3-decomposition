@@ -1,0 +1,326 @@
+Can you label this program for me?:
+#  Chord Diagram
+
+ formatValue = d3 . format ( ".1~%" )
+
+ d3 = require ( "d3@6" )
+
+ outerRadius = Math . min ( width , height ) * 0.5 - 60
+
+ innerRadius = outerRadius - 10
+
+ height = width
+
+ data1 = [ { "method" : "POST" , "status" : 200 , "count" : 100 } ,
+{ "method" : "GET" , "status" : 200 , "count" : 50 } ,
+{ "method" : "POST" , "status" : 403 , "count" : 300 } ,
+{ "method" : "POST" , "status" : 503 , "count" : 200 } ,
+{ "method" : "GET" , "status" : 404 , "count" : 100 } ,
+{ "method" : "GET" , "status" : 400 , "count" : 500 } ,
+{ "method" : "POST" , "status" : 401 , "count" : 100 } ,
+{ "method" : "GET" , "status" : 502 , "count" : 900 } ,
+{ "method" : "POST" , "status" : 500 , "count" : 200 }
+] ;
+
+ data = get_matrix ( data1 , "method" , "status" , "count" ) ;
+
+ names = data . names === undefined ? d3 . range ( data . length ) : data . names
+
+ colors = data . colors === undefined ? d3 . quantize ( d3 . interpolateRainbow , names . length ) : data . colors
+
+ chart = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ - width / 2 , - height / 2 , width , height ] ) ;
+
+const chords = chord ( data ) ;
+console . log ( chords ) ;
+
+const group = svg . append ( "g" )
+. attr ( "font-size" , 10 )
+. attr ( "font-family" , "sans-serif" )
+. selectAll ( "g" )
+. data ( chords . groups )
+. join ( "g" ) ;
+
+group . append ( "path" )
+. attr ( "fill" , d => color ( names [ d . index ] ) )
+. attr ( "d" , arc ) ;
+
+group . append ( "title" )
+. text ( d => `${ names [ d . index ] }
+${ d . value }` ) ;
+
+const groupTick = group . append ( "g" )
+. selectAll ( "g" )
+. data ( ticks )
+. join ( "g" )
+. attr ( "transform" , d => `rotate(${ d . angle * 180 / Math . PI - 90 }) translate(${ outerRadius },0)` ) ;
+
+groupTick . append ( "line" )
+. attr ( "stroke" , "currentColor" )
+. attr ( "x2" , 6 ) ;
+
+groupTick . append ( "text" )
+. attr ( "x" , 8 )
+. attr ( "dy" , "0.35em" )
+. attr ( "transform" , d => d . angle > Math . PI ? "rotate(180) translate(-16)" : null )
+. attr ( "text-anchor" , d => d . angle > Math . PI ? "end" : null )
+. text ( d => d . value ) ;
+
+group . select ( "text" )
+. attr ( "font-weight" , "bold" )
+. text ( function ( d ) {
+return this . getAttribute ( "text-anchor" ) === "end"
+? `↑ ${ names [ d . index ] }`
+: `${ names [ d . index ] } ↓` ;
+} ) ;
+
+svg . append ( "g" )
+. attr ( "fill-opacity" , 0.8 )
+. selectAll ( "path" )
+. data ( chords )
+. join ( "path" )
+. style ( "mix-blend-mode" , "multiply" )
+. attr ( "fill" , d => color ( names [ d . source . index ] ) )
+. attr ( "d" , ribbon )
+. append ( "title" )
+. text ( d => `${ d . source . value } ${ names [ d . target . index ] } → ${ names [ d . source . index ] }${ d . source . index === d . target . index ? "" : `\n${ d . target . value } ${ names [ d . source . index ] } → ${ names [ d . target . index ] }` }` ) ;
+
+return svg . node ( ) ;
+}
+
+ function get_matrix ( ldata , source_field , target_field , value_field ) {
+const rdata = { } ;
+const namesSet = new Set ( ) ;
+for ( let i = 0 ; i < ldata . length ; i ++ ) {
+var rDataKey = ldata [ i ] [ source_field ] + '-' + ldata [ i ] [ target_field ] ;
+rdata [ rDataKey ] = ldata [ i ] ;
+namesSet . add ( ldata [ i ] [ source_field ] ) ;
+namesSet . add ( ldata [ i ] [ target_field ] ) ;
+}
+const names = Array . from ( namesSet ) ;
+// console.log(rdata);
+// console.log(names);
+const matrix = new Array ( names . length ) ;
+// console.log("matrix pre-init: "+ matrix);
+for ( var i = 0 ; i < matrix . length ; i ++ ) {
+matrix [ i ] = new Array ( names . length ) ;
+}
+// console.log("matrix init: "+ matrix);
+for ( let i = 0 ; i < names . length ; i ++ ) {
+for ( let j = 0 ; j < names . length ; j ++ ) {
+const rDataKey1 = names [ i ] + "-" + names [ j ] ;
+const rDataKey2 = names [ j ] + "-" + names [ i ] ;
+if ( rdata . hasOwnProperty ( rDataKey1 ) ) {
+// console.log(rdata[rDataKey1]);
+// console.log(i, j, rDataKey1, rdata[rDataKey1][value_field]);
+matrix [ i ] [ j ] = + rdata [ rDataKey1 ] [ value_field ] ;
+} else if ( rdata . hasOwnProperty ( rDataKey2 ) ) {
+// console.log(rdata[rDataKey2]);
+// console.log(i, j, rDataKey2, rdata[rDataKey2][value_field]);
+matrix [ i ] [ j ] = + rdata [ rDataKey2 ] [ value_field ] ;
+} else {
+// console.log(i, j, rDataKey1, rDataKey2, 0);
+matrix [ i ] [ j ] = 0 ;
+}
+}
+}
+// console.log("matrix populated: ");
+// console.log(matrix);
+var l = Object . assign ( matrix , { "names" : names } )
+return l ;
+}
+
+ chord = d3 . chord ( )
+. padAngle ( 10 / innerRadius )
+. sortSubgroups ( d3 . descending )
+. sortChords ( d3 . descending )
+
+ arc = d3 . arc ( )
+. innerRadius ( innerRadius )
+. outerRadius ( outerRadius )
+
+ ribbon = d3 . ribbon ( )
+. radius ( innerRadius - 1 )
+. padAngle ( 1 / innerRadius )
+
+ color = d3 . scaleOrdinal ( names , colors )
+
+ function ticks ( { startAngle , endAngle , value } ) {
+const k = ( endAngle - startAngle ) / value ;
+return d3 . range ( 0 , value , tickStep ) . map ( value => {
+return { value , angle : value * k + startAngle } ;
+} ) ;
+}
+
+ tickStep = d3 . tickStep ( 0 , d3 . sum ( data . flat ( ) ) , 100 )
+//////////////////////////////////////////////////////////////////////////////
+Here's your program labeled with shorter comments:
+
+```javascript
+// Label: Define format value
+formatValue = d3.format(".1~%");
+
+// Label: Load D3 library version 6
+d3 = require("d3@6");
+
+// Label: Set outer and inner radius
+outerRadius = Math.min(width, height) * 0.5 - 60;
+innerRadius = outerRadius - 10;
+
+// Label: Set height equal to width
+height = width;
+
+// Label: Define data
+data1 = [
+    { "method": "POST", "status": 200, "count": 100 },
+    { "method": "GET", "status": 200, "count": 50 },
+    { "method": "POST", "status": 403, "count": 300 },
+    { "method": "POST", "status": 503, "count": 200 },
+    { "method": "GET", "status": 404, "count": 100 },
+    { "method": "GET", "status": 400, "count": 500 },
+    { "method": "POST", "status": 401, "count": 100 },
+    { "method": "GET", "status": 502, "count": 900 },
+    { "method": "POST", "status": 500, "count": 200 }
+];
+
+// Label: Prepare data matrix
+data = get_matrix(data1, "method", "status", "count");
+
+// Label: Define names and colors
+names = data.names === undefined ? d3.range(data.length) : data.names;
+colors = data.colors === undefined ? d3.quantize(d3.interpolateRainbow, names.length) : data.colors;
+
+// Label: Create chart
+chart = {
+    // Label: Create SVG element
+    const svg = d3.create("svg")
+        .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+    // Label: Calculate chords
+    const chords = chord(data);
+    console.log(chords);
+
+    // Label: Create groups for chords
+    const group = svg.append("g")
+        .attr("font-size", 10)
+        .attr("font-family", "sans-serif")
+        .selectAll("g")
+        .data(chords.groups)
+        .join("g");
+
+    // Label: Append group paths
+    group.append("path")
+        .attr("fill", d => color(names[d.index]))
+        .attr("d", arc);
+
+    // Label: Append group titles
+    group.append("title")
+        .text(d => `${names[d.index]}\n${d.value}`);
+
+    // Label: Append group ticks
+    const groupTick = group.append("g")
+        .selectAll("g")
+        .data(ticks)
+        .join("g")
+        .attr("transform", d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${outerRadius},0)`);
+
+    // Label: Append group tick lines
+    groupTick.append("line")
+        .attr("stroke", "currentColor")
+        .attr("x2", 6);
+
+    // Label: Append group tick text
+    groupTick.append("text")
+        .attr("x", 8)
+        .attr("dy", "0.35em")
+        .attr("transform", d => d.angle > Math.PI ? "rotate(180) translate(-16)" : null)
+        .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+        .text(d => d.value);
+
+    // Label: Modify group text
+    group.select("text")
+        .attr("font-weight", "bold")
+        .text(function(d) {
+            return this.getAttribute("text-anchor") === "end"
+                ? `↑ ${names[d.index]}`
+                : `${names[d.index]} ↓`;
+        });
+
+    // Label: Append chords
+    svg.append("g")
+        .attr("fill-opacity", 0.8)
+        .selectAll("path")
+        .data(chords)
+        .join("path")
+        .style("mix-blend-mode", "multiply")
+        .attr("fill", d => color(names[d.source.index]))
+        .attr("d", ribbon)
+        .append("title")
+        .text(d => `${d.source.value} ${names[d.target.index]} → ${names[d.source.index]}${d.source.index === d.target.index ? "" : `\n${d.target.value} ${names[d.source.index]} → ${names[d.target.index]}`}`);
+
+    // Label: Return SVG node
+    return svg.node();
+};
+
+// Label: Define function to get matrix from data
+function get_matrix(ldata, source_field, target_field, value_field) {
+    const rdata = {};
+    const namesSet = new Set();
+    for (let i = 0; i < ldata.length; i++) {
+        var rDataKey = ldata[i][source_field] + '-' + ldata[i][target_field];
+        rdata[rDataKey] = ldata[i];
+        namesSet.add(ldata[i][source_field]);
+        namesSet.add(ldata[i][target_field]);
+    }
+    const names = Array.from(namesSet);
+    const matrix = new Array(names.length);
+    for (var i = 0; i < matrix.length; i++) {
+        matrix[i] = new Array(names.length);
+    }
+    for (let i = 0; i < names.length; i++) {
+        for (let j = 0; i < names.length; j++) {
+            const rDataKey1 = names[i] + "-" + names[j];
+            const rDataKey2 = names[j] + "-" + names[i];
+            if (rdata.hasOwnProperty(rDataKey1)) {
+                matrix[i][j] = +rdata[rDataKey1][value_field];
+            } else if (rdata.hasOwnProperty(rDataKey2)) {
+                matrix[i][j] = +rdata[rDataKey2][value_field];
+            } else {
+                matrix[i][j] = 0;
+            }
+        }
+    }
+    return Object.assign(matrix, { "names": names });
+}
+
+// Label: Define chord layout
+chord = d3.chord()
+    .padAngle(10 / innerRadius)
+    .sortSubgroups(d3.descending)
+    .sortChords(d3.descending);
+
+// Label: Define arc generator
+arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+// Label: Define ribbon generator
+ribbon = d3.ribbon()
+    .radius(innerRadius - 1)
+    .padAngle(1 / innerRadius);
+
+// Label: Define color scale
+color = d3.scaleOrdinal(names, colors);
+
+// Label: Define function to create ticks
+function ticks({ startAngle, endAngle, value }) {
+    const k = (endAngle - startAngle) / value;
+    return d3.range(0, value, tickStep).map(value => {
+        return { value, angle: value * k + startAngle };
+    });
+}
+
+// Label: Define tick step
+tickStep = d3.tickStep(0, d3.sum(data.flat()), 100);
+```

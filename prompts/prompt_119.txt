@@ -1,0 +1,884 @@
+Can you label this program for me?:
+
+wordCloud = createWordCloudSvg(words)
+
+download = downloadWordCloudSvg('word-cloud', wordCloud)
+
+text = html `<textarea rows="10" cols="60">
+Look, I was gonna go easy on you and not to hurt your feelings
+But I'm only going to get this one chance
+Something's wrong, I can feel it (Six minutes, Slim Shady, you're on)
+Just a feeling I've got, like something's about to happen, but I don't know what
+If that means, what I think it means, we're in trouble, big trouble,
+And if he is as bananas as you say, I'm not taking any chances
+You were just what the doctor ordered
+
+I'm beginning to feel like a Rap God, Rap God
+All my people from the front to the back nod, back nod
+Now who thinks their arms are long enough to slap box, slap box?
+They said I rap like a robot, so call me Rapbot
+
+But for me to rap like a computer must be in my genes
+I got a laptop in my back pocket
+My pen'll go off when I half-c*** it
+Got a fat knot from that rap profit
+Made a living and a killing off it
+Ever since Bill Clinton was still in office
+With Monica Lewinsky feeling on his nut-sack
+I'm an MC still as honest
+But as rude and indecent as all hell syllables, killaholic (Kill 'em all with)
+This slickety, gibbedy, hibbedy hip hop
+You don't really wanna get into a pissing match with this rappidy rap
+Packing a Mac in the back of the Ac, pack backpack rap, yep, yackidy-yac
+The exact same time I attempt these lyrical acrobat stunts while I'm practicing
+That I'll still be able to break a motherf***in' table
+Over the back of a couple of faggots and crack it in half
+Only realized it was ironic I was signed to Aftermath after the fact
+How could I not blow? All I do is drop F-bombs, feel my wrath of attack
+Rappers are having a rough time period, here's a Maxipad
+It's actually disastrously bad
+For the wack while I'm masterfully constructing this masterpiece as
+
+I'm beginning to feel like a Rap God, Rap God
+All my people from the front to the back nod, back nod
+Now who thinks their arms are long enough to slap box, slap box?
+Let me show you maintaining this s*** ain't that hard, that hard
+
+Everybody want the key and the secret to rap immortality like I have got
+Well, to be truthful the blueprint's simply rage and youthful exuberance
+Everybody loves to root for a nuisance
+Hit the earth like an asteroid, did nothing but shoot for the moon since
+MC's get taken to school with this music
+Cause I use it as a vehicle to bust a rhyme
+Now I lead a new school full of students
+Me? I'm a product of Rakim, Lakim Shabazz, 2Pac N-
+-W.A, Cube, hey, Doc, Ren, Yella, Eazy, thank you, they got Slim
+Inspired enough to one day grow up, blow up and be in a position
+To meet Run DMC and induct them into the motherf***in' Rock n'
+Roll Hall of Fame
+Even though I walk in the church and burst in a ball of flames
+Only Hall of Fame I be inducted in is the alcohol of fame
+On the wall of shame
+You fags think it's all a game 'til I walk a flock of flames
+Off of planking, tell me what in the f*** are you thinking?
+Little gay looking boy
+So gay I can barely say it with a straight face looking boy
+You witnessing a massacre
+Like you watching a church gathering take place looking boy
+Oy vey, that boy's gay, that's all they say looking boy
+You get a thumbs up, pat on the back
+And a way to go from your label everyday looking boy
+Hey, looking boy, what you say looking boy?
+I got a "hell yeah" from Dre looking boy
+I'mma work for everything I have
+Never ask nobody for s***, get outta my face looking boy
+Basically boy you're never gonna be capable
+To keep up with the same pace looking boy
+
+'Cause I'm beginning to feel like a Rap God, Rap God
+All my people from the front to the back nod, back nod
+The way I'm racing around the track, call me Nascar, Nascar
+Dale Earnhardt of the trailer park, the White Trash God
+Kneel before General Zod this planet's Krypton, no Asgard, Asgard
+
+So you be Thor and I'll be Odin, you rodent, I'm omnipotent
+Let off then I'm reloading immediately with these bombs I'm totin'
+And I should not be woken
+I'm the walking dead, but I'm just a talking head, a zombie floating
+But I got your mom deep throating
+I'm out my ramen noodle, we have nothing in common, poodle
+I'm a doberman, pinch yourself in the arm and pay homage, pupil
+It's me, my honesty's brutal
+But it's honestly futile if I don't utilize what I do though
+For good at least once in a while
+So I wanna make sure somewhere in this chicken scratch I scribble and doodle
+Enough rhymes to maybe to try and help get some people through tough times
+But I gotta keep a few punchlines just in case cause even you unsigned
+Rappers are hungry looking at me like it's lunchtime
+I know there was a time where once I
+Was king of the underground, but I still rap like I'm on my Pharoahe Monch grind
+So I crunch rhymes, but sometimes when you combine
+Appeal with the skin color of mine
+You get too big and here they come trying to,
+Censor you like that one line I said on "I'm Back" from the Marshall Mathers LP
+One where I tried to say I take seven kids from Columbine
+Put 'em all in a line, add an AK-47, a revolver and a nine
+See if I get away with it now that I ain't as big as I was, but I've
+Morphed into an immortal coming through the portal
+You're stuck in a time warp from 2004 though
+And I don't know what the f*** that you rhyme for
+You're pointless as Rapunzel with f***ing cornrows
+You're like normal, f*** being normal
+And I just bought a new Raygun from the future
+To just come and shoot ya like when Fabolous made Ray J mad
+'Cause Fab said he looked like a fag at Maywhether’s pad
+Singin' to a man while they played piano
+Man, oh man, that was a 24/7 special on the cable channel
+So Ray J went straight to the radio station the very next day
+"Hey, Fab, I'mma kill you"
+Lyrics coming at you at supersonic speed, (JJ Fad)
+Uh, sama lamaa duma lamaa you a**uming I'm a human
+What I gotta do to get it through to you I'm superhuman
+Innovative and I'm made of rubber
+So that anything you saying ricocheting off of me and it'll glue to you
+I'm never stating, more than never demonstrating
+How to give a motherf***in' audience a feeling like it's levitating
+Never fading, and I know that the haters are forever waiting
+For the day that they can say I fell off, they'd be celebrating
+Cause I know the way to get 'em motivated
+I make elevating music, you make elevator music
+Oh, he's too mainstream
+Well, that's what they do when they get jealous, they confuse it
+It's not hip hop, it's pop, cause I found a hella way to fuse it
+With rock, shock rap with Doc
+Throw on Lose Yourself and make 'em lose it
+I don't know how to make songs like that
+I don't know what words to use
+Let me know when it occurs to you
+While I’m ripping any one of these verses diverse as you
+It’s curtains, I’m inadvertently hurtin' you
+How many verses I gotta murder to,
+Prove that if you're half as nice at songs you can sacrifice virgins too uh!
+School flunkie, pill junky
+But look at the accolades the skills brung me
+Full of myself, but still hungry
+I bully myself cause I make me do what I put my mind to
+And I'm a million leagues above you, ill when I speak in tongues
+But it's still tongue in cheek, f*** you
+I'm drunk so Satan take the f***ing wheel, I'm asleep in the front seat
+Bumping Heavy D and the Boys, still chunky, but funky
+But in my head there's something I can feel tugging and struggling
+Angels fight with devils, here's what they want from me
+They asking me to eliminate some of the women hate
+But if you take into consideration the bitter hatred that I had
+Then you may be a little patient and more sympathetic to the situation
+And understand the discrimination
+But f*** it, life's handing you lemons, make lemonade then
+But if I can't batter the women how the f*** am I supposed to bake them a cake then?
+Don't mistake it for Satan
+It's a fatal mistake if you think I need to be overseas
+And take a vacation to trip a broad
+And make her fall on her face and don't be a retard
+Be a king? Think not, why be a king when you can be a God?
+</textarea>`
+
+function createWordCloudSvg(words) {
+  var layout = d3cloud()
+    .size([width, width * 9/16])
+    .words(words)
+    .padding(cloudConfig.padding * cloudScale)
+    .rotate(rotateWord)
+    .font(baseFont)
+    .fontSize(fontSize)
+    .on('word', addWord);
+
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]); // width, height
+  const group = d3.select(svg).append('g')
+    //.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+
+  function addWord (word) {
+    const text = group.append('text');
+    text.style('font-size', '2px')
+      .style('font-family', word.font)
+      .style('fill', wordColors(Math.random()))
+      .style('cursor', 'pointer')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+      .text(word.text)
+      //.transition()
+      //.duration(1500)
+      //.ease(d3.easeLinear)
+      .style('font-size', `${word.size}px`);
+    text.append('title').text(`${word.text} (${word.count})`); // toolitp
+  }
+
+  layout.start();
+  return svg;
+}
+
+function downloadWordCloudSvg(fileName, svg) {
+  return html `${DOM.download(serialize(svg), `${fileName}.svg`, "Save SVG")}`;
+}
+
+words = toWords ( doc . nouns ( ) . out ( 'topk' ) ) // sort by frequency
+. concat ( toWords ( doc . verbs ( ) . out ( 'topk' ) ) )
+. concat ( toWords ( doc . adverbs ( ) . out ( 'topk' ) ) )
+. concat ( toWords ( doc . adjectives ( ) . out ( 'topk' ) ) )
+. sort ( ( a , b ) => b . freq - a . freq )
+
+ doc = nlp ( text . value ) . normalize ( {
+whitespace : true , // remove hyphens, newlines, and force one space between words
+punctuation : true , // remove commas, semicolons - but keep sentence-ending punctuation
+case : true , // keep only first-word, and 'entity' titlecasing
+numbers : true , // 'one'  →  '1'
+plurals : true , // 'eyes'  →  'eye'
+verbs : true , // 'swtiched' → 'switch'
+} )
+
+wordColors = d3.scaleSequential(d3.interpolateRainbow)
+
+function toWords (terms) {
+  return terms.map(term => ({
+    text: term.normal,
+    count: term.count,
+    freq: term.percent/100
+  }));
+}
+
+cloudConfig = ({
+  minFontSize: 10,
+  maxFontSize: 80,
+  height: width/2,
+  padding: 1,
+})
+
+mutable cloudScale = 1
+
+rotateWord = function () {
+  return ~~(Math.random() * 4) * 45 - 45;
+}
+
+fontFamilies = ['Corben', 'Pacifico', 'impact']
+
+baseFont = function (d) {
+  return fontFamilies[~~(Math.random() * fontFamilies.length)]
+}
+
+frequencyToSize = function (frequency) {
+  return Math.sqrt(frequency);
+}
+
+fontSize = {
+  let totalArea = 0;
+  let minSize = frequencyToSize(words[words.length-1].freq);
+  let maxSize = frequencyToSize(words[0].freq);
+  for (let w of words) {
+    let size = frequencyToSize(w.freq);
+    let fontSize = cloudConfig.minFontSize +
+      (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((size-minSize) / (maxSize-minSize));
+    totalArea += (w.text.length * 0.6 + cloudConfig.padding * 2) * fontSize * (fontSize + cloudConfig.padding * 2);
+  }
+  let s = Math.sqrt(width * cloudConfig.height/totalArea);
+  mutable cloudScale = s;
+  return function (w) {
+    return s * (cloudConfig.minFontSize +
+        (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((frequencyToSize(w.freq) - minSize) / (maxSize - minSize))
+      );
+  }
+}
+
+styles = html `<h2>Styles</h2>
+<link href="https://fonts.googleapis.com/css?family=Pacifico|Corben" rel="stylesheet">
+<br />
+<p style="font-family:Pacifico;">Pacifico</p>
+<p style="font-family:Corben;">Corben</p>
+`
+
+ nlp = require ( 'compromise@11.14.3' )
+
+d3 = require('d3')
+
+ d3cloud = require ( 'd3-cloud' )
+
+ import { rasterize , serialize } from '@mbostock/saving-svg'
+
+/////////////////////////////////////////////////////////////////////////////////////
+Here's your program with labeled comments explaining the different parts and functions:
+
+```javascript
+// Function to create a word cloud SVG element
+function createWordCloudSvg(words) {
+  // Set up D3 cloud layout with configuration
+  var layout = d3cloud()
+    .size([width, width * 9/16])  // Define layout size
+    .words(words)  // Set words to be used in the word cloud
+    .padding(cloudConfig.padding * cloudScale)  // Define padding
+    .rotate(rotateWord)  // Define word rotation function
+    .font(baseFont)  // Define base font function
+    .fontSize(fontSize)  // Define font size function
+    .on('word', addWord);  // Add words to the cloud
+
+  // Create an SVG element with the specified size
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]);  // width, height
+  const group = d3.select(svg).append('g');  // Append a group element to the SVG
+
+  // Function to add words to the word cloud
+  function addWord(word) {
+    const text = group.append('text');
+    // Style and transform the text element
+    text.style('font-size', '2px')
+      .style('font-family', word.font)
+      .style('fill', wordColors(Math.random()))  // Set word color
+      .style('cursor', 'pointer')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+      .text(word.text)
+      // Set word size
+      .style('font-size', `${word.size}px`);
+    text.append('title').text(`${word.text} (${word.count})`); // Tooltip
+  }
+
+  // Start the cloud layout
+  layout.start();
+  // Return the SVG element
+  return svg;
+}
+
+// Function to download the word cloud SVG
+function downloadWordCloudSvg(fileName, svg) {
+  // Create a download link with the serialized SVG content
+  return html`${DOM.download(serialize(svg), `${fileName}.svg`, "Save SVG")}`;
+}
+
+// Process words into an array
+words = toWords(doc.nouns().out('topk'))  // Get top nouns
+  .concat(toWords(doc.verbs().out('topk')))  // Get top verbs
+  .concat(toWords(doc.adverbs().out('topk')))  // Get top adverbs
+  .concat(toWords(doc.adjectives().out('topk')))  // Get top adjectives
+  .sort((a, b) => b.freq - a.freq);  // Sort words by frequency
+
+// Normalize and preprocess the text
+doc = nlp(text.value).normalize({
+  whitespace: true,  // Normalize whitespace
+  punctuation: true,  // Normalize punctuation
+  case: true,  // Normalize case
+  numbers: true,  // Normalize numbers
+  plurals: true,  // Normalize plurals
+  verbs: true,  // Normalize verbs
+});
+
+// Create color scale for words
+wordColors = d3.scaleSequential(d3.interpolateRainbow);
+
+// Function to convert terms to word objects
+function toWords(terms) {
+  return terms.map(term => ({
+    text: term.normal,
+    count: term.count,
+    freq: term.percent / 100,
+  }));
+}
+
+// Define configuration for the word cloud
+cloudConfig = ({
+  minFontSize: 10,
+  maxFontSize: 80,
+  height: width / 2,
+  padding: 1,
+});
+
+// Mutable variable for cloud scale
+mutable cloudScale = 1;
+
+// Function to randomly rotate words
+rotateWord = function () {
+  return ~~(Math.random() * 4) * 45 - 45;
+}
+
+// Define font families to use
+fontFamilies = ['Corben', 'Pacifico', 'impact'];
+
+// Function to select base font for words
+baseFont = function (d) {
+  return fontFamilies[~~(Math.random() * fontFamilies.length)];
+}
+
+// Function to calculate frequency-based size
+frequencyToSize = function (frequency) {
+  return Math.sqrt(frequency);
+}
+
+// Function to define font size based on frequency
+fontSize = {
+  let totalArea = 0;
+  let minSize = frequencyToSize(words[words.length - 1].freq);
+  let maxSize = frequencyToSize(words[0].freq);
+  for (let w of words) {
+    let size = frequencyToSize(w.freq);
+    let fontSize = cloudConfig.minFontSize +
+      (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((size - minSize) / (maxSize - minSize));
+    totalArea += (w.text.length * 0.6 + cloudConfig.padding * 2) * fontSize * (fontSize + cloudConfig.padding * 2);
+  }
+  let s = Math.sqrt(width * cloudConfig.height / totalArea);
+  mutable cloudScale = s;
+  return function (w) {
+    return s * (cloudConfig.minFontSize +
+        (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((frequencyToSize(w.freq) - minSize) / (maxSize - minSize))
+      );
+  }
+}
+
+// Define HTML for font style previews
+styles = html `<h2>Styles</h2>
+<link href="https://fonts.googleapis.com/css?family=Pacifico|Corben" rel="stylesheet">
+<br />
+<p style="font-family:Pacifico;">Pacifico</p>
+<p style="font-family:Corben;">Corben</p>`;
+
+// Import libraries
+nlp = require('compromise@11.14.3');
+d3 = require('d3');
+d3cloud = require('d3-cloud');
+import { rasterize, serialize } from '@mbostock/saving-svg';
+
+// Initialize text
+text = html`<textarea rows="10" cols="60">
+Look, I was gonna go easy on you and not to hurt your feelings
+...
+be a king? Think not, why be a king when you can be a God?
+</textarea>`;
+
+// Create word cloud SVG element
+wordCloud = createWordCloudSvg(words);
+
+// Download the word cloud SVG
+download = downloadWordCloudSvg('word-cloud', wordCloud);
+```
+
+In summary, the program defines functions to create a word cloud visualization from a given text, downloads the word cloud SVG, and preprocesses text data to generate words with frequency information. It also includes styles for fonts and colors and imports necessary libraries for processing text and creating the word cloud. Let me know if you need further assistance!
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Can you label this program for me without changing its order?:
+
+wordCloud = createWordCloudSvg(words)
+
+download = downloadWordCloudSvg('word-cloud', wordCloud)
+
+text = html `<textarea rows="10" cols="60">
+Look, I was gonna go easy on you and not to hurt your feelings
+But I'm only going to get this one chance
+Something's wrong, I can feel it (Six minutes, Slim Shady, you're on)
+Just a feeling I've got, like something's about to happen, but I don't know what
+If that means, what I think it means, we're in trouble, big trouble,
+And if he is as bananas as you say, I'm not taking any chances
+You were just what the doctor ordered
+
+I'm beginning to feel like a Rap God, Rap God
+All my people from the front to the back nod, back nod
+Now who thinks their arms are long enough to slap box, slap box?
+They said I rap like a robot, so call me Rapbot
+
+But for me to rap like a computer must be in my genes
+I got a laptop in my back pocket
+My pen'll go off when I half-c*** it
+Got a fat knot from that rap profit
+Made a living and a killing off it
+Ever since Bill Clinton was still in office
+With Monica Lewinsky feeling on his nut-sack
+I'm an MC still as honest
+But as rude and indecent as all hell syllables, killaholic (Kill 'em all with)
+This slickety, gibbedy, hibbedy hip hop
+You don't really wanna get into a pissing match with this rappidy rap
+Packing a Mac in the back of the Ac, pack backpack rap, yep, yackidy-yac
+The exact same time I attempt these lyrical acrobat stunts while I'm practicing
+That I'll still be able to break a motherf***in' table
+Over the back of a couple of faggots and crack it in half
+Only realized it was ironic I was signed to Aftermath after the fact
+How could I not blow? All I do is drop F-bombs, feel my wrath of attack
+Rappers are having a rough time period, here's a Maxipad
+It's actually disastrously bad
+For the wack while I'm masterfully constructing this masterpiece as
+
+I'm beginning to feel like a Rap God, Rap God
+All my people from the front to the back nod, back nod
+Now who thinks their arms are long enough to slap box, slap box?
+Let me show you maintaining this s*** ain't that hard, that hard
+
+Everybody want the key and the secret to rap immortality like I have got
+Well, to be truthful the blueprint's simply rage and youthful exuberance
+Everybody loves to root for a nuisance
+Hit the earth like an asteroid, did nothing but shoot for the moon since
+MC's get taken to school with this music
+Cause I use it as a vehicle to bust a rhyme
+Now I lead a new school full of students
+Me? I'm a product of Rakim, Lakim Shabazz, 2Pac N-
+-W.A, Cube, hey, Doc, Ren, Yella, Eazy, thank you, they got Slim
+Inspired enough to one day grow up, blow up and be in a position
+To meet Run DMC and induct them into the motherf***in' Rock n'
+Roll Hall of Fame
+Even though I walk in the church and burst in a ball of flames
+Only Hall of Fame I be inducted in is the alcohol of fame
+On the wall of shame
+You fags think it's all a game 'til I walk a flock of flames
+Off of planking, tell me what in the f*** are you thinking?
+Little gay looking boy
+So gay I can barely say it with a straight face looking boy
+You witnessing a massacre
+Like you watching a church gathering take place looking boy
+Oy vey, that boy's gay, that's all they say looking boy
+You get a thumbs up, pat on the back
+And a way to go from your label everyday looking boy
+Hey, looking boy, what you say looking boy?
+I got a "hell yeah" from Dre looking boy
+I'mma work for everything I have
+Never ask nobody for s***, get outta my face looking boy
+Basically boy you're never gonna be capable
+To keep up with the same pace looking boy
+
+'Cause I'm beginning to feel like a Rap God, Rap God
+All my people from the front to the back nod, back nod
+The way I'm racing around the track, call me Nascar, Nascar
+Dale Earnhardt of the trailer park, the White Trash God
+Kneel before General Zod this planet's Krypton, no Asgard, Asgard
+
+So you be Thor and I'll be Odin, you rodent, I'm omnipotent
+Let off then I'm reloading immediately with these bombs I'm totin'
+And I should not be woken
+I'm the walking dead, but I'm just a talking head, a zombie floating
+But I got your mom deep throating
+I'm out my ramen noodle, we have nothing in common, poodle
+I'm a doberman, pinch yourself in the arm and pay homage, pupil
+It's me, my honesty's brutal
+But it's honestly futile if I don't utilize what I do though
+For good at least once in a while
+So I wanna make sure somewhere in this chicken scratch I scribble and doodle
+Enough rhymes to maybe to try and help get some people through tough times
+But I gotta keep a few punchlines just in case cause even you unsigned
+Rappers are hungry looking at me like it's lunchtime
+I know there was a time where once I
+Was king of the underground, but I still rap like I'm on my Pharoahe Monch grind
+So I crunch rhymes, but sometimes when you combine
+Appeal with the skin color of mine
+You get too big and here they come trying to,
+Censor you like that one line I said on "I'm Back" from the Marshall Mathers LP
+One where I tried to say I take seven kids from Columbine
+Put 'em all in a line, add an AK-47, a revolver and a nine
+See if I get away with it now that I ain't as big as I was, but I've
+Morphed into an immortal coming through the portal
+You're stuck in a time warp from 2004 though
+And I don't know what the f*** that you rhyme for
+You're pointless as Rapunzel with f***ing cornrows
+You're like normal, f*** being normal
+And I just bought a new Raygun from the future
+To just come and shoot ya like when Fabolous made Ray J mad
+'Cause Fab said he looked like a fag at Maywhether’s pad
+Singin' to a man while they played piano
+Man, oh man, that was a 24/7 special on the cable channel
+So Ray J went straight to the radio station the very next day
+"Hey, Fab, I'mma kill you"
+Lyrics coming at you at supersonic speed, (JJ Fad)
+Uh, sama lamaa duma lamaa you a**uming I'm a human
+What I gotta do to get it through to you I'm superhuman
+Innovative and I'm made of rubber
+So that anything you saying ricocheting off of me and it'll glue to you
+I'm never stating, more than never demonstrating
+How to give a motherf***in' audience a feeling like it's levitating
+Never fading, and I know that the haters are forever waiting
+For the day that they can say I fell off, they'd be celebrating
+Cause I know the way to get 'em motivated
+I make elevating music, you make elevator music
+Oh, he's too mainstream
+Well, that's what they do when they get jealous, they confuse it
+It's not hip hop, it's pop, cause I found a hella way to fuse it
+With rock, shock rap with Doc
+Throw on Lose Yourself and make 'em lose it
+I don't know how to make songs like that
+I don't know what words to use
+Let me know when it occurs to you
+While I’m ripping any one of these verses diverse as you
+It’s curtains, I’m inadvertently hurtin' you
+How many verses I gotta murder to,
+Prove that if you're half as nice at songs you can sacrifice virgins too uh!
+School flunkie, pill junky
+But look at the accolades the skills brung me
+Full of myself, but still hungry
+I bully myself cause I make me do what I put my mind to
+And I'm a million leagues above you, ill when I speak in tongues
+But it's still tongue in cheek, f*** you
+I'm drunk so Satan take the f***ing wheel, I'm asleep in the front seat
+Bumping Heavy D and the Boys, still chunky, but funky
+But in my head there's something I can feel tugging and struggling
+Angels fight with devils, here's what they want from me
+They asking me to eliminate some of the women hate
+But if you take into consideration the bitter hatred that I had
+Then you may be a little patient and more sympathetic to the situation
+And understand the discrimination
+But f*** it, life's handing you lemons, make lemonade then
+But if I can't batter the women how the f*** am I supposed to bake them a cake then?
+Don't mistake it for Satan
+It's a fatal mistake if you think I need to be overseas
+And take a vacation to trip a broad
+And make her fall on her face and don't be a retard
+Be a king? Think not, why be a king when you can be a God?
+</textarea>`
+
+function createWordCloudSvg(words) {
+  var layout = d3cloud()
+    .size([width, width * 9/16])
+    .words(words)
+    .padding(cloudConfig.padding * cloudScale)
+    .rotate(rotateWord)
+    .font(baseFont)
+    .fontSize(fontSize)
+    .on('word', addWord);
+
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]); // width, height
+  const group = d3.select(svg).append('g')
+    //.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+
+  function addWord (word) {
+    const text = group.append('text');
+    text.style('font-size', '2px')
+      .style('font-family', word.font)
+      .style('fill', wordColors(Math.random()))
+      .style('cursor', 'pointer')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+      .text(word.text)
+      //.transition()
+      //.duration(1500)
+      //.ease(d3.easeLinear)
+      .style('font-size', `${word.size}px`);
+    text.append('title').text(`${word.text} (${word.count})`); // toolitp
+  }
+
+  layout.start();
+  return svg;
+}
+
+function downloadWordCloudSvg(fileName, svg) {
+  return html `${DOM.download(serialize(svg), `${fileName}.svg`, "Save SVG")}`;
+}
+
+words = toWords ( doc . nouns ( ) . out ( 'topk' ) ) // sort by frequency
+. concat ( toWords ( doc . verbs ( ) . out ( 'topk' ) ) )
+. concat ( toWords ( doc . adverbs ( ) . out ( 'topk' ) ) )
+. concat ( toWords ( doc . adjectives ( ) . out ( 'topk' ) ) )
+. sort ( ( a , b ) => b . freq - a . freq )
+
+ doc = nlp ( text . value ) . normalize ( {
+whitespace : true , // remove hyphens, newlines, and force one space between words
+punctuation : true , // remove commas, semicolons - but keep sentence-ending punctuation
+case : true , // keep only first-word, and 'entity' titlecasing
+numbers : true , // 'one'  →  '1'
+plurals : true , // 'eyes'  →  'eye'
+verbs : true , // 'swtiched' → 'switch'
+} )
+
+wordColors = d3.scaleSequential(d3.interpolateRainbow)
+
+function toWords (terms) {
+  return terms.map(term => ({
+    text: term.normal,
+    count: term.count,
+    freq: term.percent/100
+  }));
+}
+
+cloudConfig = ({
+  minFontSize: 10,
+  maxFontSize: 80,
+  height: width/2,
+  padding: 1,
+})
+
+mutable cloudScale = 1
+
+rotateWord = function () {
+  return ~~(Math.random() * 4) * 45 - 45;
+}
+
+fontFamilies = ['Corben', 'Pacifico', 'impact']
+
+baseFont = function (d) {
+  return fontFamilies[~~(Math.random() * fontFamilies.length)]
+}
+
+frequencyToSize = function (frequency) {
+  return Math.sqrt(frequency);
+}
+
+fontSize = {
+  let totalArea = 0;
+  let minSize = frequencyToSize(words[words.length-1].freq);
+  let maxSize = frequencyToSize(words[0].freq);
+  for (let w of words) {
+    let size = frequencyToSize(w.freq);
+    let fontSize = cloudConfig.minFontSize +
+      (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((size-minSize) / (maxSize-minSize));
+    totalArea += (w.text.length * 0.6 + cloudConfig.padding * 2) * fontSize * (fontSize + cloudConfig.padding * 2);
+  }
+  let s = Math.sqrt(width * cloudConfig.height/totalArea);
+  mutable cloudScale = s;
+  return function (w) {
+    return s * (cloudConfig.minFontSize +
+        (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((frequencyToSize(w.freq) - minSize) / (maxSize - minSize))
+      );
+  }
+}
+
+styles = html `<h2>Styles</h2>
+<link href="https://fonts.googleapis.com/css?family=Pacifico|Corben" rel="stylesheet">
+<br />
+<p style="font-family:Pacifico;">Pacifico</p>
+<p style="font-family:Corben;">Corben</p>
+`
+
+ nlp = require ( 'compromise@11.14.3' )
+
+d3 = require('d3')
+
+ d3cloud = require ( 'd3-cloud' )
+
+ import { rasterize , serialize } from '@mbostock/saving-svg'
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+Here's the program you provided with labeled comments explaining the different parts and functions without changing the order of the code:
+
+```javascript
+// Create a word cloud SVG element using the words provided
+wordCloud = createWordCloudSvg(words);
+
+// Create a download button for the word cloud SVG
+download = downloadWordCloudSvg('word-cloud', wordCloud);
+
+// Define a textarea element to display the text (lyrics of a song)
+text = html `<textarea rows="10" cols="60">
+Look, I was gonna go easy on you and not to hurt your feelings
+...
+be a king? Think not, why be a king when you can be a God?
+</textarea>`;
+
+// Function to create an SVG element with a word cloud layout
+function createWordCloudSvg(words) {
+  // Initialize d3-cloud layout with specified configuration
+  var layout = d3cloud()
+    .size([width, width * 9/16])  // Set the size of the layout
+    .words(words)  // Specify the words for the cloud
+    .padding(cloudConfig.padding * cloudScale)  // Set padding for words
+    .rotate(rotateWord)  // Define rotation for words
+    .font(baseFont)  // Define the base font
+    .fontSize(fontSize)  // Define the font size function
+    .on('word', addWord);  // Define the function to add words to the SVG
+
+  // Create an SVG element with the specified size
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]);  // width, height
+
+  // Append a group element to the SVG to hold the word cloud
+  const group = d3.select(svg).append('g');
+
+  // Function to add a word to the word cloud
+  function addWord(word) {
+    // Create a text element for the word
+    const text = group.append('text');
+    // Set the style and attributes for the text element
+    text.style('font-size', '2px')
+      .style('font-family', word.font)
+      .style('fill', wordColors(Math.random()))
+      .style('cursor', 'pointer')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+      .text(word.text)
+      .style('font-size', `${word.size}px`);
+    // Add a tooltip to the text element
+    text.append('title').text(`${word.text} (${word.count})`);
+  }
+
+  // Start the word cloud layout
+  layout.start();
+  // Return the SVG element
+  return svg;
+}
+
+// Function to create a download link for the word cloud SVG
+function downloadWordCloudSvg(fileName, svg) {
+  // Use DOM.download to create a link for downloading the SVG file
+  return html`${DOM.download(serialize(svg), `${fileName}.svg`, "Save SVG")}`;
+}
+
+// Process the text into an array of words based on their part of speech
+words = toWords(doc.nouns().out('topk'))  // Get top nouns
+  .concat(toWords(doc.verbs().out('topk')))  // Get top verbs
+  .concat(toWords(doc.adverbs().out('topk')))  // Get top adverbs
+  .concat(toWords(doc.adjectives().out('topk')))  // Get top adjectives
+  .sort((a, b) => b.freq - a.freq);  // Sort words by frequency
+
+// Normalize the text and preprocess it using the nlp library
+doc = nlp(text.value).normalize({
+  whitespace: true,  // Normalize whitespace
+  punctuation: true,  // Normalize punctuation
+  case: true,  // Normalize case
+  numbers: true,  // Normalize numbers
+  plurals: true,  // Normalize plurals
+  verbs: true,  // Normalize verbs
+});
+
+// Create a D3 color scale using a rainbow interpolation
+wordColors = d3.scaleSequential(d3.interpolateRainbow);
+
+// Function to convert terms to word objects
+function toWords(terms) {
+  return terms.map(term => ({
+    text: term.normal,
+    count: term.count,
+    freq: term.percent / 100,
+  }));
+}
+
+// Define the configuration for the word cloud layout
+cloudConfig = ({
+  minFontSize: 10,
+  maxFontSize: 80,
+  height: width / 2,
+  padding: 1,
+});
+
+// Mutable variable for cloud scale
+mutable cloudScale = 1;
+
+// Function to randomly rotate words
+rotateWord = function() {
+  return ~~(Math.random() * 4) * 45 - 45;
+};
+
+// Define font families to be used for words
+fontFamilies = ['Corben', 'Pacifico', 'impact'];
+
+// Function to select a base font for a word
+baseFont = function(d) {
+  return fontFamilies[~~(Math.random() * fontFamilies.length)];
+};
+
+// Function to calculate font size based on frequency
+frequencyToSize = function(frequency) {
+  return Math.sqrt(frequency);
+};
+
+// Function to define the font size for each word
+fontSize = {
+  let totalArea = 0;
+  let minSize = frequencyToSize(words[words.length - 1].freq);
+  let maxSize = frequencyToSize(words[0].freq);
+  // Calculate the font size for each word
+  for (let w of words) {
+    let size = frequencyToSize(w.freq);
+    let fontSize = cloudConfig.minFontSize +
+      (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((size - minSize) / (maxSize - minSize));
+    totalArea += (w.text.length * 0.6 + cloudConfig.padding * 2) * fontSize * (fontSize + cloudConfig.padding * 2);
+  }
+  let s = Math.sqrt(width * cloudConfig.height / totalArea);
+  mutable cloudScale = s;
+  // Return a function to calculate the font size for a word
+  return function(w) {
+    return s * (cloudConfig.minFontSize +
+        (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((frequencyToSize(w.freq) - minSize) / (maxSize - minSize)));
+  };
+};
+
+// Define styles for font families and colors
+styles = html`<h2>Styles</h2>
+<link href="https://fonts.googleapis.com/css?family=Pacifico|Corben" rel="stylesheet">
+<br />
+<p style="font-family:Pacifico;">Pacifico</p>
+<p style="font-family:Corben;">Corben</p>`;
+
+// Import libraries for natural language processing and D3
+nlp = require('compromise@11.14.3');
+d3 = require('d3');
+d3cloud = require('d3-cloud');
+
+// Import saving functions for saving SVGs
+import { rasterize, serialize } from '@mbostock/saving-svg';
+```
+
+This program processes text from a provided textarea element and creates a word cloud visualization using D3 and D3 Cloud libraries. It defines functions to create the word cloud SVG, download it, and preprocess the text data. The program also includes styles for displaying fonts and colors and uses natural language processing (NLP) to analyze the text and extract words for the word cloud. Let me know if you need further assistance!

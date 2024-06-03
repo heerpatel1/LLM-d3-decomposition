@@ -1,0 +1,399 @@
+Can you label this program for me without changing its ordering?:
+
+viewof edgeColor = Object.assign(html`<select>
+  <option value=input>Color by input
+  <option value=output>Color by output
+  <option value=path selected>Color by input-output
+  <option value=none>No color
+</select>`, {
+  value: new URLSearchParams(html`<a href>`.search).get("color") || "path"
+})
+
+viewof align = Object.assign(html`<select>
+  <option value=left selected>Left-aligned
+  <option value=right>Right-aligned
+  <option value=center>Centered
+  <option value=justify>Justified
+</select>`, {
+  value: new URLSearchParams(html`<a href>`.search).get("align") || "left"
+})
+
+chart = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+const { nodes , links } = sankey ( data ) ;
+
+svg . append ( "g" )
+. attr ( "stroke" , "#000" )
+. selectAll ( "rect" )
+. data ( nodes )
+. join ( "rect" )
+. attr ( "x" , d => d . x0 )
+. attr ( "y" , d => d . y0 )
+. attr ( "height" , d => d . y1 - d . y0 )
+. attr ( "width" , d => d . x1 - d . x0 )
+. attr ( "fill" , color )
+. append ( "title" )
+. text ( d => `${ d . name }\n${ format ( d . value ) }` ) ;
+
+const link = svg . append ( "g" )
+. attr ( "fill" , "none" )
+. attr ( "stroke-opacity" , 0.5 )
+. selectAll ( "g" )
+. data ( links )
+. join ( "g" )
+. style ( "mix-blend-mode" , "multiply" ) ;
+
+if ( edgeColor === "path" ) {
+const gradient = link . append ( "linearGradient" )
+. attr ( "id" , d => ( d . uid = DOM . uid ( "link" ) ) . id )
+. attr ( "gradientUnits" , "userSpaceOnUse" )
+. attr ( "x1" , d => d . source . x1 )
+. attr ( "x2" , d => d . target . x0 ) ;
+
+gradient . append ( "stop" )
+. attr ( "offset" , "0%" )
+. attr ( "stop-color" , d => color ( d . source ) ) ;
+
+gradient . append ( "stop" )
+. attr ( "offset" , "100%" )
+. attr ( "stop-color" , d => color ( d . target ) ) ;
+}
+
+link . append ( "path" )
+. attr ( "d" , d3 . sankeyLinkHorizontal ( ) )
+. attr ( "stroke" , d => edgeColor === "none" ? "#aaa"
+: edgeColor === "path" ? d . uid
+: edgeColor === "input" ? color ( d . source )
+: color ( d . target ) )
+. attr ( "stroke-width" , d => Math . max ( 1 , d . width ) ) ;
+
+link . append ( "title" )
+. text ( d => `${ d . source . name } → ${ d . target . name }\n${ format ( d . value ) }` ) ;
+
+svg . append ( "g" )
+. attr ( "font-family" , "sans-serif" )
+. attr ( "font-size" , 10 )
+. selectAll ( "text" )
+. data ( nodes )
+. join ( "text" )
+. attr ( "x" , d => d . x0 < width / 2 ? d . x1 + 6 : d . x0 - 6 )
+. attr ( "y" , d => ( d . y1 + d . y0 ) / 2 )
+. attr ( "dy" , "0.35em" )
+. attr ( "text-anchor" , d => d . x0 < width / 2 ? "start" : "end" )
+. text ( d => d . name ) ;
+
+return svg . node ( ) ;
+}
+
+ sankey = {
+const sankey = d3 . sankey ( )
+. nodeId ( d => d . name )
+. nodeAlign ( d3 [ `sankey${ align [ 0 ] . toUpperCase ( ) }${ align . slice ( 1 ) }` ] )
+. nodeWidth ( 15 )
+. nodePadding ( 10 )
+. extent ( [ [ 1 , 5 ] , [ width - 1 , height - 5 ] ] ) ;
+return ( { nodes , links } ) => sankey ( {
+nodes : nodes . map ( d => Object . assign ( { } , d ) ) ,
+links : links . map ( d => Object . assign ( { } , d ) )
+} ) ;
+}
+
+ format = {
+const format = d3 . format ( ",.0f" ) ;
+return data . units ? d => `${ format ( d ) } ${ data . units }` : format ;
+}
+
+ color = function ( d ) {
+//const color = d3.scaleOrdinal(d3.schemeCategory10);
+//return d => color(d.category === undefined ? d.name : d.category);
+if ( d . name . includes ( "_dead" ) ) {
+return "lightgray" ;
+} else if ( d . name . includes ( "_shot_" ) ) {
+return "purple" ;
+} else if ( d . name . startsWith ( "r" ) ) {
+if ( d . name . startsWith ( "red_" ) ) {
+return "red" ;
+} else {
+return "orange" ;
+}
+} else if ( d . name . startsWith ( "b" ) ) {
+if ( d . name . startsWith ( "blue_" ) ) {
+return "blue" ;
+} else {
+return "lightblue" ;
+}
+}
+}
+
+ viewof source = {
+const textarea = html `<textarea spellcheck="false">red_start,red_jet,3,red
+red_start,red_tank,1,red
+blue_start,blue_jet,2,blue
+blue_start,blue_tank,2,blue
+red_jet,rj1,1,orange
+red_jet,rj2,1,orange
+red_jet,rj3,1,orange
+red_tank,rt1,1,orange
+blue_jet,bj1,1,lightblue
+blue_jet,bj2,1,lightblue
+blue_tank,bt1,1,lightblue
+blue_tank,bt2,1,lightblue
+bj1,bj1_shot_rj2,1,lightblue
+rj2,bj1_shot_rj2,1,orange
+bj1_shot_rj2,bj1_survived,1,lightblue
+bj1_shot_rj2,rj2_dead,1
+rt1,rt1_shot_bt1,1,orange
+bt1,rt1_shot_bt1,1,lightblue
+rt1_shot_bt1,bt1_dead,1
+rt1_shot_bt1,rt1_survived,1,orange
+rt1_survived,red_end,1,red
+rj1,red_end,1,red
+rj3,red_end,1,red
+bj1_survived,blue_end,1,blue
+bj2,blue_end,1,blue
+bt2,blue_end,1,blue` ;
+textarea . style . display = "block" ;
+textarea . style . boxSizing = "border-box" ;
+textarea . style . width = "calc(100% + 28px)" ;
+textarea . style . font = "var(--mono_fonts)" ;
+textarea . style . minHeight = "60px" ;
+textarea . style . border = "none" ;
+textarea . style . padding = "4px 10px" ;
+textarea . style . margin = "0 -14px" ;
+textarea . style . background = "rgb(247,247,249)" ;
+textarea . style . tabSize = 2 ;
+textarea . oninput = ( ) => {
+textarea . style . height = "initial" ;
+textarea . style . height = `${ textarea . scrollHeight }px` ;
+} ;
+yield textarea ;
+textarea . oninput ( ) ;
+}
+
+ data = {
+const links = d3 . csvParseRows ( source , ( [ source , target , value , linkColor = color ] ) => ( source && target ? { source , target , value : ! value || isNaN ( value = + value ) ? 1 : value , color : linkColor } : null ) ) ;
+const nodeByName = new Map ;
+for ( var link of links ) {
+if ( ! nodeByName . has ( link . source ) ) nodeByName . set ( link . source , { name : link . source } ) ;
+if ( ! nodeByName . has ( link . target ) ) nodeByName . set ( link . target , { name : link . target } ) ;
+}
+return { nodes : Array . from ( nodeByName . values ( ) ) , links } ;
+}
+
+ width = 954
+
+ height = 360
+
+ d3 = require ( "d3@5" , "d3-sankey@0.12" )
+//////////////////////////////////////////////////////////////////////////////////////////////
+Here's the program labeled without changing its ordering:
+
+```javascript
+// Dropdown selection for edge color mode
+viewof edgeColor = Object.assign(html`<select>
+  <option value=input>Color by input
+  <option value=output>Color by output
+  <option value=path selected>Color by input-output
+  <option value=none>No color
+</select>`, {
+  value: new URLSearchParams(html`<a href>`.search).get("color") || "path"
+})
+
+// Dropdown selection for node alignment mode
+viewof align = Object.assign(html`<select>
+  <option value=left selected>Left-aligned
+  <option value=right>Right-aligned
+  <option value=center>Centered
+  <option value=justify>Justified
+</select>`, {
+  value: new URLSearchParams(html`<a href>`.search).get("align") || "left"
+})
+
+// Main function to create the chart
+chart = {
+  // Create SVG element with specified viewBox
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, width, height]);
+
+  // Calculate nodes and links using sankey layout
+  const { nodes, links } = sankey(data);
+
+  // Add rectangles for nodes
+  svg.append("g")
+    .attr("stroke", "#000")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+    .attr("x", d => d.x0)
+    .attr("y", d => d.y0)
+    .attr("height", d => d.y1 - d.y0)
+    .attr("width", d => d.x1 - d.x0)
+    .attr("fill", color)
+    .append("title")
+    .text(d => `${d.name}\n${format(d.value)}`);
+
+  // Add paths for links
+  const link = svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke-opacity", 0.5)
+    .selectAll("g")
+    .data(links)
+    .join("g")
+    .style("mix-blend-mode", "multiply");
+
+  // Set up gradient for links if edgeColor is set to "path"
+  if (edgeColor === "path") {
+    const gradient = link.append("linearGradient")
+      .attr("id", d => (d.uid = DOM.uid("link")).id)
+      .attr("gradientUnits", "userSpaceOnUse")
+      .attr("x1", d => d.source.x1)
+      .attr("x2", d => d.target.x0);
+
+    gradient.append("stop")
+      .attr("offset", "0%")
+      .attr("stop-color", d => color(d.source));
+
+    gradient.append("stop")
+      .attr("offset", "100%")
+      .attr("stop-color", d => color(d.target));
+  }
+
+  // Define link path and color based on edgeColor mode
+  link.append("path")
+    .attr("d", d3.sankeyLinkHorizontal())
+    .attr("stroke", d => edgeColor === "none" ? "#aaa" :
+      edgeColor === "path" ? d.uid :
+      edgeColor === "input" ? color(d.source) :
+      color(d.target))
+    .attr("stroke-width", d => Math.max(1, d.width));
+
+  // Add titles to links
+  link.append("title")
+    .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
+
+  // Add text labels for nodes
+  svg.append("g")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", 10)
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+    .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+    .attr("y", d => (d.y1 + d.y0) / 2)
+    .attr("dy", "0.35em")
+    .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+    .text(d => d.name);
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// Function to configure sankey layout
+sankey = {
+  const sankey = d3.sankey()
+    .nodeId(d => d.name)
+    .nodeAlign(d3[`sankey${align[0].toUpperCase()}${align.slice(1)}`])
+    .nodeWidth(15)
+    .nodePadding(10)
+    .extent([[1, 5], [width - 1, height - 5]]);
+  return ({ nodes, links }) => sankey({
+    nodes: nodes.map(d => Object.assign({}, d)),
+    links: links.map(d => Object.assign({}, d))
+  });
+}
+
+// Function to format values
+format = {
+  const format = d3.format(",.0f");
+  return data.units ? d => `${format(d)} ${data.units}` : format;
+}
+
+// Function to determine colors for nodes
+color = function (d) {
+  if (d.name.includes("_dead")) {
+    return "lightgray";
+  } else if (d.name.includes("_shot_")) {
+    return "purple";
+  } else if (d.name.startsWith("r")) {
+    if (d.name.startsWith("red_")) {
+      return "red";
+    } else {
+      return "orange";
+    }
+  } else if (d.name.startsWith("b")) {
+    if (d.name.startsWith("blue_")) {
+      return "blue";
+    } else {
+      return "lightblue";
+    }
+  }
+}
+
+// View for user input source data
+viewof source = {
+  const textarea = html`<textarea spellcheck="false">red_start,red_jet,3,red
+red_start,red_tank,1,red
+blue_start,blue_jet,2,blue
+blue_start,blue_tank,2,blue
+red_jet,rj1,1,orange
+red_jet,rj2,1,orange
+red_jet,rj3,1,orange
+red_tank,rt1,1,orange
+blue_jet,bj1,1,lightblue
+blue_jet,bj2,1,lightblue
+blue_tank,bt1,1,lightblue
+blue_tank,bt2,1,lightblue
+bj1,bj1_shot_rj2,1,lightblue
+rj2,bj1_shot_rj2,1,orange
+bj1_shot_rj2,bj1_survived,1,lightblue
+bj1_shot_rj2,rj2_dead,1
+rt1,rt1_shot_bt1,1,orange
+bt1,rt1_shot_bt1,1,lightblue
+rt1_shot_bt1,bt1_dead,1
+rt1_shot_bt1,rt1_survived,1,orange
+rt1_survived,red_end,1,red
+rj1,red_end,1,red
+rj3,red_end,1,red
+bj1_survived,blue_end,1,blue
+bj2,blue_end,1,blue
+bt2,blue_end,1,blue` ;
+  textarea.style.display = "block";
+  textarea.style.boxSizing = "border-box";
+  textarea.style.width = "calc(100% + 28px)";
+  textarea.style.font = "var(--mono_fonts)";
+  textarea.style.minHeight = "60px";
+  textarea.style.border = "none";
+  textarea.style.padding = "4px 10px";
+  textarea.style.margin = "0 -14px";
+  textarea.style.background = "rgb(247,247,249)";
+  textarea.style.tabSize = 2;
+  textarea.oninput = () => {
+    textarea.style.height = "initial";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  };
+  yield textarea;
+  textarea.oninput();
+}
+
+// Parsing data from the source input
+data = {
+  const links = d3.csvParseRows(source, ([source, target, value, linkColor = color]) => (
+    source && target ? {source, target, value: !value || isNaN(value = +value) ? 1 : value, color: linkColor} : null
+  ));
+  const nodeByName = new Map;
+  for (let link of links) {
+    if (!nodeByName.has(link.source)) nodeByName.set(link.source, { name: link.source });
+    if (!nodeByName.has(link.target)) nodeByName.set(link.target, { name: link.target });
+  }
+  return { nodes: Array.from(nodeByName.values()), links };
+}
+
+// Define chart dimensions
+width = 954
+height = 360
+
+// Import necessary modules for D3 and Sankey
+d3 = require("d3@5", "d3-sankey@0.12")
+```

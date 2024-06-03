@@ -1,0 +1,467 @@
+Can you label this program for me without changing its order?:
+
+wordCloud = {
+  const fontFamily = "Verdana, Arial, Helvetica, sans-serif";
+
+  var layout = d3cloud()
+    .size([width, height])
+    .words(wordsFromText)
+    .padding(0)
+    .rotate(() => -Math.ceil(10*doc.out(its.sentiment)) )
+    .font(fontFamily)
+    .fontSize(d => computeFontSize(d.value))
+    .on('word', addWord);
+
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]); // width, height
+  const svgDeltaX = d3.select(svg).attr("width");
+  const group = d3.select(svg).append('g');
+  var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  const divWidth = parseInt(div.style("width"));
+  function handleMouseOver(d, i) {
+    const that = d3.select(this);
+
+    that.classed("word-hovered", true);
+
+    div.transition()
+       .duration(200)
+       .style("opacity", 1);
+
+    div.html((that.text()).split('|')[1])
+       .style("left", ( ((svgDeltaX - d.pageX) < divWidth)? svgDeltaX - divWidth:d.pageX) + "px")
+       .style("top", (d.pageY) + "px");
+  } // handleMouseOver()
+
+  function handleMouseOut(d, i) {
+    d3.select(this)
+      .classed("word-hovered", false);
+
+    div.transition()
+       .duration(500)
+       .style("opacity", 0);
+  } // handleMouseOut()
+
+  function addWord (word) {
+    const text = group.append('text');
+    text.style('font-size', '2px')
+        .style('fill', `${colorMap[word.pos]}`)
+        .style('cursor', 'pointer')
+        .attr('text-anchor', 'middle')
+        .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+        .text(word.text)
+        .style('font-size', `${word.size}px`)
+        .on("mouseover", handleMouseOver)
+        .on("mouseout", handleMouseOut);
+
+    const titleText = [];
+    word.sentences.forEach( si => titleText.push( doc.sentences().itemAt(si).out() ) );
+    const titleTextDoc = nlp.readDoc('|'+titleText.join('<br/><br/>'));
+    titleTextDoc.tokens().each( t => { if (t.out(its.lemma) === word.text) t.markup() })
+    text.append('data-title').text(`${titleTextDoc.out(its.markedUpText)}`);
+  }
+
+  layout.start();
+  return svg;
+}
+
+wordsFromText = {
+  const tokensFTByPoS = Object.create(null);
+  tokensFTByPoS.NOUN = Object.create(null);
+  tokensFTByPoS.ADJ = Object.create(null);
+  tokensFTByPoS.VERB = Object.create(null);
+  tokensFTByPoS.ADV = Object.create(null);
+  tokensFTByPoS.PROPN = Object.create(null );
+  doc.tokens()
+	  .each( t => {
+  	  const pos = t.out(its.pos);
+  	  const token = t.out(its.lemma);
+  	  if (!tokensFTByPoS[pos]) return;
+
+  	  tokensFTByPoS[pos] = tokensFTByPoS[pos] || Object.create(null);
+  	  tokensFTByPoS[pos][token] = tokensFTByPoS[pos][token] || Object.create(null);
+  	  tokensFTByPoS[pos][token].value = 1 + (tokensFTByPoS[pos][token].value || 0);
+  	  tokensFTByPoS[pos][token].sentences = tokensFTByPoS[pos][token].sentences || new Set();
+  	  tokensFTByPoS[pos][token].sentences.add( t.parentSentence().index() );
+	} );
+
+  let freqTable = new Array();
+  for ( const pos in tokensFTByPoS ) {
+    freqTable = Object.keys(tokensFTByPoS[ pos ])
+  							  .map( key => (
+    										{ text: key,
+                         	value: tokensFTByPoS[pos][key].value,
+                         	pos: pos,
+                         	sentences: Array.from( tokensFTByPoS[pos][key].sentences )
+                        } ) )
+								  .filter( e => e.value > 1 && e.text.length > 2 )
+								  .concat( freqTable );
+  } // for ( const pos in tokensFTByPoS )
+
+  return freqTable.sort( (a, b) => b.value - a.value );
+}
+
+text = `Each time we gather to inaugurate a President we bear witness to the enduring strength of our Constitution.  We affirm the promise of our democracy.  We recall that what binds this nation together is not the colors of our skin or the tenets of our faith or the origins of our names.  What makes us exceptional -- what makes us American -- is our allegiance to an idea articulated in a declaration made more than two centuries ago:
+“We hold these truths to be self-evident, that all men are created equal; that they are endowed by their Creator with certain unalienable rights; that among these are life, liberty, and the pursuit of happiness.”
+
+Today we continue a never-ending journey to bridge the meaning of those words with the realities of our time.  For history tells us that while these truths may be self-evident, they’ve never been self-executing; that while freedom is a gift from God, it must be secured by His people here on Earth.   The patriots of 1776 did not fight to replace the tyranny of a king with the privileges of a few or the rule of a mob.  They gave to us a republic, a government of, and by, and for the people, entrusting each generation to keep safe our founding creed.
+
+And for more than two hundred years, we have.
+
+Through blood drawn by lash and blood drawn by sword, we learned that no union founded on the principles of liberty and equality could survive half-slave and half-free.  We made ourselves anew, and vowed to move forward together.
+
+Together, we determined that a modern economy requires railroads and highways to speed travel and commerce, schools and colleges to train our workers.
+
+Together, we discovered that a free market only thrives when there are rules to ensure competition and fair play.
+
+Together, we resolved that a great nation must care for the vulnerable, and protect its people from life’s worst hazards and misfortune.
+
+Through it all, we have never relinquished our skepticism of central authority, nor have we succumbed to the fiction that all society’s ills can be cured through government alone.  Our celebration of initiative and enterprise, our insistence on hard work and personal responsibility, these are constants in our character.
+
+But we have always understood that when times change, so must we; that fidelity to our founding principles requires new responses to new challenges; that preserving our individual freedoms ultimately requires collective action.  For the American people can no more meet the demands of today’s world by acting alone than American soldiers could have met the forces of fascism or communism with muskets and militias.  No single person can train all the math and science teachers we’ll need to equip our children for the future, or build the roads and networks and research labs that will bring new jobs and businesses to our shores.  Now, more than ever, we must do these things together, as one nation and one people.
+
+This generation of Americans has been tested by crises that steeled our resolve and proved our resilience.  A decade of war is now ending.   An economic recovery has begun.   America’s possibilities are limitless, for we possess all the qualities that this world without boundaries demands:  youth and drive; diversity and openness; an endless capacity for risk and a gift for reinvention.  My fellow Americans, we are made for this moment, and we will seize it -- so long as we seize it together.
+
+For we, the people, understand that our country cannot succeed when a shrinking few do very well and a growing many barely make it.   We believe that America’s prosperity must rest upon the broad shoulders of a rising middle class.  We know that America thrives when every person can find independence and pride in their work; when the wages of honest labor liberate families from the brink of hardship.  We are true to our creed when a little girl born into the bleakest poverty knows that she has the same chance to succeed as anybody else, because she is an American; she is free, and she is equal, not just in the eyes of God but also in our own.
+
+We understand that outworn programs are inadequate to the needs of our time.  So we must harness new ideas and technology to remake our government, revamp our tax code, reform our schools, and empower our citizens with the skills they need to work harder, learn more, reach higher.  But while the means will change, our purpose endures:  a nation that rewards the effort and determination of every single American.  That is what this moment requires.  That is what will give real meaning to our creed.
+
+We, the people, still believe that every citizen deserves a basic measure of security and dignity.  We must make the hard choices to reduce the cost of health care and the size of our deficit.  But we reject the belief that America must choose between caring for the generation that built this country and investing in the generation that will build its future.   For we remember the lessons of our past, when twilight years were spent in poverty and parents of a child with a disability had nowhere to turn.
+
+We do not believe that in this country freedom is reserved for the lucky, or happiness for the few.  We recognize that no matter how responsibly we live our lives, any one of us at any time may face a job loss, or a sudden illness, or a home swept away in a terrible storm.  The commitments we make to each other through Medicare and Medicaid and Social Security, these things do not sap our initiative, they strengthen us.   They do not make us a nation of takers; they free us to take the risks that make this country great.
+
+We, the people, still believe that our obligations as Americans are not just to ourselves, but to all posterity.  We will respond to the threat of climate change, knowing that the failure to do so would betray our children and future generations.   Some may still deny the overwhelming judgment of science, but none can avoid the devastating impact of raging fires and crippling drought and more powerful storms.
+
+The path towards sustainable energy sources will be long and sometimes difficult.  But America cannot resist this transition, we must lead it.  We cannot cede to other nations the technology that will power new jobs and new industries, we must claim its promise.  That’s how we will maintain our economic vitality and our national treasure -- our forests and waterways, our crop lands and snow-capped peaks.  That is how we will preserve our planet, commanded to our care by God.  That’s what will lend meaning to the creed our fathers once declared.
+
+We, the people, still believe that enduring security and lasting peace do not require perpetual war.   Our brave men and women in uniform, tempered by the flames of battle, are unmatched in skill and courage.   Our citizens, seared by the memory of those we have lost, know too well the price that is paid for liberty.  The knowledge of their sacrifice will keep us forever vigilant against those who would do us harm. But we are also heirs to those who won the peace and not just the war; who turned sworn enemies into the surest of friends -- and we must carry those lessons into this time as well.
+
+We will defend our people and uphold our values through strength of arms and rule of law.  We will show the courage to try and resolve our differences with other nations peacefully –- not because we are naïve about the dangers we face, but because engagement can more durably lift suspicion and fear.
+
+America will remain the anchor of strong alliances in every corner of the globe.  And we will renew those institutions that extend our capacity to manage crisis abroad, for no one has a greater stake in a peaceful world than its most powerful nation.  We will support democracy from Asia to Africa, from the Americas to the Middle East, because our interests and our conscience compel us to act on behalf of those who long for freedom.  And we must be a source of hope to the poor, the sick, the marginalized, the victims of prejudice –- not out of mere charity, but because peace in our time requires the constant advance of those principles that our common creed describes:  tolerance and opportunity, human dignity and justice.
+
+We, the people, declare today that the most evident of truths –- that all of us are created equal –- is the star that guides us still; just as it guided our forebears through Seneca Falls, and Selma, and Stonewall; just as it guided all those men and women, sung and unsung, who left footprints along this great Mall, to hear a preacher say that we cannot walk alone; to hear a King proclaim that our individual freedom is inextricably bound to the freedom of every soul on Earth.
+
+It is now our generation’s task to carry on what those pioneers began.  For our journey is not complete until our wives, our mothers and daughters can earn a living equal to their efforts.   Our journey is not complete until our gay brothers and sisters are treated like anyone else under the law  –- -- for if we are truly created equal, then surely the love we commit to one another must be equal as well.   Our journey is not complete until no citizen is forced to wait for hours to exercise the right to vote.   Our journey is not complete until we find a better way to welcome the striving, hopeful immigrants who still see America as a land of opportunity -- -- until bright young students and engineers are enlisted in our workforce rather than expelled from our country.    Our journey is not complete until all our children, from the streets of Detroit to the hills of Appalachia, to the quiet lanes of Newtown, know that they are cared for and cherished and always safe from harm.
+
+That is our generation’s task -- to make these words, these rights, these values of life and liberty and the pursuit of happiness real for every American.  Being true to our founding documents does not require us to agree on every contour of life. It does not mean we all define liberty in exactly the same way or follow the same precise path to happiness.  Progress does not compel us to settle centuries-long debates about the role of government for all time, but it does require us to act in our time.
+
+For now decisions are upon us and we cannot afford delay.  We cannot mistake absolutism for principle, or substitute spectacle for politics, or treat name-calling as reasoned debate.   We must act, knowing that our work will be imperfect.  We must act, knowing that today’s victories will be only partial and that it will be up to those who stand here in four years and 40 years and 400 years hence to advance the timeless spirit once conferred to us in a spare Philadelphia hall.
+
+My fellow Americans, the oath I have sworn before you today, like the one recited by others who serve in this Capitol, was an oath to God and country, not party or faction.  And we must faithfully execute that pledge during the duration of our service.  But the words I spoke today are not so different from the oath that is taken each time a soldier signs up for duty or an immigrant realizes her dream.  My oath is not so different from the pledge we all make to the flag that waves above and that fills our hearts with pride.
+
+They are the words of citizens and they represent our greatest hope.  You and I, as citizens, have the power to set this country’s course.  You and I, as citizens, have the obligation to shape the debates of our time -- not only with the votes we cast, but with the voices we lift in defense of our most ancient values and enduring ideals.
+
+Let us, each of us, now embrace with solemn duty and awesome joy what is our lasting birthright.  With common effort and common purpose, with passion and dedication, let us answer the call of history and carry into an uncertain future that precious light of freedom.
+
+Thank you.  God bless you, and may He forever bless these United States of America.`
+
+winkNLP = (await import('https://cdn.skypack.dev/wink-nlp')).default;
+
+model = (await import('https://cdn.skypack.dev/wink-eng-lite-web-model')).default;
+
+nlp = winkNLP( model );
+
+its = nlp.its;
+
+doc = nlp.readDoc( text );
+
+d3 = {
+  const d3 = await require("d3", "d3-array");
+  d3.cloud = await require("d3-cloud");
+  return d3;
+}
+
+height = Math.round(wordsFromText.length * 3.6);
+
+padding = 0;
+
+computeFontSize = d3.scaleSqrt()
+  .domain([1, d3.max(wordsFromText.map(d => d.value))])
+  .range([6, 82]);
+
+colorMap = {
+  const colorMap = Object.create(null);
+
+  colorMap.NOUN = '#67001f';
+  colorMap.PROPN = '#67001f';
+  colorMap.ADJ = '#878787';
+  colorMap.VERB = '#1a1a1a';
+  colorMap.ADV = '#d6604d';
+
+  return colorMap;
+}
+
+d3cloud = require('d3-cloud')
+
+import {textcolor} from "@observablehq/text-color-annotations-in-markdown"
+
+<style>
+  div.tooltip {
+/*     position: absolute;
+    text-align: left;
+    width: 300px;
+    height: auto;
+    padding: 2px;
+    font: 13px sans-serif;
+    background: white;
+    border-radius: 8px;
+    pointer-events: none;
+    padding: 10px;
+    border: 1px solid #333;
+    pointer-events: none; */
+
+    position: absolute;
+    text-align: left;
+    width: 300px;
+    height: auto;
+    padding: 2px;
+    font: 13px sans-serif;
+    background: white;
+    border-radius: 12px;
+    border-top-left-radius: 0;
+    pointer-events: none;
+    padding: 16px;
+    box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+    pointer-events: none;
+
+  }
+
+  .word-hovered {
+    font-weight: bold;
+  }
+
+  mark {
+    padding: 1px 3px;
+    margin: 2px;
+    line-height: 1;
+    display: inline-block;
+    border-radius: 2px;
+    background: #fc3;
+}
+</style>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+Here's the program you provided with labeled comments explaining the different parts and functions without changing the order of the code:
+
+```javascript
+// Define a word cloud function
+wordCloud = {
+  // Define font family for the word cloud
+  const fontFamily = "Verdana, Arial, Helvetica, sans-serif";
+
+  // Initialize the d3-cloud layout with the specified configuration
+  var layout = d3cloud()
+    .size([width, height])  // Define the size of the cloud layout
+    .words(wordsFromText)  // Specify the words for the cloud
+    .padding(0)  // No padding between words
+    .rotate(() => -Math.ceil(10 * doc.out(its.sentiment)))  // Set rotation based on sentiment
+    .font(fontFamily)  // Define the font for the words
+    .fontSize(d => computeFontSize(d.value))  // Define font size based on word value
+    .on('word', addWord);  // Define function to add words to the SVG
+
+  // Create an SVG element with the specified size
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]);  // width, height
+
+  // Get the width of the SVG element
+  const svgDeltaX = d3.select(svg).attr("width");
+
+  // Create a group element within the SVG element to hold the word cloud
+  const group = d3.select(svg).append('g');
+
+  // Create a tooltip div for hover effects
+  var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+  // Calculate the width of the tooltip div
+  const divWidth = parseInt(div.style("width"));
+
+  // Function to handle mouse over event for word hover
+  function handleMouseOver(d, i) {
+    const that = d3.select(this);
+
+    // Add "word-hovered" class to the hovered word
+    that.classed("word-hovered", true);
+
+    // Display the tooltip with the appropriate data
+    div.transition()
+       .duration(200)
+       .style("opacity", 1);
+
+    div.html((that.text()).split('|')[1])
+       .style("left", ((svgDeltaX - d.pageX) < divWidth ? svgDeltaX - divWidth : d.pageX) + "px")
+       .style("top", (d.pageY) + "px");
+  }
+
+  // Function to handle mouse out event for word hover
+  function handleMouseOut(d, i) {
+    // Remove "word-hovered" class from the word
+    d3.select(this)
+      .classed("word-hovered", false);
+
+    // Hide the tooltip
+    div.transition()
+       .duration(500)
+       .style("opacity", 0);
+  }
+
+  // Function to add a word to the word cloud
+  function addWord(word) {
+    // Create a text element for the word
+    const text = group.append('text');
+
+    // Set style and attributes for the text element
+    text.style('font-size', '2px')
+        .style('fill', `${colorMap[word.pos]}`)  // Set fill color based on part of speech
+        .style('cursor', 'pointer')
+        .attr('text-anchor', 'middle')
+        .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+        .text(word.text)
+        .style('font-size', `${word.size}px`)
+        .on("mouseover", handleMouseOver)
+        .on("mouseout", handleMouseOut);
+
+    // Add title text for the tooltip
+    const titleText = [];
+    word.sentences.forEach(si => titleText.push(doc.sentences().itemAt(si).out()));
+    const titleTextDoc = nlp.readDoc('|' + titleText.join('<br/><br/>'));
+    titleTextDoc.tokens().each(t => {
+      if (t.out(its.lemma) === word.text) t.markup();
+    });
+    text.append('data-title').text(`${titleTextDoc.out(its.markedUpText)}`);
+  }
+
+  // Start the d3-cloud layout algorithm
+  layout.start();
+
+  // Return the SVG element
+  return svg;
+};
+
+// Function to generate words from text
+wordsFromText = {
+  // Create an object to store tokens by part of speech (PoS)
+  const tokensFTByPoS = Object.create(null);
+  tokensFTByPoS.NOUN = Object.create(null);
+  tokensFTByPoS.ADJ = Object.create(null);
+  tokensFTByPoS.VERB = Object.create(null);
+  tokensFTByPoS.ADV = Object.create(null);
+  tokensFTByPoS.PROPN = Object.create(null);
+
+  // Process tokens from the document
+  doc.tokens()
+    .each(t => {
+      const pos = t.out(its.pos);
+      const token = t.out(its.lemma);
+      if (!tokensFTByPoS[pos]) return;
+
+      tokensFTByPoS[pos] = tokensFTByPoS[pos] || Object.create(null);
+      tokensFTByPoS[pos][token] = tokensFTByPoS[pos][token] || Object.create(null);
+      tokensFTByPoS[pos][token].value = 1 + (tokensFTByPoS[pos][token].value || 0);
+      tokensFTByPoS[pos][token].sentences = tokensFTByPoS[pos][token].sentences || new Set();
+      tokensFTByPoS[pos][token].sentences.add(t.parentSentence().index());
+    });
+
+  // Create an array of frequency table entries
+  let freqTable = new Array();
+  for (const pos in tokensFTByPoS) {
+    freqTable = Object.keys(tokensFTByPoS[pos])
+      .map(key => ({
+        text: key,
+        value: tokensFTByPoS[pos][key].value,
+        pos: pos,
+        sentences: Array.from(tokensFTByPoS[pos][key].sentences)
+      }))
+      .filter(e => e.value > 1 && e.text.length > 2)
+      .concat(freqTable);
+  }
+
+  // Sort the frequency table and return it
+  return freqTable.sort((a, b) => b.value - a.value);
+};
+
+// Sample text to analyze
+text = `Each time we gather to inaugurate a President we bear witness to the enduring strength of our Constitution...`;
+
+// Import the wink-nlp library and wink-eng-lite-web-model
+winkNLP = (await import('https://cdn.skypack.dev/wink-nlp')).default;
+model = (await import('https://cdn.skypack.dev/wink-eng-lite-web-model')).default;
+
+// Create an NLP document from the text
+nlp = winkNLP(model);
+its = nlp.its;
+doc = nlp.readDoc(text);
+
+// Import D3 and d3-cloud libraries
+d3 = {
+  const d3 = await require("d3", "d3-array");
+  d3.cloud = await require("d3-cloud");
+  return d3;
+};
+
+// Calculate height based on the number of words in the text
+height = Math.round(wordsFromText.length * 3.6);
+
+// Define padding for the word cloud
+padding = 0;
+
+// Define a scale for computing font size based on word value
+computeFontSize = d3.scaleSqrt()
+  .domain([1, d3.max(wordsFromText.map(d => d.value))])
+  .range([6, 82]);
+
+// Create a color map for different parts of speech
+colorMap = {
+  const colorMap = Object.create(null);
+  colorMap.NOUN = '#67001f';
+  colorMap.PROPN = '#67001f';
+  colorMap.ADJ = '#878787';
+  colorMap.VERB = '#1a1a1a';
+  colorMap.ADV = '#d6604d';
+  return colorMap;
+};
+
+// Import the d3-cloud library for the word cloud layout
+d3cloud = require('d3-cloud');
+
+// Import a function for text color annotations in Markdown
+import { textcolor } from "@observablehq/text-color-annotations-in-markdown";
+
+// Define styles for the tooltip and word hover effects
+<style>
+  div.tooltip {
+    position: absolute;
+    text-align: left;
+    width: 300px;
+    height: auto;
+    padding: 2px;
+    font: 13px sans-serif;
+    background: white;
+    border-radius: 12px;
+    border-top-left-radius: 0;
+    pointer-events: none;
+    padding: 16px;
+    box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+    pointer-events: none;
+  }
+
+  // Define style for hovered words
+  .word-hovered {
+    font-weight: bold;
+  }
+
+  // Define style for marked text (highlighting)
+  mark {
+    padding: 1px 3px;
+    margin: 2px;
+    line-height: 1;
+    display: inline-block;
+    border-radius: 2px;
+    background: #fc3;
+  }
+</style>
+```
+
+The program creates a word cloud visualization using `d3-cloud`, analyzing a provided text document to extract words and their associated attributes, such as frequency and sentiment. The program includes functions for processing the text data, creating the word cloud layout, and defining various styles and colors for different parts of speech. Let me know if you need further assistance!

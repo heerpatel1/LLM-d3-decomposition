@@ -1,0 +1,32 @@
+Can you label this program for me?:
+
+{
+  const $svg = d3.select( DOM.svg( width, height ) );
+
+  $svg
+    .append( 'g' )
+      .attr( 'transform', `translate(${ width / 2 } , ${ height / 2 })`)
+    .selectAll( 'path')
+    .data( pie )
+    .join( 'path' )
+      .attr( 'stroke-width', strokeWidth )
+      .attr( 'stroke', 'white' )
+      .attr( 'd', arc );
+
+  return $svg.node();
+}
+
+pie = d3.pie()( data );
+
+arc = d3.arc()
+    .innerRadius( 0 )
+     // Substracting the stroke width allows it to fit vertically within the svg
+    .outerRadius( Math.min( width, height ) / 2 - strokeWidth * 2  );
+
+strokeWidth = 2
+
+data = [ 4, 10, 8, 2];
+
+height = .3 * width
+
+d3 = require("d3@6")

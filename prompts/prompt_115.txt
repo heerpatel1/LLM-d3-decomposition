@@ -1,0 +1,220 @@
+Can you label this program for me?:
+file = FileAttachment ( "bw_bins.csv" ) . csv ( )
+
+ data = file . map ( d => Number ( d . group ) )
+
+ uniques = new Set ( data )
+
+ chart ( data )
+
+ chart = function ( data ) {
+const size = 700
+
+const margin = { top : size * 0.05 , right : size * 0.05 , bottom : size * 0.05 , left : size * 0.05 }
+
+const svg = d3 . create ( 'svg' )
+. attr ( 'width' , size )
+. attr ( 'height' , size )
+
+const numPerRow = 10
+const squareSize = ( ( size - margin . top - margin . bottom ) / numPerRow ) - 10
+
+const scale = d3 . scaleLinear ( )
+. domain ( [ 0 , ( numPerRow ) ] )
+. range ( [ margin . left , ( squareSize * numPerRow ) ] )
+
+const fillScale = d3 . scaleOrdinal ( d3 . schemeCategory10 )
+
+svg . selectAll ( 'rect' )
+. data ( data )
+. enter ( )
+. append ( 'rect' )
+. attr ( 'x' , ( d , i ) => {
+const n = i % numPerRow
+return scale ( n )
+} )
+. attr ( 'y' , ( d , i ) => {
+const n = Math . floor ( i / numPerRow )
+return scale ( n ) + 50
+} )
+. attr ( 'width' , squareSize )
+. attr ( 'height' , squareSize )
+. attr ( 'stroke' , 'white' )
+. attr ( 'stroke-width' , 2 )
+. attr ( 'fill' , d => fillScale ( d ) )
+. append ( "title" )
+. text ( ( d , i ) => `${ i + 1 }%` )
+
+// svg.append("g")
+//   .attr('transform', `translate(${margin.left}, 0)`)
+//   .call(d3.axisLeft(scale).ticks(10))
+
+// svg.append("g")
+//   .attr('transform', `translate(0, ${size - (margin.top + margin.bottom + 60)})`)
+//   .call(d3.axisBottom(scale).ticks(10))
+
+svg . selectAll ( 'legendSquares' )
+. data ( [ 1 , 2 , 3 , 4 , 5 ] )
+. enter ( )
+. append ( 'rect' )
+. attr ( 'x' , size - ( size * 0.22 ) )
+. attr ( 'y' , ( d , i ) => margin . top + 52 + ( i * 25 ) )
+. attr ( 'width' , 20 )
+. attr ( 'height' , 20 )
+. style ( 'fill' , d => fillScale ( d ) )
+
+svg . selectAll ( 'legendText' )
+. data ( [ '0 (33%)' , '0 - 1k (16%)' , '1k - 10k (28%)' , '10k - 100k (20%)' , '100k - 1m (3%)' ] )
+. enter ( )
+. append ( 'text' )
+. attr ( 'x' , size - ( size * 0.185 ) )
+. attr ( 'y' , ( d , i ) => margin . top + 50 + ( i * 25 ) + 13 )
+. style ( 'fill' , ( d , i ) => fillScale ( i + 1 ) )
+. text ( d => d )
+. attr ( 'text-anchor' , 'left' )
+. style ( 'alignment-baseline' , 'middle' )
+. style ( 'font-family' , 'Arial' )
+
+svg . append ( 'text' )
+. attr ( 'x' , size / 2.33 )
+. attr ( 'y' , 75 )
+. text ( 'Distribution of BWs' )
+. style ( 'fill' , '#3d3d3d' )
+. attr ( 'text-anchor' , 'middle' )
+. style ( 'font-size' , '24px' )
+. style ( 'font-family' , 'Arial' )
+
+return svg . node ( )
+
+}
+
+ < link rel = "preconnect" href = "https://fonts.googleapis.com" >
+< link rel = "preconnect" href = "https://fonts.gstatic.com" crossorigin >
+< link href = "https://fonts.googleapis.com/css2?family=Noto+Sans display=swap" rel = "stylesheet" >
+< style >
+body {
+font-family : 'Noto Sans' , serif ;
+font-size : 16 px ;
+}
+</ style >
+/////////////////////////////////////////////////////////////////////////////////////
+Here is a labeled version of your program:
+
+```javascript
+// Import data from a CSV file
+file = FileAttachment("bw_bins.csv").csv();
+
+// Convert data to numbers and map to data array
+data = file.map((d) => Number(d.group));
+
+// Create a set of unique values from the data array
+uniques = new Set(data);
+
+// Generate the chart
+chart(data);
+
+// Function to generate the chart
+function chart(data) {
+  const size = 700;
+
+  // Define margin values
+  const margin = {
+    top: size * 0.05,
+    right: size * 0.05,
+    bottom: size * 0.05,
+    left: size * 0.05,
+  };
+
+  // Create an SVG element
+  const svg = d3.create("svg")
+    .attr("width", size)
+    .attr("height", size);
+
+  // Define grid dimensions and cell size
+  const numPerRow = 10;
+  const squareSize = ((size - margin.top - margin.bottom) / numPerRow) - 10;
+
+  // Create a scale for the x-axis
+  const scale = d3.scaleLinear()
+    .domain([0, numPerRow])
+    .range([margin.left, squareSize * numPerRow]);
+
+  // Create a color scale using d3.schemeCategory10
+  const fillScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // Add rectangles (waffle cells) to the SVG element
+  svg.selectAll("rect")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("x", (d, i) => {
+      const n = i % numPerRow;
+      return scale(n);
+    })
+    .attr("y", (d, i) => {
+      const n = Math.floor(i / numPerRow);
+      return scale(n) + 50;
+    })
+    .attr("width", squareSize)
+    .attr("height", squareSize)
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .attr("fill", (d) => fillScale(d))
+    .append("title")
+    .text((d, i) => `${i + 1}%`);
+
+  // Legend squares for the categories
+  svg.selectAll("legendSquares")
+    .data([1, 2, 3, 4, 5])
+    .enter()
+    .append("rect")
+    .attr("x", size - (size * 0.22))
+    .attr("y", (d, i) => margin.top + 52 + (i * 25))
+    .attr("width", 20)
+    .attr("height", 20)
+    .style("fill", (d) => fillScale(d));
+
+  // Add legend text labels
+  svg.selectAll("legendText")
+    .data([
+      "0 (33%)",
+      "0 - 1k (16%)",
+      "1k - 10k (28%)",
+      "10k - 100k (20%)",
+      "100k - 1m (3%)",
+    ])
+    .enter()
+    .append("text")
+    .attr("x", size - (size * 0.185))
+    .attr("y", (d, i) => margin.top + 50 + (i * 25) + 13)
+    .style("fill", (d, i) => fillScale(i + 1))
+    .text((d) => d)
+    .attr("text-anchor", "left")
+    .style("alignment-baseline", "middle")
+    .style("font-family", "Arial");
+
+  // Add chart title
+  svg.append("text")
+    .attr("x", size / 2.33)
+    .attr("y", 75)
+    .text("Distribution of BWs")
+    .style("fill", "#3d3d3d")
+    .attr("text-anchor", "middle")
+    .style("font-size", "24px")
+    .style("font-family", "Arial");
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// HTML links and style
+< link rel = "preconnect" href = "https://fonts.googleapis.com" >
+< link rel = "preconnect" href = "https://fonts.gstatic.com" crossorigin >
+< link href = "https://fonts.googleapis.com/css2?family=Noto+Sans display=swap" rel = "stylesheet" >
+< style >
+body {
+font-family : 'Noto Sans' , serif ;
+font-size : 16 px ;
+}
+</ style >
+```

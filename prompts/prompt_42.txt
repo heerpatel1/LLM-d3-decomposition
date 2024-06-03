@@ -1,0 +1,691 @@
+Can you label this program for me without changing its order? Be sure to generate the entire program as well.:
+
+viewof rawData = csvInput({
+  initialUrl: "https://raw.githubusercontent.com/svickars/sampleData/main/TOD-DOW.csv",
+  label: "Import CSV Data"
+})
+
+viewof keyAccessor = text({title: "Key Accessor", value: "Day"})
+
+viewof xAccessor = text({title: "X Accessor", value: "Time"})
+
+viewof colorAccessor = text({title: "Color Accessor", value: "Value"})
+
+viewof w = slider({
+  min: 100,
+  max: 1000,
+  step: 25,
+  value: 750,
+  title: "Width"
+})
+
+viewof rowH = slider({
+  min: 20,
+  max: 100,
+  step: 4,
+  value: 40,
+  title: "Row Height"
+})
+
+viewof stroke = color({title: "Stroke Colour", value: "#ffffff"})
+
+viewof strokeWidth = slider({title: "Stroke Width", min:0, max: 8, step: 1, value: 1})
+
+viewof outerStroke = color({title: "Outer Stroke Colour", value: "#121212"})
+
+viewof outerStrokeWidth = slider({title: "Outer Stroke Width", min:0, max: 8, step: 1, value: 2})
+
+viewof fillHigh = color({title: "High Fill Color", value: "#0AAD0A"})
+
+viewof fillLow = color({title: "Low Fill Color", value: "#DEEDD6"})
+
+heatmap = {
+  const svg = d3.select(DOM.svg(w, h))
+            .style("font", "12px sans-serif"),
+        g = svg.append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  g.append("g")
+      .attr("d", "X Axis")
+      .selectAll("text")
+      .data(x.domain())
+      .join("text")
+        .attr("transform", d => `translate(${x(d) + x.bandwidth() / 2}, 0)`)
+        .attr("dy", -6)
+        .style("text-anchor", "middle")
+        .text(d => d);
+
+    g.append("g")
+      .attr("d", "Y Axis")
+      .selectAll("text")
+      .data(y.domain())
+      .join("text")
+        .attr("transform", d => `translate(${0}, ${y(d) + y.bandwidth() / 2})`)
+        .attr("dy", 4)
+        .attr("dx", -8)
+        .style("text-anchor", "end")
+        .text(d => d);
+
+  g.append("g")
+    .attr("id", "Data")
+    .selectAll("g")
+    .data(formattedData)
+    .join("g")
+    .attr("transform", d => `translate(${0}, ${y(d[keyAccessor])})`)
+    .selectAll("rect")
+      .data(d => d.values)
+      .join("rect")
+      .attr("transform", d => `translate(${x(d[xAccessor])}, ${0})`)
+      .attr("width", x.bandwidth)
+      .attr("height", y.bandwidth)
+      .style("fill", d => colorScale(d[colorAccessor]))
+      .style("stroke", stroke)
+      .style("stroke-width", strokeWidth);
+
+  g.append("g")
+    .attr("id", "Outlines")
+    .selectAll("rect")
+    .data(formattedData)
+    .join("rect")
+      .attr("transform", d => `translate(${0}, ${y(d[keyAccessor])})`)
+      .attr("width", w - margin.right - margin.left)
+      .attr("height", y.bandwidth)
+      .style("fill", "none")
+      .style("stroke", outerStroke)
+      .style("stroke-width", outerStrokeWidth);
+
+  return svg.node()
+}
+
+data = rawData;
+
+nested = d3.groups(rawData, d => d[keyAccessor]);
+
+formattedData = {
+  return Object.assign(nested.map(([Day, ...values]) => ({Day, values: values[0]})))
+}
+
+x = d3.scaleBand()
+  .domain(d3.map(data, d => d[xAccessor]))
+  .range([0, w - margin.left - margin.right])
+
+y = d3.scaleBand()
+  .domain(d3.map(data, d => d[keyAccessor]))
+  .range([0, h - margin.top - margin.bottom])
+  .paddingInner(0.2)
+
+colorScale = d3.scaleLinear()
+  .domain([0, d3.max(data, d => d[colorAccessor])])
+  .range([fillLow, fillHigh])
+
+h = formattedData.length * rowH;
+
+margin = ({top: 32, right: 16, bottom: 16, left: 96})
+
+import {rasterize,serialize} from "@mbostock/saving-svg"
+
+import {slider, text, color} from "@jashkenas/inputs"
+
+d3 = require("d3@6")
+
+function csvInput({initialUrl, init, accept = ".csv", label = ""}) {
+  return fileInput({
+    initialUrl,
+    accept,
+    load(url) {
+      return fetch(url, init).then(function(response) {
+          return response.ok ? response.text() : Promise.reject(response.status);
+      }).then(function(text) {
+          return d3.csvParse(text, d3.autoType);
+      });;
+    },
+    label
+  });
+}
+function fileInput({
+  initialUrl, // e.g., "https://example.com/file.txt"
+  accept, // e.g., ".txt,.md"
+  load = value => value, // A function to specify which value is exposed.
+  label = ""
+}) {
+  let file = null;
+  const form = html`<form><span>${label}</span>
+  ${Object.assign(html`<input name=url>`, {value: initialUrl})}
+  <button>Submit</button>
+  ${Object.assign(html`<input data-type=file name=file type=file>`, {accept})}
+`;
+  form.onsubmit = event => {
+    form.value = load(form.url.value);
+    form.dispatchEvent(new CustomEvent("input"));
+    event.preventDefault();
+  };
+  form.url.oninput = event => {
+    event.stopPropagation();
+  };
+  form.file.oninput = () => {
+    if (file !== null) URL.revokeObjectURL(file);
+    file = URL.createObjectURL(form.file.files[0]);
+    form.value = load(form.url.value = file);
+  };
+  if (initialUrl !== undefined) {
+    form.value = load(initialUrl);
+  }
+  return form;
+}
+//////////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program:
+
+```javascript
+viewof rawData = csvInput({
+  initialUrl: "https://raw.githubusercontent.com/svickars/sampleData/main/TOD-DOW.csv",
+  label: "Import CSV Data"
+})
+
+viewof keyAccessor = text({title: "Key Accessor", value: "Day"})
+
+viewof xAccessor = text({title: "X Accessor", value: "Time"})
+
+viewof colorAccessor = text({title: "Color Accessor", value: "Value"})
+
+viewof w = slider({
+  min: 100,
+  max: 1000,
+  step: 25,
+  value: 750,
+  title: "Width"
+})
+
+viewof rowH = slider({
+  min: 20,
+  max: 100,
+  step: 4,
+  value: 40,
+  title: "Row Height"
+})
+
+viewof stroke = color({title: "Stroke Colour", value: "#ffffff"})
+
+viewof strokeWidth = slider({title: "Stroke Width", min:0, max: 8, step: 1, value: 1})
+
+viewof outerStroke = color({title: "Outer Stroke Colour", value: "#121212"})
+
+viewof outerStrokeWidth = slider({title: "Outer Stroke Width", min:0, max: 8, step: 1, value: 2})
+
+viewof fillHigh = color({title: "High Fill Color", value: "#0AAD0A"})
+
+viewof fillLow = color({title: "Low Fill Color", value: "#DEEDD6"})
+
+heatmap = {
+  const svg = d3.select(DOM.svg(w, h))
+            .style("font", "12px sans-serif"),
+        g = svg.append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  g.append("g")
+      .attr("d", "X Axis")
+      .selectAll("text")
+      .data(x.domain())
+      .join("text")
+        .attr("transform", d => `translate(${x(d) + x.bandwidth() / 2}, 0)`)
+        .attr("dy", -6)
+        .style("text-anchor", "middle")
+        .text(d => d);
+
+    g.append("g")
+      .attr("d", "Y Axis")
+      .selectAll("text")
+      .data(y.domain())
+      .join("text")
+        .attr("transform", d => `translate(${0}, ${y(d) + y.bandwidth() / 2})`)
+        .attr("dy", 4)
+        .attr("dx", -8)
+        .style("text-anchor", "end")
+        .text(d => d);
+
+  g.append("g")
+    .attr("id", "Data")
+    .selectAll("g")
+    .data(formattedData)
+    .join("g")
+    .attr("transform", d => `translate(${0}, ${y(d[keyAccessor])})`)
+    .selectAll("rect")
+      .data(d => d.values)
+      .join("rect")
+      .attr("transform", d => `translate(${x(d[xAccessor])}, ${0})`)
+      .attr("width", x.bandwidth)
+      .attr("height", y.bandwidth)
+      .style("fill", d => colorScale(d[colorAccessor]))
+      .style("stroke", stroke)
+      .style("stroke-width", strokeWidth);
+
+  g.append("g")
+    .attr("id", "Outlines")
+    .selectAll("rect")
+    .data(formattedData)
+    .join("rect")
+      .attr("transform", d => `translate(${0}, ${y(d[keyAccessor])})`)
+      .attr("width", w - margin.right - margin.left)
+      .attr("height", y.bandwidth)
+      .style("fill", "none")
+      .style("stroke", outerStroke)
+      .style("stroke-width", outerStrokeWidth);
+
+  return svg.node()
+}
+
+data = rawData;
+
+nested = d3.groups(rawData, d => d[keyAccessor]);
+
+formattedData = {
+  return Object.assign(nested.map(([Day, ...values]) => ({Day, values: values[0]})))
+}
+
+x = d3.scaleBand()
+  .domain(d3.map(data, d => d[xAccessor]))
+  .range([0, w - margin.left - margin.right])
+
+y = d3.scaleBand()
+  .domain(d3.map(data, d => d[keyAccessor]))
+  .range([0, h - margin.top - margin.bottom])
+  .paddingInner(0.2)
+
+colorScale = d3.scaleLinear()
+  .domain([0, d3.max(data, d => d[colorAccessor])])
+  .range([fillLow, fillHigh])
+
+h = formattedData.length * rowH;
+
+margin = ({top: 32, right: 16, bottom: 16, left: 96})
+
+import {rasterize,serialize} from "@mbostock/saving-svg"
+
+import {slider, text, color} from "@jashkenas/inputs"
+
+d3 = require("d3@6")
+
+function csvInput({initialUrl, init, accept = ".csv", label = ""}) {
+  return fileInput({
+    initialUrl,
+    accept,
+    load(url) {
+      return fetch(url, init).then(function(response) {
+          return response.ok ? response.text() : Promise.reject(response.status);
+      }).then(function(text) {
+          return d3.csvParse(text, d3.autoType);
+      });;
+    },
+    label
+  });
+}
+function fileInput({
+  initialUrl, // e.g., "https://example.com/file.txt"
+  accept, // e.g., ".txt,.md"
+  load = value => value, // A function to specify which value is exposed.
+  label = ""
+}) {
+  let file = null;
+  const form = html`<form><span>${label}</span>
+  ${Object.assign(html`<input name=url>`, {value: initialUrl})}
+  <button>Submit</button>
+  ${Object.assign(html`<input data-type=file name=file type=file>`, {accept})}
+`;
+  form.onsubmit = event => {
+    form.value = load(form.url.value);
+    form.dispatchEvent(new CustomEvent("input"));
+    event.preventDefault();
+  };
+  form.url.oninput = event => {
+    event.stopPropagation();
+  };
+  form.file.oninput = () => {
+    if (file !== null) URL.revokeObjectURL(file);
+    file = URL.createObjectURL(form.file.files[0]);
+    form.value = load(form.url.value = file);
+  };
+  if (initialUrl !== undefined) {
+    form.value = load(initialUrl);
+  }
+  return form;
+}
+```
+
+This script appears to be for generating a heatmap visualization based on CSV data. It involves importing CSV data, configuring various parameters, creating the heatmap, processing the data, defining scales, and providing input functionalities.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+I do not see any labels. Can you please add them? As a reminder, here are 2 examples of labeled programs:
+Example 1: // https://observablehq.com/@marialuisacp/bar-chart
+// Training set
+
+Label: createSvgComponent()
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) )
+const g = svg . attr ( 'width' , width + margin . left )
+. attr ( 'height' , height + margin . top + margin . bottom )
+. append ( 'g' )
+. attr ( 'transform' , 'translate(' + margin . left + ',0)' )
+
+Label: svgAppend()
+g . append ( 'g' )
+. attr ( 'transform' , 'translate(0,' + height + ')' )
+. call ( d3 . axisBottom ( x_scale ) )
+g . append ( 'g' )
+. call ( d3 . axisLeft ( y_scale ) )
+
+Label: svgAppend()
+svg . selectAll ( '.bar' )
+. data ( data )
+. enter ( ) . append ( 'rect' )
+. attr ( 'fill' , '#0077C0' )
+. attr ( 'x' , ( d , i ) => x_scale ( d . category ) + margin . left * 1.5 )
+. attr ( 'y' , ( d ) => y_scale ( d . value ) )
+. attr ( 'width' , 50 )
+. attr ( 'height' , ( d ) => height - y_scale ( d . value ) )
+
+return svg . node ( )
+}
+
+Label: scaleComponent()
+ x_scale . domain ( data . map ( ( d ) => d . category ) )
+
+Label: filterData()
+ data = [ 'A' , 'B' , 'C' , 'D' , 'E' , 'F' , 'G' , 'H' ] . map ( ( d ) => ( {
+value : d3 . randomUniform ( ) ( ) , category : d } ) )
+
+Label: scaleComponent()
+ y_scale = d3 . scaleLinear ( )
+. domain ( [ 0 , 1 ] )
+. range ( [ height , 0 ] )
+
+Label: scaleComponent()
+ x_scale = d3 . scaleBand ( )
+. rangeRound ( [ 0 , width - margin . left - margin . right ] )
+
+Label: setHeight()
+ height = 350
+
+Label: setMargin()
+ margin = ( { top : 50 , right : 50 , bottom : 50 , left : 50 } )
+
+Label: setD3Version()
+ d3 = require ( "d3@5" )
+Example 2: // Training set
+
+Label: scaleComponent()
+// xScale will help us set the x position of the bars
+xScale = d3 . scaleBand ( ) //Ordinal scale
+. domain ( d3 . range ( dataset . length ) ) //sets the input domain for the scale
+. rangeRound ( [ 0 , w ] ) //enables rounding of the range
+. paddingInner ( 0.05 ) ; //spacing between each bar
+
+Label: scaleComponent()
+ //yScale will help us map data to the height of bars in the barchart
+yScale = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( dataset ) ] ) //sets the upper end of the input domain to the largest data value in dataset
+. range ( [ 0 , h ] ) ;
+
+Label: createSvgComponent()
+ //Create SVG element
+svg = d3 . select ( body )
+. append ( "svg" )
+. attr ( "width" , w )
+. attr ( "height" , h ) ;
+
+Label: svgAppend()
+ //Create bars
+svg . selectAll ( "rect" )
+. data ( dataset )
+. enter ( )
+. append ( "rect" )
+. attr ( "x" , function ( d , i ) { // position in x-axis
+return xScale ( i ) ; // we will pass the values from the dataset
+} )
+. attr ( "y" , function ( d ) {
+return h - yScale ( d ) ;
+} )
+. attr ( "width" , xScale . bandwidth ( ) ) //Asks for the bandwith of the scale
+. attr ( "height" , function ( d ) {
+return yScale ( d ) ;
+} )
+. attr ( "fill" , function ( d ) {
+return "rgb(" + Math . round ( d * 8 ) + ",0," + Math . round ( d * 10 ) + ")" ; //Change the color of the bar depending on the value
+} ) ;
+
+Label: interaction()
+ d3 . select ( button )
+. on ( "click" , function ( ) {
+newData ( ) ; //Changes de values of the data
+updateBar ( ) ; //Updates the bar chart
+} ) ;
+
+Label: interaction()
+ function newData ( ) {
+while ( dataset . length > 0 ) { //Clear the current dataset
+dataset . pop ( ) ;
+}
+for ( var i = 0 ; i < 20 ; i ++ ) { //Loop 20 times
+var newNumber = Math . floor ( Math . random ( ) * 20 ) + 5 ; //New random integer (5-25)
+dataset . push ( newNumber ) ; //Add new number to array
+}
+}
+
+Label: interaction()
+ function updateBar ( ) {
+//Update all rects
+svg . selectAll ( "rect" )
+. data ( dataset )
+. transition ( ) // <---- Here is the transition
+. duration ( 2000 ) // 2 seconds
+. attr ( "y" , function ( d ) {
+return h - yScale ( d ) ;
+} )
+. attr ( "height" , function ( d ) {
+return yScale ( d ) ;
+} )
+. attr ( "fill" , function ( d ) {
+return "rgb(" + Math . round ( d * 8 ) + ",0," + Math . round ( d * 10 ) + ")" ;
+} ) ;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+Sure, here's the program with labels added:
+
+```javascript
+// Import CSV Data
+viewof rawData = csvInput({
+  initialUrl: "https://raw.githubusercontent.com/svickars/sampleData/main/TOD-DOW.csv",
+  label: "Import CSV Data"
+})
+
+// Key Accessor
+viewof keyAccessor = text({title: "Key Accessor", value: "Day"})
+
+// X Accessor
+viewof xAccessor = text({title: "X Accessor", value: "Time"})
+
+// Color Accessor
+viewof colorAccessor = text({title: "Color Accessor", value: "Value"})
+
+// Width Slider
+viewof w = slider({
+  min: 100,
+  max: 1000,
+  step: 25,
+  value: 750,
+  title: "Width"
+})
+
+// Row Height Slider
+viewof rowH = slider({
+  min: 20,
+  max: 100,
+  step: 4,
+  value: 40,
+  title: "Row Height"
+})
+
+// Stroke Colour
+viewof stroke = color({title: "Stroke Colour", value: "#ffffff"})
+
+// Stroke Width Slider
+viewof strokeWidth = slider({title: "Stroke Width", min:0, max: 8, step: 1, value: 1})
+
+// Outer Stroke Colour
+viewof outerStroke = color({title: "Outer Stroke Colour", value: "#121212"})
+
+// Outer Stroke Width Slider
+viewof outerStrokeWidth = slider({title: "Outer Stroke Width", min:0, max: 8, step: 1, value: 2})
+
+// High Fill Color
+viewof fillHigh = color({title: "High Fill Color", value: "#0AAD0A"})
+
+// Low Fill Color
+viewof fillLow = color({title: "Low Fill Color", value: "#DEEDD6"})
+
+// Heatmap
+heatmap = {
+  const svg = d3.select(DOM.svg(w, h))
+            .style("font", "12px sans-serif"),
+        g = svg.append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+  g.append("g")
+      .attr("d", "X Axis")
+      .selectAll("text")
+      .data(x.domain())
+      .join("text")
+        .attr("transform", d => `translate(${x(d) + x.bandwidth() / 2}, 0)`)
+        .attr("dy", -6)
+        .style("text-anchor", "middle")
+        .text(d => d);
+
+    g.append("g")
+      .attr("d", "Y Axis")
+      .selectAll("text")
+      .data(y.domain())
+      .join("text")
+        .attr("transform", d => `translate(${0}, ${y(d) + y.bandwidth() / 2})`)
+        .attr("dy", 4)
+        .attr("dx", -8)
+        .style("text-anchor", "end")
+        .text(d => d);
+
+  g.append("g")
+    .attr("id", "Data")
+    .selectAll("g")
+    .data(formattedData)
+    .join("g")
+    .attr("transform", d => `translate(${0}, ${y(d[keyAccessor])})`)
+    .selectAll("rect")
+      .data(d => d.values)
+      .join("rect")
+      .attr("transform", d => `translate(${x(d[xAccessor])}, ${0})`)
+      .attr("width", x.bandwidth)
+      .attr("height", y.bandwidth)
+      .style("fill", d => colorScale(d[colorAccessor]))
+      .style("stroke", stroke)
+      .style("stroke-width", strokeWidth);
+
+  g.append("g")
+    .attr("id", "Outlines")
+    .selectAll("rect")
+    .data(formattedData)
+    .join("rect")
+      .attr("transform", d => `translate(${0}, ${y(d[keyAccessor])})`)
+      .attr("width", w - margin.right - margin.left)
+      .attr("height", y.bandwidth)
+      .style("fill", "none")
+      .style("stroke", outerStroke)
+      .style("stroke-width", outerStrokeWidth);
+
+  return svg.node()
+}
+
+// Set Data
+data = rawData;
+
+// Nested Data
+nested = d3.groups(rawData, d => d[keyAccessor]);
+
+// Format Data
+formattedData = {
+  return Object.assign(nested.map(([Day, ...values]) => ({Day, values: values[0]})))
+}
+
+// X Scale
+x = d3.scaleBand()
+  .domain(d3.map(data, d => d[xAccessor]))
+  .range([0, w - margin.left - margin.right])
+
+// Y Scale
+y = d3.scaleBand()
+  .domain(d3.map(data, d => d[keyAccessor]))
+  .range([0, h - margin.top - margin.bottom])
+  .paddingInner(0.2)
+
+// Color Scale
+colorScale = d3.scaleLinear()
+  .domain([0, d3.max(data, d => d[colorAccessor])])
+  .range([fillLow, fillHigh])
+
+// Height
+h = formattedData.length * rowH;
+
+// Margin
+margin = ({top: 32, right: 16, bottom: 16, left: 96})
+
+// Imports
+import {rasterize,serialize} from "@mbostock/saving-svg"
+import {slider, text, color} from "@jashkenas/inputs"
+d3 = require("d3@6")
+
+// CSV Input Function
+function csvInput({initialUrl, init, accept = ".csv", label = ""}) {
+  return fileInput({
+    initialUrl,
+    accept,
+    load(url) {
+      return fetch(url, init).then(function(response) {
+          return response.ok ? response.text() : Promise.reject(response.status);
+      }).then(function(text) {
+          return d3.csvParse(text, d3.autoType);
+      });;
+    },
+    label
+  });
+}
+
+// File Input Function
+function fileInput({
+  initialUrl, // e.g., "https://example.com/file.txt"
+  accept, // e.g., ".txt,.md"
+  load = value => value, // A function to specify which value is exposed.
+  label = ""
+}) {
+  let file = null;
+  const form = html`<form><span>${label}</span>
+  ${Object.assign(html`<input name=url>`, {value: initialUrl})}
+  <button>Submit</button>
+  ${Object.assign(html`<input data-type=file name=file type=file>`, {accept})}
+`;
+  form.onsubmit = event => {
+    form.value = load(form.url.value);
+    form.dispatchEvent(new CustomEvent("input"));
+    event.preventDefault();
+  };
+  form.url.oninput = event => {
+    event.stopPropagation();
+  };
+  form.file.oninput = () => {
+    if (file !== null) URL.revokeObjectURL(file);
+    file = URL.createObjectURL(form.file.files[0]);
+    form.value = load(form.url.value = file);
+  };
+  if (initialUrl !== undefined) {
+    form.value = load(initialUrl);
+  }
+  return form;
+}
+```
+
+Now each section of the program is labeled appropriately.

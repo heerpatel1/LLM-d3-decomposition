@@ -1,0 +1,195 @@
+Can you label this program for me?:
+viewof radius = {
+  const form = html`<form>
+  <input name=i type=range min=2 max=20 step=1 value=8 style="width:180px;">
+  <output style="font-size:smaller;font-style:oblique;" name=o></output>
+</form>`;
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber}px radius`;
+  form.i.oninput();
+  return form;
+}
+
+chart = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , heightHex ] ) ;
+
+svg . append ( "g" )
+. call ( xAxisHex ) ;
+
+svg . append ( "g" )
+. call ( yAxisHex ) ;
+
+svg . append ( "g" )
+. attr ( "stroke" , "#000" )
+. attr ( "stroke-opacity" , 0.1 )
+. selectAll ( "path" )
+. data ( bins )
+. join ( "path" )
+. attr ( "d" , hexbin . hexagon ( ) )
+. attr ( "transform" , d => `translate(${ d . x },${ d . y })` )
+. attr ( "fill" , d => colorHex ( d . length ) ) ;
+
+return svg . node ( ) ;
+}
+
+ dataHex = Object . assign ( d3 . csvParse ( await FileAttachment ( "manipulated3.csv" ) . text ( ) , ( { "amountGroup" : Group , gender : Gender , step : x , amount : y } ) => ( { Gender , x : + x , y : + y , Group } ) ) , { x : "step" , y : "amount" } )
+
+ hexbin = d3 . hexbin ( )
+. x ( d => xHex ( d . x ) )
+. y ( d => yHex ( d . y ) )
+. radius ( radius * width / 954 )
+. extent ( [ [ margin . left , margin . top ] , [ width - margin . right , heightHex - margin . bottom ] ] )
+
+ bins = hexbin ( dataHex )
+
+ xHex = d3 . scaleLinear ( )
+. domain ( d3 . extent ( dataHex , d => d . x ) ) . nice ( )
+. range ( [ margin . left , width - margin . right ] )
+
+ yHex = d3 . scaleLog ( )
+. domain ( d3 . extent ( dataHex , d => d . y ) )
+. rangeRound ( [ heightHex - margin . bottom , margin . top ] )
+
+ colorHex = d3 . scaleSequential ( d3 . interpolateBuPu )
+. domain ( [ 0 , d3 . max ( bins , d => d . length ) / 2 ] )
+
+ xAxisHex = g => g
+. attr ( "transform" , `translate(0,${ heightHex - margin . bottom })` )
+. call ( d3 . axisBottom ( xHex ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+. call ( g => g . append ( "text" )
+. attr ( "x" , width - margin . right )
+. attr ( "y" , - 4 )
+. attr ( "fill" , "#000" )
+. attr ( "font-weight" , "bold" )
+. attr ( "text-anchor" , "end" )
+. text ( dataHex . x ) )
+
+ yAxisHex = g => g
+. attr ( "transform" , `translate(${ margin . left },0)` )
+. call ( d3 . axisLeft ( yHex ) . ticks ( null , ".1s" ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+. call ( g => g . append ( "text" )
+. attr ( "x" , 4 )
+. attr ( "y" , margin . top )
+. attr ( "dy" , ".71em" )
+. attr ( "fill" , "currentColor" )
+. attr ( "font-weight" , "bold" )
+. attr ( "text-anchor" , "start" )
+. text ( dataHex . y ) )
+
+ heightHex = Math . max ( 640 , width )
+
+ margin = ( { top : 20 , right : 20 , bottom : 30 , left : 40 } )
+
+ d3 = require ( "d3@5" , "d3-hexbin@0.2" )
+///////////////////////////////////////////////////////////////////////////////
+Here is your program labeled while preserving its order:
+
+```javascript
+// View component for adjusting the radius
+viewof radius = {
+  // Create a form element with an input and output element
+  const form = html`<form>
+  <input name=i type=range min=2 max=20 step=1 value=8 style="width:180px;">
+  <output style="font-size:smaller;font-style:oblique;" name=o></output>
+</form>`;
+  // Update the output value based on the input value
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber}px radius`;
+  // Trigger the input event to initialize the form
+  form.i.oninput();
+  // Return the form element
+  return form;
+}
+
+// Main function to create and return the chart
+chart = {
+  // Create an SVG element and set its properties
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, width, heightHex]);
+
+  // Append the X axis to the SVG
+  svg.append("g").call(xAxisHex);
+
+  // Append the Y axis to the SVG
+  svg.append("g").call(yAxisHex);
+
+  // Append hexagonal paths to the SVG based on the hexbin data
+  svg.append("g")
+    .attr("stroke", "#000")
+    .attr("stroke-opacity", 0.1)
+    .selectAll("path")
+    .data(bins)
+    .join("path")
+    .attr("d", hexbin.hexagon())
+    .attr("transform", d => `translate(${d.x}, ${d.y})`)
+    .attr("fill", d => colorHex(d.length));
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// Parse CSV data and assign it as an object
+dataHex = Object.assign(d3.csvParse(await FileAttachment("manipulated3.csv").text(), ({"amountGroup": Group, gender: Gender, step: x, amount: y}) => ({"Gender", x: +x, y: +y, Group})), {x: "step", y: "amount"});
+
+// Create a hexbin layout and set its properties
+hexbin = d3.hexbin()
+  .x(d => xHex(d.x))
+  .y(d => yHex(d.y))
+  .radius(radius * width / 954)
+  .extent([[margin.left, margin.top], [width - margin.right, heightHex - margin.bottom]]);
+
+// Generate hexbin data (bins) based on the input data
+bins = hexbin(dataHex);
+
+// Define the X axis scale using linear scale
+xHex = d3.scaleLinear()
+  .domain(d3.extent(dataHex, d => d.x))
+  .nice()
+  .range([margin.left, width - margin.right]);
+
+// Define the Y axis scale using logarithmic scale
+yHex = d3.scaleLog()
+  .domain(d3.extent(dataHex, d => d.y))
+  .rangeRound([heightHex - margin.bottom, margin.top]);
+
+// Define the color scale using sequential color interpolation
+colorHex = d3.scaleSequential(d3.interpolateBuPu)
+  .domain([0, d3.max(bins, d => d.length) / 2]);
+
+// Define the X axis and set its properties
+xAxisHex = g => g
+  .attr("transform", `translate(0, ${heightHex - margin.bottom})`)
+  .call(d3.axisBottom(xHex))
+  .call(g => g.select(".domain").remove())
+  .call(g => g.append("text")
+    .attr("x", width - margin.right)
+    .attr("y", -4)
+    .attr("fill", "#000")
+    .attr("font-weight", "bold")
+    .attr("text-anchor", "end")
+    .text(dataHex.x));
+
+// Define the Y axis and set its properties
+yAxisHex = g => g
+  .attr("transform", `translate(${margin.left}, 0)`)
+  .call(d3.axisLeft(yHex).ticks(null, ".1s"))
+  .call(g => g.select(".domain").remove())
+  .call(g => g.append("text")
+    .attr("x", 4)
+    .attr("y", margin.top)
+    .attr("dy", ".71em")
+    .attr("fill", "currentColor")
+    .attr("font-weight", "bold")
+    .attr("text-anchor", "start")
+    .text(dataHex.y));
+
+// Calculate the height of the hexagonal chart
+heightHex = Math.max(640, width);
+
+// Define the margins for the chart
+margin = ({ top: 20, right: 20, bottom: 30, left: 40 });
+
+// Import D3.js version 5 and the hexbin plugin
+d3 = require("d3@5", "d3-hexbin@0.2");
+```

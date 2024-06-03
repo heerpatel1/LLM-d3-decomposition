@@ -1,0 +1,169 @@
+Can you label this program for me?:
+
+chart = {
+  const svg = d3.create("svg")
+      .attr("width", width)
+      .attr("height", width)
+      .style("font", "10px sans-serif");
+
+  svg
+    .selectAll("rect")
+    .data(data.leaves())
+    .enter()
+    .append("rect")
+      .attr('x', function (d) { return d.x0; })
+      .attr('y', function (d) { return d.y0; })
+      .attr('width', function (d) { return d.x1 - d.x0; })
+      .attr('height', function (d) { return d.y1 - d.y0; })
+      .style("stroke", d => quantizeScale(d.value))
+      .style("fill", d => quantizeScale(d.value))
+      .style("stroke-width", 4)
+      .style("fill-opacity", 0.85);
+
+  svg
+    .selectAll("text")
+    .data(data.leaves())
+    .enter()
+    .append("text")
+      .attr("x", function(d){ return d.x0+10})    // +10 to adjust position (more right)
+      .attr("y", function(d){ return d.y0+20})    // +20 to adjust position (lower)
+      .text(function(d){ return d.data.name})
+      .attr("font-size", "15px")
+      .attr("fill", "white")
+
+  return svg.node();
+}
+
+symbols = [
+{ name : 'root' } ,
+{ name : 'AAPL' , pl : 500 , parent : 'root' } ,
+{ name : 'MSFT' , pl : 400 , parent : 'root' } ,
+{ name : 'SHOP' , pl : 130 , parent : 'root' } ,
+{ name : 'NVDA' , pl : 230 , parent : 'root' } ,
+{ name : 'ZM' , pl : 100 , parent : 'root' } ,
+{ name : 'PFE' , pl : 30 , parent : 'root' } ,
+{ name : 'AMZN' , pl : - 20 , parent : 'root' } ,
+]
+
+ data = {
+let symbolsTree = d3 . stratify ( )
+. id ( d => d . name )
+. parentId ( ( d ) => d . parent )
+( symbols )
+
+symbolsTree . sum ( d => linearScale ( d . pl ) )
+
+d3 . treemap ( )
+. size ( [ width , height ] )
+. padding ( 6 )
+( symbolsTree )
+
+return symbolsTree
+}
+
+ quantizeScale = d3 . scaleSequential ( )
+. domain ( [ 100 , 0 ] )
+. interpolator ( d3 . interpolateWarm ) ;
+
+ linearScale = d3 . scaleLinear ( )
+. domain ( [ - 90 , 500 ] )
+. range ( [ 0 , 100 ] ) ;
+
+ width = 500
+
+ height = 500
+
+ d3 = require ( "d3@6.2.0" )
+///////////////////////////////////////////////////////////////////
+Here's the labeled program with explanations provided for each section of the code:
+
+```javascript
+// Main function to create the chart
+chart = {
+  // Create an SVG element
+  const svg = d3.create("svg")
+      .attr("width", width)
+      .attr("height", width)
+      .style("font", "10px sans-serif");
+
+  // Bind the data to rectangles and create them in the SVG
+  svg
+    .selectAll("rect")
+    .data(data.leaves())  // Get the leaves (end nodes) of the data
+    .enter()
+    .append("rect")
+      .attr('x', function (d) { return d.x0; })  // Set the x-position of the rectangle
+      .attr('y', function (d) { return d.y0; })  // Set the y-position of the rectangle
+      .attr('width', function (d) { return d.x1 - d.x0; })  // Set the width of the rectangle
+      .attr('height', function (d) { return d.y1 - d.y0; })  // Set the height of the rectangle
+      .style("stroke", d => quantizeScale(d.value))  // Set the stroke color based on the value
+      .style("fill", d => quantizeScale(d.value))  // Set the fill color based on the value
+      .style("stroke-width", 4)  // Set the stroke width
+      .style("fill-opacity", 0.85);  // Set the fill opacity
+
+  // Bind the data to text elements and create them in the SVG
+  svg
+    .selectAll("text")
+    .data(data.leaves())  // Get the leaves (end nodes) of the data
+    .enter()
+    .append("text")
+      .attr("x", function(d) { return d.x0 + 10; })  // Set the x-position of the text
+      .attr("y", function(d) { return d.y0 + 20; })  // Set the y-position of the text
+      .text(function(d) { return d.data.name; })  // Set the text content to the name
+      .attr("font-size", "15px")  // Set the font size
+      .attr("fill", "white");  // Set the text color
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Data for the symbols (e.g., stocks)
+symbols = [
+  { name: 'root' },
+  { name: 'AAPL', pl: 500, parent: 'root' },
+  { name: 'MSFT', pl: 400, parent: 'root' },
+  { name: 'SHOP', pl: 130, parent: 'root' },
+  { name: 'NVDA', pl: 230, parent: 'root' },
+  { name: 'ZM', pl: 100, parent: 'root' },
+  { name: 'PFE', pl: 30, parent: 'root' },
+  { name: 'AMZN', pl: -20, parent: 'root' },
+];
+
+// Function to create and process the data
+data = {
+  // Create a tree structure from the data using d3.stratify
+  let symbolsTree = d3.stratify()
+    .id(d => d.name)
+    .parentId(d => d.parent)
+    (symbols);
+
+  // Calculate the sum of values for the tree
+  symbolsTree.sum(d => linearScale(d.pl));
+
+  // Create a treemap layout and apply it to the tree
+  d3.treemap()
+    .size([width, height])
+    .padding(6)
+    (symbolsTree);
+
+  // Return the processed tree
+  return symbolsTree;
+};
+
+// Scale to map values to colors using d3.interpolateWarm
+quantizeScale = d3.scaleSequential()
+  .domain([100, 0])
+  .interpolator(d3.interpolateWarm);
+
+// Scale to map values to a linear range
+linearScale = d3.scaleLinear()
+  .domain([-90, 500])
+  .range([0, 100]);
+
+// Define the width and height of the treemap
+width = 500;
+height = 500;
+
+// Import d3 version 6.2.0
+d3 = require("d3@6.2.0");
+```

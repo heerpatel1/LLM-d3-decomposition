@@ -1,0 +1,200 @@
+Can you label this program for me?:
+chart = {
+const arcs = pie ( data ) ;
+
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ - width / 2 , - height / 2 , width , height ] ) ;
+
+svg . append ( "g" )
+. attr ( "stroke" , "white" )
+. selectAll ( "path" )
+. data ( arcs )
+. join ( "path" )
+. attr ( "fill" , d => color ( d . data . name ) )
+. attr ( "opacity" , 0.6 )
+. attr ( "d" , arc )
+. append ( "title" )
+. text ( d => `${ d . data . name }: ${ d . data . value . toLocaleString ( ) }` ) ;
+
+svg . append ( "g" )
+. attr ( "stroke" , "white" )
+. selectAll ( "path" )
+. data ( arcs )
+. join ( "path" )
+. attr ( "fill" , d => color ( d . data . name ) )
+. attr ( "d" , arc2 )
+
+svg . append ( "g" )
+. attr ( "font-family" , "sans-serif" )
+. attr ( "font-size" , 12 )
+. attr ( "text-anchor" , "middle" )
+. selectAll ( "text" )
+. data ( arcs )
+. join ( "text" )
+. attr ( "transform" , d => `translate(${ arcLabel . centroid ( d ) })` )
+. call ( text => text . append ( "tspan" )
+. attr ( "y" , "-0.4em" )
+. attr ( "font-weight" , "bold" )
+. text ( d => d . data . name ) )
+. call ( text => text . filter ( d => ( d . endAngle - d . startAngle ) > 0.25 ) . append ( "tspan" )
+. attr ( "x" , 0 )
+. attr ( "y" , "0.7em" )
+. attr ( "fill-opacity" , 0.7 )
+. text ( d => d . data . value . toLocaleString ( ) + " · " + d . data . value3 . toLocaleString ( ) + "/" + d . data . value2 . toLocaleString ( ) ) ) ;
+
+return svg . node ( ) ;
+}
+
+ data = [
+{ name : "apples" , value : 10 , value2 : 20 , value3 : 18 } ,
+{ name : "bananas" , value : 14 , value2 : 23 , value3 : 13 } ,
+{ name : "cashews" , value : 43 , value2 : 21 , value3 : 14 } ,
+{ name : "raisins" , value : 31 , value2 : 19 , value3 : 15 } ,
+{ name : "almonds" , value : 18 , value2 : 13 , value3 : 9 } ,
+{ name : "mangos" , value : 14 , value2 : 14 , value3 : 12 } ,
+{ name : "figs" , value : 5 , value2 : 15 , value3 : 11 } ,
+{ name : "peanuts" , value : 7 , value2 : 20 , value3 : 18 } ,
+{ name : "dates" , value : 10 , value2 : 22 , value3 : 16 } ,
+]
+
+ color = d3 . scaleOrdinal ( )
+. domain ( data . map ( d => d . name ) )
+. range ( d3 . quantize ( t => d3 . interpolateSpectral ( t * 0.8 + 0.1 ) , data . length ) . reverse ( ) )
+
+
+ color2 = d3 . scaleOrdinal ( )
+. domain ( data . map ( d => d . name ) )
+. range ( d3 . quantize ( t => d3 . interpolateSpectral ( t * 0.8 + 0.1 ) , data . length ) . reverse ( ) )
+
+ height = Math . min ( width , 600 )
+
+ arc = d3 . arc ( )
+. innerRadius ( 0 )
+. outerRadius ( ( d , i ) => data [ i ] . value2 * 10 )
+
+
+ arc2 = d3 . arc ( )
+. innerRadius ( 0 )
+. outerRadius ( ( d , i ) => data [ i ] . value3 * 10 )
+
+ arcLabel = {
+const radius = Math . min ( width , height ) / 2 * 0.9 ;
+return d3 . arc ( ) . innerRadius ( radius ) . outerRadius ( radius ) ;
+}
+
+ pie = d3 . pie ( )
+. sort ( null )
+. value ( d => d . value )
+
+ d3 = require ( "d3@6" )
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program according to your request:
+
+```javascript
+// Label: createChart
+chart = {
+    // Create pie chart arcs from data
+    // Label: createArcs
+    const arcs = pie(data);
+
+    // Create SVG element
+    // Label: createSvgComponent
+    const svg = d3.create("svg")
+        .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+    // Append group for paths with stroke color
+    // Label: svgAppend
+    svg.append("g")
+        .attr("stroke", "white")
+        .selectAll("path")
+        .data(arcs)
+        .join("path")
+        .attr("fill", d => color(d.data.name))
+        .attr("opacity", 0.6)
+        .attr("d", arc)
+        // Append title to each path for tooltip
+        .append("title")
+        .text(d => `${d.data.name}: ${d.data.value.toLocaleString()}`);
+
+    // Append group for the second set of paths
+    // Label: svgAppend
+    svg.append("g")
+        .attr("stroke", "white")
+        .selectAll("path")
+        .data(arcs)
+        .join("path")
+        .attr("fill", d => color(d.data.name))
+        .attr("d", arc2);
+
+    // Append group for text labels
+    // Label: svgAppend
+    svg.append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 12)
+        .attr("text-anchor", "middle")
+        .selectAll("text")
+        .data(arcs)
+        .join("text")
+        .attr("transform", d => `translate(${arcLabel.centroid(d)})`)
+        .call(text => text.append("tspan")
+            .attr("y", "-0.4em")
+            .attr("font-weight", "bold")
+            .text(d => d.data.name))
+        .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25)
+            .append("tspan")
+            .attr("x", 0)
+            .attr("y", "0.7em")
+            .attr("fill-opacity", 0.7)
+            .text(d => d.data.value.toLocaleString() + " · " + d.data.value3.toLocaleString() + "/" + d.data.value2.toLocaleString()));
+
+    // Return the completed SVG node
+    return svg.node();
+}
+
+// Label: data()
+data = [
+    { name: "apples", value: 10, value2: 20, value3: 18 },
+    { name: "bananas", value: 14, value2: 23, value3: 13 },
+    { name: "cashews", value: 43, value2: 21, value3: 14 },
+    { name: "raisins", value: 31, value2: 19, value3: 15 },
+    { name: "almonds", value: 18, value2: 13, value3: 9 },
+    { name: "mangos", value: 14, value2: 14, value3: 12 },
+    { name: "figs", value: 5, value2: 15, value3: 11 },
+    { name: "peanuts", value: 7, value2: 20, value3: 18 },
+    { name: "dates", value: 10, value2: 22, value3: 16 }
+];
+
+// Label: colorComponent
+color = d3.scaleOrdinal()
+    .domain(data.map(d => d.name))
+    .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length).reverse());
+
+// Label: setHeight
+height = Math.min(width, 600);
+
+// Label: arcShape
+arc = d3.arc()
+    .innerRadius(0)
+    .outerRadius((d, i) => data[i].value2 * 10);
+
+// Label: arcShape2
+arc2 = d3.arc()
+    .innerRadius(0)
+    .outerRadius((d, i) => data[i].value3 * 10);
+
+// Label: arcLabel
+arcLabel = {
+    const radius = Math.min(width, height) / 2 * 0.9;
+    return d3.arc()
+        .innerRadius(radius)
+        .outerRadius(radius);
+};
+
+// Label: pieShape
+pie = d3.pie()
+    .sort(null)
+    .value(d => d.value);
+
+// Label: setD3Version
+d3 = require("d3@6");
+```

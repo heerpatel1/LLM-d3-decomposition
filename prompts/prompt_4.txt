@@ -1,0 +1,190 @@
+Can you label this program for me?:
+
+dataset = [
+  {year: 1880, Amanda: 241, Ashley: 2, Betty: 117, Deborah: 12},
+  {year: 1881, Amanda: 246, Ashley: 3, Betty: 112, Deborah: 14},
+  {year: 1882, Amanda: 248, Ashley: 7, Betty: 113, Deborah: 17},
+  {year: 1883, Amanda: 252, Ashley: 11, Betty: 116, Deborah: 21},
+  {year: 1884, Amanda: 262, Ashley: 11, Betty: 115, Deborah: 40},
+  {year: 1885, Amanda: 253, Ashley: 11, Betty: 114, Deborah: 63},
+  {year: 1886, Amanda: 241, Ashley: 11, Betty: 123, Deborah: 62},
+  {year: 1887, Amanda: 243, Ashley: 11, Betty: 121, Deborah: 84},
+  {year: 1888, Amanda: 240, Ashley: 12, Betty: 119, Deborah: 101},
+]
+
+{
+  const margin = {
+      left: 30,
+      right: 20,
+      top: 20,
+      bottom: 20
+    };
+  const w = 700 - margin.left - margin.right;
+  const h = 400 - margin.top - margin.bottom;
+
+  const nameData = ["Amanda", "Ashley", "Betty", "Deborah"];
+  const groups = d3.map(dataset, d => d.year);
+
+  const svg = d3.create("svg").attr("width", w).attr("height", h);
+
+  const xScale = d3.scaleLinear()
+    .domain(d3.extent(groups))
+    .range([margin.left,w - margin.right - 200]);
+  const xAxis = d3.axisBottom(xScale);
+  const xAxisGroup = svg.append('g')
+    .attr('transform', `translate(0, ${h - margin.bottom})`)
+    .call(xAxis);
+
+  const yScale = d3.scaleLinear()
+    .domain([0, 500])
+    .range([h - margin.bottom, margin.top]);
+  const yAxis = d3.axisLeft(yScale);
+  const yAxisGroup = svg.append('g')
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .call(yAxis);
+
+  const colorScale = d3.scaleOrdinal()
+      .domain(nameData)
+      .range(['#e41a1c','#377eb8','#4daf4a','#4dafff']);
+
+  const stackData = d3.stack().keys(nameData)(dataset);
+
+  const area = d3.area().x(d => xScale(d.data.year)).y0(d => yScale(d[0])).y1(d => yScale(d[1]));
+
+  const areaChart = svg.append('g')
+    .attr("clip-path", "url(#clip)");
+
+  areaChart
+    .selectAll("mylayers")
+    .data(stackData)
+    .enter()
+    .append("path")
+      .attr("class", function(d) { return "myArea " + d.key })
+      .style("fill", function(d) { return colorScale(d.key); })
+      .attr("d", area)
+
+
+    const size = 20
+    svg.selectAll("myrect")
+          .data(nameData)
+          .enter()
+          .append("rect")
+            .attr("x", 450)
+            .attr("y", function(d,i){ return 10 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+            .attr("width", size)
+            .attr("height", size)
+            .style("fill", function(d){ return colorScale(d)});
+    svg.selectAll("mylabels")
+      .data(nameData)
+      .enter()
+      .append("text")
+        .attr("x", 450 + size*1.2)
+        .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
+        .style("fill", function(d){ return colorScale(d)})
+        .text(function(d){ return d})
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+
+  return svg.node();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Define dataset
+dataset = [
+  {year: 1880, Amanda: 241, Ashley: 2, Betty: 117, Deborah: 12},
+  {year: 1881, Amanda: 246, Ashley: 3, Betty: 112, Deborah: 14},
+  {year: 1882, Amanda: 248, Ashley: 7, Betty: 113, Deborah: 17},
+  {year: 1883, Amanda: 252, Ashley: 11, Betty: 116, Deborah: 21},
+  {year: 1884, Amanda: 262, Ashley: 11, Betty: 115, Deborah: 40},
+  {year: 1885, Amanda: 253, Ashley: 11, Betty: 114, Deborah: 63},
+  {year: 1886, Amanda: 241, Ashley: 11, Betty: 123, Deborah: 62},
+  {year: 1887, Amanda: 243, Ashley: 11, Betty: 121, Deborah: 84},
+  {year: 1888, Amanda: 240, Ashley: 12, Betty: 119, Deborah: 101},
+]
+
+// Define constants for margins, width, and height
+{
+  const margin = {
+      left: 30,
+      right: 20,
+      top: 20,
+      bottom: 20
+    };
+  const w = 700 - margin.left - margin.right;
+  const h = 400 - margin.top - margin.bottom;
+
+  // Define names and groups
+  const nameData = ["Amanda", "Ashley", "Betty", "Deborah"];
+  const groups = d3.map(dataset, d => d.year);
+
+  // Create SVG element
+  const svg = d3.create("svg").attr("width", w).attr("height", h);
+
+  // Define x and y scales
+  const xScale = d3.scaleLinear()
+    .domain(d3.extent(groups))
+    .range([margin.left,w - margin.right - 200]);
+  const xAxis = d3.axisBottom(xScale);
+  const xAxisGroup = svg.append('g')
+    .attr('transform', `translate(0, ${h - margin.bottom})`)
+    .call(xAxis);
+
+  const yScale = d3.scaleLinear()
+    .domain([0, 500])
+    .range([h - margin.bottom, margin.top]);
+  const yAxis = d3.axisLeft(yScale);
+  const yAxisGroup = svg.append('g')
+    .attr('transform', `translate(${margin.left}, 0)`)
+    .call(yAxis);
+
+  // Define color scale
+  const colorScale = d3.scaleOrdinal()
+      .domain(nameData)
+      .range(['#e41a1c','#377eb8','#4daf4a','#4dafff']);
+
+  // Stack data
+  const stackData = d3.stack().keys(nameData)(dataset);
+
+  // Define area function
+  const area = d3.area().x(d => xScale(d.data.year)).y0(d => yScale(d[0])).y1(d => yScale(d[1]));
+
+  // Append area chart to SVG
+  const areaChart = svg.append('g')
+    .attr("clip-path", "url(#clip)");
+
+  areaChart
+    .selectAll("mylayers")
+    .data(stackData)
+    .enter()
+    .append("path")
+      .attr("class", function(d) { return "myArea " + d.key })
+      .style("fill", function(d) { return colorScale(d.key); })
+      .attr("d", area)
+
+  // Append legend to SVG
+  const size = 20
+  svg.selectAll("myrect")
+        .data(nameData)
+        .enter()
+        .append("rect")
+          .attr("x", 450)
+          .attr("y", function(d,i){ return 10 + i*(size+5)}) // 100 is where the first dot appears. 25 is the distance between dots
+          .attr("width", size)
+          .attr("height", size)
+          .style("fill", function(d){ return colorScale(d)});
+  svg.selectAll("mylabels")
+    .data(nameData)
+    .enter()
+    .append("text")
+      .attr("x", 450 + size*1.2)
+      .attr("y", function(d,i){ return 10 + i*(size+5) + (size/2)}) // 100 is where the first dot appears. 25 is the distance between dots
+      .style("fill", function(d){ return colorScale(d)})
+      .text(function(d){ return d})
+      .attr("text-anchor", "left")
+      .style("alignment-baseline", "middle")
+
+  return svg.node();
+}
+```
+

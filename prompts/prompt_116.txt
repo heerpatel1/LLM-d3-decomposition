@@ -1,0 +1,859 @@
+Can you label this program for me?:
+tooltip_2 = {
+chart ;
+const tooltip_2 = d4
+. select ( "body" )
+. append ( "div" )
+. attr ( "class" , "svg1-tooltip_2" )
+. style ( "position" , "absolute" )
+. style ( "visibility" , "hidden" ) ;
+
+// select all rect
+d4 . selectAll ( "rect" )
+. on ( "mouseover" , function ( d ) {
+// change the selection style: width and color of the stroke which allows up to control of the shape of the ends of lines
+d4 . select ( this )
+. attr ( 'stroke-width' , '2' )
+. attr ( "stroke" , "black" ) ;
+// make the tooltip visible and update its text
+tooltip_2
+. style ( "visibility" , "visible" )
+. style ( "font-size" , "12px" )
+. style ( "color" , "#777" )
+. text ( `Hover over the legend for filtering\n` ) ; // the formating of the output text
+} )
+. on ( "mousemove" , function ( ) {
+tooltip_2
+. style ( "top" , d4 . event . pageY - 90 + "px" )
+. style ( "left" , d4 . event . pageX - 70 + "px" ) ;
+} )
+. on ( "mouseout" , function ( ) {
+// change the selection style
+d4 . select ( this ) . attr ( 'stroke-width' , '0' ) ;
+
+tooltip_2 . style ( "visibility" , "hidden" ) ;
+} ) ;
+}
+
+viewof options = form(html`<form>
+  <span><label>Style: <select name="style">
+    <option value="whole">Whole</option>
+    <option value="portion">Portion</option>
+  </select></label></span>&nbsp;
+  <span><label>Shape: <select name="shape">
+    <option value="rect">Square</option>
+    <option value="circle">Circle</option>
+  </select></label></span>
+<form>`)
+
+ chart = {
+const svg = d3 . create ( "svg" )
+. style ( "cursor" , "default" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+const g = svg . selectAll ( ".waffle" )
+. data ( waffles )
+. join ( "g" )
+. attr ( "class" , "waffle" ) ;
+
+if ( ! whole ) {
+const numPerRow = Math . floor ( width / ( waffleSize + padding . x ) ) ;
+g . attr ( "transform" , ( d , i ) => {
+const r = Math . floor ( i / numPerRow ) ;
+const c = i - r * numPerRow ;
+return `translate(${ c * ( waffleSize + padding . x ) },${ r * ( waffleSize + padding . y ) })`
+} ) ;
+}
+
+const cellSize = scale . bandwidth ( ) ;
+const half = cellSize / 2 ;
+const cells = g . append ( "g" )
+. selectAll ( options . shape )
+. data ( d => d )
+. join ( options . shape )
+. attr ( "fill" , d => d . index === - 1 ? "#ddd" : color ( d . index ) ) ;
+
+if ( isRect ) {
+cells . attr ( "x" , d => scale ( d . x ) )
+. attr ( "y" , d => whole ? 0 : scale ( d . y ) )
+. attr ( "rx" , 3 ) . attr ( "ry" , 3 )
+. attr ( "width" , cellSize ) . attr ( "height" , cellSize )
+}
+else {
+cells . attr ( "cx" , d => scale ( d . x ) + half )
+. attr ( "cy" , d => whole ? 0 : scale ( d . y ) + half )
+. attr ( "r" , half ) ;
+}
+
+if ( whole ) {
+cells . append ( "title" ) . text ( d => {
+const cd = chartData [ d . index ] ;
+return `${ cd . territory }\n${ toCurrency ( cd . profit ) } (${ cd . ratio . toFixed ( 1 ) }%)` ;
+} ) ;
+
+cells . transition ( )
+. duration ( d => d . y * 100 )
+. ease ( d3 . easeBounce )
+. attr ( isRect ? "y" : "cy" , d => scale ( d . y ) + ( isRect ? 0 : half ) ) ;
+svg . transition ( ) . delay ( 550 )
+. on ( "end" , ( ) => drawLegend ( svg , cells ) ) ;
+}
+else {
+g . append ( "text" )
+. style ( "font-size" , 20 )
+. style ( "font-weight" , "bold" )
+. attr ( "dy" , "1.5em" )
+. attr ( "text-anchor" , "middle" )
+. attr ( "fill" , ( d , i ) => color ( i ) )
+. attr ( "transform" , `translate(${ waffleSize / 2 },0)` )
+. text ( ( d , i ) => `${ chartData [ i ] . ratio . toFixed ( 0 ) }%` ) ;
+
+g . append ( "g" )
+. attr ( "transform" , `translate(0,${ waffleSize + padding . y / 2.5 })` )
+. call ( g => g . append ( "text" ) . text ( ( d , i ) => chartData [ i ] . territory ) )
+. call ( g => g . append ( "text" ) . attr ( "dy" , "1em" ) . text ( ( d , i ) => toCurrency ( chartData [ i ] . profit ) ) ) ;
+}
+
+
+return svg . node ( ) ;
+}
+
+ d4 = {
+const d4 = require ( "d3-dsv@1" , "d3@5" , "d3-scale@3" , "d3-scale-chromatic@1" , "d3-shape@1" , "d3-array@2" )
+return d4
+}
+
+ drawLegend = ( svg , cells ) => {
+const legend = svg . selectAll ( ".legend" )
+. data ( chartData . map ( d => d . territory ) )
+. join ( "g" )
+. attr ( "opacity" , 1 )
+. attr ( "transform" , ( d , i ) => `translate(${ waffleSize + 20 },${ i * 30 })` )
+. on ( "mouseover" , highlight )
+. on ( "mouseout" , restore ) ;
+
+legend . append ( "rect" )
+. attr ( "rx" , 3 ) . attr ( "ry" , 3 )
+. attr ( "width" , 30 ) . attr ( "height" , 20 )
+. attr ( "fill" , ( d , i ) => color ( i ) ) ;
+
+legend . append ( "text" )
+. attr ( "dx" , 40 )
+. attr ( "alignment-baseline" , "hanging" )
+. text ( ( d , i ) => `${ d } (${ chartData [ i ] . ratio . toFixed ( 1 ) }%)` ) ;
+
+function highlight ( e , d , restore ) {
+const i = legend . nodes ( ) . indexOf ( e . currentTarget ) ;
+cells . transition ( ) . duration ( 500 )
+. attr ( "fill" , d => d . index === i ? color ( d . index ) : "#ccc" ) ;
+}
+
+function restore ( ) {
+cells . transition ( ) . duration ( 500 ) . attr ( "fill" , d => color ( d . index ) )
+}
+}
+
+ toCurrency = num => d3 . format ( "$,.2f" ) ( num )
+
+ color = d3 . scaleOrdinal ( )
+. domain ( sequence ( chartData . length ) )
+. range ( [ "#CCE7D7" , "#27AE60" , "#3498DB" ] ) ;
+
+//.style('fill', '#DBE9F6')
+//.style('stroke', '#3498DB')
+//.style('fill', '#CCE7D7')
+//.style('stroke', '#27AE60')
+
+ scale = d3 . scaleBand ( )
+. domain ( sequence ( 10 ) )
+. range ( [ 0 , waffleSize ] )
+. padding ( 0.1 )
+
+ sequence = ( length ) => Array . apply ( null , { length : length } ) . map ( ( d , i ) => i ) ;
+
+ whole = options . style === "whole"
+
+ isRect = options . shape === "rect"
+
+ import { hover } with { tipcontent } from "@fil/hello-tippy"
+
+ tippy = require ( "tippy.js@6" )
+
+
+
+ chartData = [
+//Programming Languages
+{ territory : "20-30 years old" , ratio : 21 } ,
+{ territory : "30-40 years old" , ratio : 30 } ,
+{ territory : "40+ years old" , ratio : 49 }
+,
+] ;
+
+ waffles = {
+const array = [ ] ;
+if ( whole ) {
+const max = chartData . length ;
+let index = 0 , curr = 1 ,
+accu = Math . round ( chartData [ 0 ] . ratio ) , waffle = [ ] ;
+
+for ( let y = 9 ; y >= 0 ; y -- )
+for ( let x = 0 ; x < 10 ; x ++ ) {
+if ( curr > accu && index < max ) {
+let r = Math . round ( chartData [ ++ index ] . ratio ) ;
+while ( r === 0 && index < max ) r = Math . round ( chartData [ ++ index ] . ratio ) ;
+accu += r ;
+}
+waffle . push ( { x , y , index } ) ;
+curr ++ ;
+}
+array . push ( waffle ) ;
+}
+else {
+chartData . map ( ( d , i ) => {
+let curr = 0 , waffle = [ ] ;
+for ( let y = 9 ; y >= 0 ; y -- )
+for ( let x = 0 ; x < 10 ; x ++ ) {
+waffle . push ( ( { x , y , index : curr < Math . round ( d . ratio ) ? i : - 1 } ) ) ;
+curr ++ ;
+}
+array . push ( waffle ) ;
+} ) ;
+}
+return array ;
+}
+
+ width = 1024
+
+ height = 600
+
+ padding = ( { x : 10 , y : 40 } )
+
+ waffleSize = whole ? width < height ? width : height : 150 ;
+
+ import { form } from "@mbostock/form-input"
+
+ d3 = require ( "d3@6" )
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Here is a labeled version of your program:
+
+```javascript
+// Import data from CSV file
+file = FileAttachment("bw_bins.csv").csv();
+
+// Convert data to numbers and map to data array
+data = file.map((d) => Number(d.group));
+
+// Create a set of unique values from the data array
+uniques = new Set(data);
+
+// Create the chart with data
+chart(data);
+
+// Function to generate the chart
+function chart(data) {
+  const size = 700; // Define chart size
+
+  // Define margin values
+  const margin = {
+    top: size * 0.05,
+    right: size * 0.05,
+    bottom: size * 0.05,
+    left: size * 0.05,
+  };
+
+  // Create an SVG element
+  const svg = d3.create("svg")
+    .attr("width", size)
+    .attr("height", size);
+
+  // Define grid dimensions and cell size
+  const numPerRow = 10;
+  const squareSize = ((size - margin.top - margin.bottom) / numPerRow) - 10;
+
+  // Create a linear scale for the x-axis
+  const scale = d3.scaleLinear()
+    .domain([0, numPerRow])
+    .range([margin.left, squareSize * numPerRow]);
+
+  // Create a color scale using d3.schemeCategory10
+  const fillScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+  // Add rectangles (waffle cells) to the SVG element
+  svg.selectAll("rect")
+    .data(data)
+    .enter()
+    .append("rect")
+    .attr("x", (d, i) => {
+      const n = i % numPerRow;
+      return scale(n);
+    })
+    .attr("y", (d, i) => {
+      const n = Math.floor(i / numPerRow);
+      return scale(n) + 50;
+    })
+    .attr("width", squareSize)
+    .attr("height", squareSize)
+    .attr("stroke", "white")
+    .attr("stroke-width", 2)
+    .attr("fill", (d) => fillScale(d))
+    .append("title")
+    .text((d, i) => `${i + 1}%`);
+
+  // Legend squares for categories
+  svg.selectAll("legendSquares")
+    .data([1, 2, 3, 4, 5])
+    .enter()
+    .append("rect")
+    .attr("x", size - (size * 0.22))
+    .attr("y", (d, i) => margin.top + 52 + (i * 25))
+    .attr("width", 20)
+    .attr("height", 20)
+    .style("fill", (d) => fillScale(d));
+
+  // Add legend text labels
+  svg.selectAll("legendText")
+    .data([
+      "0 (33%)",
+      "0 - 1k (16%)",
+      "1k - 10k (28%)",
+      "10k - 100k (20%)",
+      "100k - 1m (3%)",
+    ])
+    .enter()
+    .append("text")
+    .attr("x", size - (size * 0.185))
+    .attr("y", (d, i) => margin.top + 50 + (i * 25) + 13)
+    .style("fill", (d, i) => fillScale(i + 1))
+    .text((d) => d)
+    .attr("text-anchor", "left")
+    .style("alignment-baseline", "middle")
+    .style("font-family", "Arial");
+
+  // Add chart title
+  svg.append("text")
+    .attr("x", size / 2.33)
+    .attr("y", 75)
+    .text("Distribution of BWs")
+    .style("fill", "#3d3d3d")
+    .attr("text-anchor", "middle")
+    .style("font-size", "24px")
+    .style("font-family", "Arial");
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// Add HTML links and styles for fonts
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+<style>
+body {
+  font-family: 'Noto Sans', serif;
+  font-size: 16px;
+}
+</style>
+```
+
+The above program labels explain what each part of the code does, such as importing data, creating the chart, defining the grid dimensions and cell sizes, creating the color scale, adding rectangles to the SVG element, adding legend squares and text labels, and returning the SVG element.
+
+Heer's note: seemed to have just outputted a previous waffle chart labeling
+////////////////////////////////////////////////////////////////////////////////////////////////
+Can you label this program for me without changing its ordering?:
+tooltip_2 = {
+chart ;
+const tooltip_2 = d4
+. select ( "body" )
+. append ( "div" )
+. attr ( "class" , "svg1-tooltip_2" )
+. style ( "position" , "absolute" )
+. style ( "visibility" , "hidden" ) ;
+
+// select all rect
+d4 . selectAll ( "rect" )
+. on ( "mouseover" , function ( d ) {
+// change the selection style: width and color of the stroke which allows up to control of the shape of the ends of lines
+d4 . select ( this )
+. attr ( 'stroke-width' , '2' )
+. attr ( "stroke" , "black" ) ;
+// make the tooltip visible and update its text
+tooltip_2
+. style ( "visibility" , "visible" )
+. style ( "font-size" , "12px" )
+. style ( "color" , "#777" )
+. text ( `Hover over the legend for filtering\n` ) ; // the formating of the output text
+} )
+. on ( "mousemove" , function ( ) {
+tooltip_2
+. style ( "top" , d4 . event . pageY - 90 + "px" )
+. style ( "left" , d4 . event . pageX - 70 + "px" ) ;
+} )
+. on ( "mouseout" , function ( ) {
+// change the selection style
+d4 . select ( this ) . attr ( 'stroke-width' , '0' ) ;
+
+tooltip_2 . style ( "visibility" , "hidden" ) ;
+} ) ;
+}
+
+viewof options = form(html`<form>
+  <span><label>Style: <select name="style">
+    <option value="whole">Whole</option>
+    <option value="portion">Portion</option>
+  </select></label></span>&nbsp;
+  <span><label>Shape: <select name="shape">
+    <option value="rect">Square</option>
+    <option value="circle">Circle</option>
+  </select></label></span>
+<form>`)
+
+ chart = {
+const svg = d3 . create ( "svg" )
+. style ( "cursor" , "default" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+const g = svg . selectAll ( ".waffle" )
+. data ( waffles )
+. join ( "g" )
+. attr ( "class" , "waffle" ) ;
+
+if ( ! whole ) {
+const numPerRow = Math . floor ( width / ( waffleSize + padding . x ) ) ;
+g . attr ( "transform" , ( d , i ) => {
+const r = Math . floor ( i / numPerRow ) ;
+const c = i - r * numPerRow ;
+return `translate(${ c * ( waffleSize + padding . x ) },${ r * ( waffleSize + padding . y ) })`
+} ) ;
+}
+
+const cellSize = scale . bandwidth ( ) ;
+const half = cellSize / 2 ;
+const cells = g . append ( "g" )
+. selectAll ( options . shape )
+. data ( d => d )
+. join ( options . shape )
+. attr ( "fill" , d => d . index === - 1 ? "#ddd" : color ( d . index ) ) ;
+
+if ( isRect ) {
+cells . attr ( "x" , d => scale ( d . x ) )
+. attr ( "y" , d => whole ? 0 : scale ( d . y ) )
+. attr ( "rx" , 3 ) . attr ( "ry" , 3 )
+. attr ( "width" , cellSize ) . attr ( "height" , cellSize )
+}
+else {
+cells . attr ( "cx" , d => scale ( d . x ) + half )
+. attr ( "cy" , d => whole ? 0 : scale ( d . y ) + half )
+. attr ( "r" , half ) ;
+}
+
+if ( whole ) {
+cells . append ( "title" ) . text ( d => {
+const cd = chartData [ d . index ] ;
+return `${ cd . territory }\n${ toCurrency ( cd . profit ) } (${ cd . ratio . toFixed ( 1 ) }%)` ;
+} ) ;
+
+cells . transition ( )
+. duration ( d => d . y * 100 )
+. ease ( d3 . easeBounce )
+. attr ( isRect ? "y" : "cy" , d => scale ( d . y ) + ( isRect ? 0 : half ) ) ;
+svg . transition ( ) . delay ( 550 )
+. on ( "end" , ( ) => drawLegend ( svg , cells ) ) ;
+}
+else {
+g . append ( "text" )
+. style ( "font-size" , 20 )
+. style ( "font-weight" , "bold" )
+. attr ( "dy" , "1.5em" )
+. attr ( "text-anchor" , "middle" )
+. attr ( "fill" , ( d , i ) => color ( i ) )
+. attr ( "transform" , `translate(${ waffleSize / 2 },0)` )
+. text ( ( d , i ) => `${ chartData [ i ] . ratio . toFixed ( 0 ) }%` ) ;
+
+g . append ( "g" )
+. attr ( "transform" , `translate(0,${ waffleSize + padding . y / 2.5 })` )
+. call ( g => g . append ( "text" ) . text ( ( d , i ) => chartData [ i ] . territory ) )
+. call ( g => g . append ( "text" ) . attr ( "dy" , "1em" ) . text ( ( d , i ) => toCurrency ( chartData [ i ] . profit ) ) ) ;
+}
+
+
+return svg . node ( ) ;
+}
+
+ d4 = {
+const d4 = require ( "d3-dsv@1" , "d3@5" , "d3-scale@3" , "d3-scale-chromatic@1" , "d3-shape@1" , "d3-array@2" )
+return d4
+}
+
+ drawLegend = ( svg , cells ) => {
+const legend = svg . selectAll ( ".legend" )
+. data ( chartData . map ( d => d . territory ) )
+. join ( "g" )
+. attr ( "opacity" , 1 )
+. attr ( "transform" , ( d , i ) => `translate(${ waffleSize + 20 },${ i * 30 })` )
+. on ( "mouseover" , highlight )
+. on ( "mouseout" , restore ) ;
+
+legend . append ( "rect" )
+. attr ( "rx" , 3 ) . attr ( "ry" , 3 )
+. attr ( "width" , 30 ) . attr ( "height" , 20 )
+. attr ( "fill" , ( d , i ) => color ( i ) ) ;
+
+legend . append ( "text" )
+. attr ( "dx" , 40 )
+. attr ( "alignment-baseline" , "hanging" )
+. text ( ( d , i ) => `${ d } (${ chartData [ i ] . ratio . toFixed ( 1 ) }%)` ) ;
+
+function highlight ( e , d , restore ) {
+const i = legend . nodes ( ) . indexOf ( e . currentTarget ) ;
+cells . transition ( ) . duration ( 500 )
+. attr ( "fill" , d => d . index === i ? color ( d . index ) : "#ccc" ) ;
+}
+
+function restore ( ) {
+cells . transition ( ) . duration ( 500 ) . attr ( "fill" , d => color ( d . index ) )
+}
+}
+
+ toCurrency = num => d3 . format ( "$,.2f" ) ( num )
+
+ color = d3 . scaleOrdinal ( )
+. domain ( sequence ( chartData . length ) )
+. range ( [ "#CCE7D7" , "#27AE60" , "#3498DB" ] ) ;
+
+//.style('fill', '#DBE9F6')
+//.style('stroke', '#3498DB')
+//.style('fill', '#CCE7D7')
+//.style('stroke', '#27AE60')
+
+ scale = d3 . scaleBand ( )
+. domain ( sequence ( 10 ) )
+. range ( [ 0 , waffleSize ] )
+. padding ( 0.1 )
+
+ sequence = ( length ) => Array . apply ( null , { length : length } ) . map ( ( d , i ) => i ) ;
+
+ whole = options . style === "whole"
+
+ isRect = options . shape === "rect"
+
+ import { hover } with { tipcontent } from "@fil/hello-tippy"
+
+ tippy = require ( "tippy.js@6" )
+
+
+
+ chartData = [
+//Programming Languages
+{ territory : "20-30 years old" , ratio : 21 } ,
+{ territory : "30-40 years old" , ratio : 30 } ,
+{ territory : "40+ years old" , ratio : 49 }
+,
+] ;
+
+ waffles = {
+const array = [ ] ;
+if ( whole ) {
+const max = chartData . length ;
+let index = 0 , curr = 1 ,
+accu = Math . round ( chartData [ 0 ] . ratio ) , waffle = [ ] ;
+
+for ( let y = 9 ; y >= 0 ; y -- )
+for ( let x = 0 ; x < 10 ; x ++ ) {
+if ( curr > accu && index < max ) {
+let r = Math . round ( chartData [ ++ index ] . ratio ) ;
+while ( r === 0 && index < max ) r = Math . round ( chartData [ ++ index ] . ratio ) ;
+accu += r ;
+}
+waffle . push ( { x , y , index } ) ;
+curr ++ ;
+}
+array . push ( waffle ) ;
+}
+else {
+chartData . map ( ( d , i ) => {
+let curr = 0 , waffle = [ ] ;
+for ( let y = 9 ; y >= 0 ; y -- )
+for ( let x = 0 ; x < 10 ; x ++ ) {
+waffle . push ( ( { x , y , index : curr < Math . round ( d . ratio ) ? i : - 1 } ) ) ;
+curr ++ ;
+}
+array . push ( waffle ) ;
+} ) ;
+}
+return array ;
+}
+
+ width = 1024
+
+ height = 600
+
+ padding = ( { x : 10 , y : 40 } )
+
+ waffleSize = whole ? width < height ? width : height : 150 ;
+
+ import { form } from "@mbostock/form-input"
+
+ d3 = require ( "d3@6" )
+///////////////////////////////////////////////////////////////////////////////////////////
+Here is the labeled version of the provided code without changing its ordering:
+
+```javascript
+tooltip_2 = {
+  // Declare tooltip_2 element for the chart
+  const tooltip_2 = d4
+    .select("body") // Select body element
+    .append("div") // Append a div element
+    .attr("class", "svg1-tooltip_2") // Add class for styling
+    .style("position", "absolute") // Set position to absolute
+    .style("visibility", "hidden"); // Initially hide the tooltip
+
+  // Select all rectangles and attach event listeners
+  d4.selectAll("rect")
+    .on("mouseover", function(d) {
+      // Change style on mouseover
+      d4.select(this)
+        .attr('stroke-width', '2') // Set stroke width to 2
+        .attr("stroke", "black"); // Set stroke color to black
+
+      // Make the tooltip visible and set its text
+      tooltip_2
+        .style("visibility", "visible") // Make tooltip visible
+        .style("font-size", "12px") // Set font size
+        .style("color", "#777") // Set text color
+        .text(`Hover over the legend for filtering\n`); // Set tooltip text
+    })
+    .on("mousemove", function() {
+      // Update tooltip position on mouse move
+      tooltip_2
+        .style("top", d4.event.pageY - 90 + "px") // Set tooltip top position
+        .style("left", d4.event.pageX - 70 + "px"); // Set tooltip left position
+    })
+    .on("mouseout", function() {
+      // Change style on mouseout
+      d4.select(this).attr('stroke-width', '0'); // Reset stroke width
+
+      // Hide the tooltip
+      tooltip_2.style("visibility", "hidden");
+    });
+}
+
+// View of options form
+viewof options = form(html`<form>
+  <span><label>Style: <select name="style">
+    <option value="whole">Whole</option>
+    <option value="portion">Portion</option>
+  </select></label></span>&nbsp;
+  <span><label>Shape: <select name="shape">
+    <option value="rect">Square</option>
+    <option value="circle">Circle</option>
+  </select></label></span>
+<form>`);
+
+// Chart function
+chart = {
+  // Create an SVG element
+  const svg = d3.create("svg")
+    .style("cursor", "default")
+    .attr("viewBox", [0, 0, width, height]);
+
+  // Select all waffles and join data
+  const g = svg.selectAll(".waffle")
+    .data(waffles)
+    .join("g")
+    .attr("class", "waffle");
+
+  // Conditional rendering based on whole option
+  if (!whole) {
+    const numPerRow = Math.floor(width / (waffleSize + padding.x));
+    g.attr("transform", (d, i) => {
+      const r = Math.floor(i / numPerRow);
+      const c = i - r * numPerRow;
+      return `translate(${c * (waffleSize + padding.x)},${r * (waffleSize + padding.y)})`;
+    });
+  }
+
+  // Calculate cell size and set cell style
+  const cellSize = scale.bandwidth();
+  const half = cellSize / 2;
+  const cells = g.append("g")
+    .selectAll(options.shape)
+    .data(d => d)
+    .join(options.shape)
+    .attr("fill", d => d.index === -1 ? "#ddd" : color(d.index));
+
+  // Apply styles based on shape options
+  if (isRect) {
+    cells.attr("x", d => scale(d.x))
+      .attr("y", d => whole ? 0 : scale(d.y))
+      .attr("rx", 3).attr("ry", 3)
+      .attr("width", cellSize).attr("height", cellSize);
+  } else {
+    cells.attr("cx", d => scale(d.x) + half)
+      .attr("cy", d => whole ? 0 : scale(d.y) + half)
+      .attr("r", half);
+  }
+
+  // Handle transitions and titles based on whole option
+  if (whole) {
+    cells.append("title").text(d => {
+      const cd = chartData[d.index];
+      return `${cd.territory}\n${toCurrency(cd.profit)} (${cd.ratio.toFixed(1)}%)`;
+    });
+
+    cells.transition()
+      .duration(d => d.y * 100)
+      .ease(d3.easeBounce)
+      .attr(isRect ? "y" : "cy", d => scale(d.y) + (isRect ? 0 : half));
+    svg.transition().delay(550)
+      .on("end", () => drawLegend(svg, cells));
+  } else {
+    g.append("text")
+      .style("font-size", 20)
+      .style("font-weight", "bold")
+      .attr("dy", "1.5em")
+      .attr("text-anchor", "middle")
+      .attr("fill", (d, i) => color(i))
+      .attr("transform", `translate(${waffleSize / 2},0)`)
+      .text((d, i) => `${chartData[i].ratio.toFixed(0)}%`);
+
+    g.append("g")
+      .attr("transform", `translate(0,${waffleSize + padding.y / 2.5})`)
+      .call(g => g.append("text").text((d, i) => chartData[i].territory))
+      .call(g => g.append("text").attr("dy", "1em").text((d, i) => toCurrency(chartData[i].profit)));
+  }
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Import required D3 packages
+d4 = {
+  const d4 = require("d3-dsv@1", "d3@5", "d3-scale@3", "d3-scale-chromatic@1", "d3-shape@1", "d3-array@2");
+  return d4;
+}
+
+// Draw legend for the chart
+drawLegend = function(svg, cells) {
+  const legend = svg.selectAll(".legend")
+    .data(chartData.map(d => d.territory))
+    .join("g")
+    .attr("opacity", 1)
+    .attr("transform", (d, i) => `translate(${waffleSize + 20},${i * 30})`)
+    .on("mouseover", highlight)
+    .on("mouseout", restore);
+
+  // Append rectangles to the legend
+  legend.append("rect")
+    .attr("rx", 3).attr("ry", 3)
+    .attr("width", 30).attr("height", 20)
+    .attr("fill", (d, i) => color(i));
+
+  // Append text to the legend
+  legend.append("text")
+    .attr("dx", 40)
+    .attr("alignment-baseline", "hanging")
+    .text((d, i) => `${d} (${chartData[i].ratio.toFixed(1)}%)`);
+
+  // Highlight function for legend mouseover
+  function highlight(e, d, restore) {
+    const i = legend.nodes().indexOf(e.currentTarget);
+    cells.transition().duration(500)
+      .attr("fill", d => d.index === i ? color(d.index) : "#ccc");
+  }
+
+  // Restore function for legend mouseout
+  function restore() {
+    cells.transition().duration(500).attr("fill", d => color(d.index));
+  }
+};
+
+// Function to convert numbers to currency format
+toCurrency = num => d3.format("$,.2f")(num);
+
+// Define color scale
+color = d3.scaleOrdinal()
+  .domain(sequence(chartData.length))
+  .range(["#CCE7D7", "#27AE60", "#3498DB"]);
+
+// Define band scale for the chart
+scale = d3.scaleBand()
+  .domain(sequence(10))
+  .range([0, waffleSize])
+  .padding(0.1);
+
+// Define sequence for the length
+sequence = length => Array.apply(null, { length: length }).map((d, i) => i);
+
+// Determine whether to use whole style or portion style
+whole = options.style === "whole";
+
+// Determine whether to use rectangle or circle shape
+isRect = options.shape === "rect";
+
+// Import hover function for tooltip
+import { hover } with { tipcontent } from "@fil/hello-tippy";
+
+// Import tippy for tooltips
+tippy = require("tippy.js@6");
+
+// Chart data
+chartData = [
+  // Programming Languages
+  { territory: "20-30 years old", ratio: 21 },
+  { territory: "30-40 years old", ratio: 30 },
+  { territory: "40+ years old", ratio: 49 },
+];
+
+// Generate the waffles data
+waffles = {
+  const array = [];
+  if (whole) {
+    const max = chartData.length;
+    let index = 0, curr = 1,
+    accu = Math.round(chartData[0].ratio), waffle = [];
+
+    for (let y = 9; y >= 0; y--) {
+      for (let x = 0; x < 10; x++) {
+        if (curr > accu && index < max) {
+          let r = Math.round(chartData[++index].ratio);
+          while (r === 0 && index < max) r = Math
+
+.round(chartData[++index].ratio);
+          accu += r;
+        }
+        waffle.push({ x, y, index });
+        curr++;
+      }
+    }
+    array.push(waffle);
+  } else {
+    chartData.map((d, i) => {
+      let curr = 0, waffle = [];
+      for (let y = 9; y >= 0; y--) {
+        for (let x = 0; x < 10; x++) {
+          waffle.push({ x, y, index: curr < Math.round(d.ratio) ? i : -1 });
+          curr++;
+        }
+      }
+      array.push(waffle);
+    });
+  }
+  return array;
+};
+
+// Define width and height of the chart
+width = 1024;
+height = 600;
+
+// Define padding values for the chart
+padding = { x: 10, y: 40 };
+
+// Determine the waffle size
+waffleSize = whole ? width < height ? width : height : 150;
+
+// Import form function from @mbostock/form-input
+import { form } from "@mbostock/form-input";
+
+// Import D3 library
+d3 = require("d3@6");
+```

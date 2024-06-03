@@ -1,0 +1,402 @@
+Can you label this program for me with its key components?:
+
+viewof n = slider({
+  min: 3,
+  max: 30,
+  step: 1,
+  value: 20,
+  title: "Points"
+})
+
+triangles = {
+
+    const points = randomPoints(n, 0, width, 0, height);
+    const polygons = voronoi.triangles(points);
+
+    polygons.forEach(parent => {
+
+      const box = raphael.pathBBox(parent ? "M" + parent.join("L") + "Z" : null)
+      const innerPoints = randomPoints(n, box.x, box.x + box.width, box.y, box.y + box.height);
+
+      parent.values = voronoi.triangles(innerPoints);
+
+    })
+
+  return polygons
+
+}
+
+triangleVoronoi = {
+
+    // create the standard chart
+    const svg = d3.select(createSVG(width + margin.left + margin.right, height+ margin.top + margin.bottom))
+
+    const g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  g.append("g")
+    .attr("class", "polygons")
+    .selectAll(".parent")
+    .data(triangles)
+  .enter().append("g")
+    .attr("class", "parent")
+    .each(function(parentD, parentI) {
+
+        const innerG = d3.select(this);
+
+        innerG.append("path")
+          .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+          .attr("stroke-width", 3)
+          .attr("stroke", "#000")
+          .attr("fill", (d,i) => color(parentI))
+          .attr("fill-opacity", 1)
+
+        const clip = DOM.uid("squareClip");
+
+        innerG.append("clipPath")
+          .attr("id",clip.id)
+          .append("path")
+          .attr("d", parentD ? "M" + parentD.join("L") + "Z" : null)
+
+        innerG.append("g")
+             .selectAll(".child")
+             .data(parentD.values)
+          .enter().append("path")
+              .attr("clip-path", clip)
+              .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+              .attr("stroke-width", 1)
+              .attr("stroke", "#000")
+              .attr("fill", (d,i) => color(i))
+              .attr("fill-opacity", .5);
+        })
+
+
+  return svg.node()
+
+}
+
+polyDel = {
+
+    const points = randomPoints(n, 0, width, 0, height);
+    const polygons = voronoi.polygons(points);
+
+    polygons.forEach(parent => {
+
+      const box = raphael.pathBBox(parent ? "M" + parent.join("L") + "Z" : null)
+      const innerPoints = randomPoints(n*2, box.x, box.x + box.width, box.y, box.y + box.height);
+
+      parent.values = voronoi.triangles(innerPoints);
+
+    })
+
+  return polygons
+
+}
+
+voronoiDelaunay = {
+
+    // create the standard chart
+    const svg = d3.select(createSVG(width + margin.left + margin.right, height+ margin.top + margin.bottom))
+
+    const g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  g.append("g")
+    .attr("class", "polygons")
+    .selectAll(".parent")
+    .data(polyDel)
+  .enter().append("g")
+    .attr("class", "parent")
+    .each(function(parentD, parentI) {
+
+        const innerG = d3.select(this);
+
+        innerG.append("path")
+          .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+          .attr("stroke-width", 2)
+          .attr("stroke", "#000")
+          .attr("fill", (d,i) => color(parentI))
+          .attr("fill-opacity", 1)
+
+        const clip = DOM.uid("squareClip");
+
+        innerG.append("clipPath")
+          .attr("id",clip.id)
+          .append("path")
+          .attr("d", parentD ? "M" + parentD.join("L") + "Z" : null)
+
+        innerG.append("g")
+             .selectAll(".child")
+             .data(parentD.values)
+          .enter().append("path")
+              .attr("clip-path", clip)
+              .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+              .attr("stroke-width", 1)
+              .attr("stroke", "#000")
+              .attr("fill", (d,i) => color(i))
+              .attr("fill-opacity", .5);
+        })
+
+
+  return svg.node()
+
+}
+
+delPoly = {
+
+    const points = randomPoints(n, 0, width, 0, height);
+    const polygons = voronoi.triangles(points);
+
+    polygons.forEach(parent => {
+
+      const box = raphael.pathBBox(parent ? "M" + parent.join("L") + "Z" : null)
+      const innerPoints = randomPoints(n*2, box.x, box.x + box.width, box.y, box.y + box.height);
+
+      parent.values = voronoi.polygons(innerPoints);
+
+    })
+
+  return polygons
+
+}
+
+delaunayVoronoi = {
+
+    // create the standard chart
+    const svg = d3.select(createSVG(width + margin.left + margin.right, height+ margin.top + margin.bottom))
+
+    const g = svg.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  g.append("g")
+    .attr("class", "polygons")
+    .selectAll(".parent")
+    .data(delPoly)
+  .enter().append("g")
+    .attr("class", "parent")
+    .each(function(parentD, parentI) {
+
+        const innerG = d3.select(this);
+
+        innerG.append("path")
+          .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+          .attr("stroke-width", 2)
+          .attr("stroke", "#000")
+          .attr("fill", (d,i) => color(parentI))
+          .attr("fill-opacity", 1)
+
+        const clip = DOM.uid("squareClip");
+
+        innerG.append("clipPath")
+          .attr("id",clip.id)
+          .append("path")
+          .attr("d", parentD ? "M" + parentD.join("L") + "Z" : null)
+
+        innerG.append("g")
+             .selectAll(".child")
+             .data(parentD.values)
+          .enter().append("path")
+              .attr("clip-path", clip)
+              .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+              .attr("stroke-width", 1)
+              .attr("stroke", "#000")
+              .attr("fill", (d,i) => color(i))
+              .attr("fill-opacity", .5);
+        })
+
+
+  return svg.node()
+
+}
+
+color = d3.scaleSequential(d3.interpolateRainbow)
+    .domain([0, n])
+
+randomPoints = (nPoints, minX, maxX, minY, maxY) => {
+  return d3.range(nPoints).map((i) =>
+     [Math.floor(Math.random() * (maxX-minX)) + minX, Math.floor(Math.random() * (maxY-minY)) + minY]
+   )
+ }
+
+width = window.innerWidth*.9
+
+height = 400
+
+margin = ({top: 50, bottom: 20, right: 20, left: 20})
+
+voronoi = d3.voronoi().extent([[-1, -1], [width + 1, height + 1]])
+
+raphael= require( "https://unpkg.com/raphael" )
+
+import {createSVG, d3, jitter} from '@pstuffa/helpers'
+
+import {slider, radio, select} from "@jashkenas/inputs"
+
+//////////////////////////////////////////////////////////////////////////////////
+Here's your program labeled with its key components:
+
+```javascript
+// Slider to control the number of points (n)
+viewof n = slider({
+  min: 3,
+  max: 30,
+  step: 1,
+  value: 20,
+  title: "Points"
+});
+
+// Function to create random points and compute triangles within them
+triangles = {
+  const points = randomPoints(n, 0, width, 0, height);
+  const polygons = voronoi.triangles(points);
+
+  polygons.forEach(parent => {
+    const box = raphael.pathBBox(parent ? "M" + parent.join("L") + "Z" : null);
+    const innerPoints = randomPoints(n, box.x, box.x + box.width, box.y, box.y + box.height);
+    parent.values = voronoi.triangles(innerPoints);
+  });
+
+  return polygons;
+}
+
+// Function to create a Voronoi diagram and draw the visualization
+triangleVoronoi = {
+  // Create the SVG container
+  const svg = d3.select(createSVG(width + margin.left + margin.right, height + margin.top + margin.bottom));
+
+  const g = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  // Append Voronoi polygons
+  g.append("g")
+    .attr("class", "polygons")
+    .selectAll(".parent")
+    .data(triangles)
+  .enter().append("g")
+    .attr("class", "parent")
+    .each(function(parentD, parentI) {
+      const innerG = d3.select(this);
+
+      // Draw parent polygons
+      innerG.append("path")
+        .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+        .attr("stroke-width", 3)
+        .attr("stroke", "#000")
+        .attr("fill", (d, i) => color(parentI))
+        .attr("fill-opacity", 1);
+
+      // Create a clip path for each parent polygon
+      const clip = DOM.uid("squareClip");
+
+      innerG.append("clipPath")
+        .attr("id", clip.id)
+        .append("path")
+        .attr("d", parentD ? "M" + parentD.join("L") + "Z" : null);
+
+      // Draw child triangles within the parent polygons
+      innerG.append("g")
+        .selectAll(".child")
+        .data(parentD.values)
+        .enter().append("path")
+          .attr("clip-path", clip)
+          .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+          .attr("stroke-width", 1)
+          .attr("stroke", "#000")
+          .attr("fill", (d, i) => color(i))
+          .attr("fill-opacity", .5);
+    });
+
+  return svg.node();
+}
+
+// Function to create random points for Voronoi polygons and compute triangles within them
+polyDel = {
+  const points = randomPoints(n, 0, width, 0, height);
+  const polygons = voronoi.polygons(points);
+
+  polygons.forEach(parent => {
+    const box = raphael.pathBBox(parent ? "M" + parent.join("L") + "Z" : null);
+    const innerPoints = randomPoints(n * 2, box.x, box.x + box.width, box.y, box.y + box.height);
+    parent.values = voronoi.triangles(innerPoints);
+  });
+
+  return polygons;
+}
+
+// Function to create the Voronoi diagram and visualize the Delaunay triangulation
+voronoiDelaunay = {
+  // Create the standard SVG container
+  const svg = d3.select(createSVG(width + margin.left + margin.right, height + margin.top + margin.bottom));
+
+  const g = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  // Append Voronoi polygons
+  g.append("g")
+    .attr("class", "polygons")
+    .selectAll(".parent")
+    .data(polyDel)
+  .enter().append("g")
+    .attr("class", "parent")
+    .each(function(parentD, parentI) {
+      const innerG = d3.select(this);
+
+      // Draw parent polygons
+      innerG.append("path")
+        .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+        .attr("stroke-width", 2)
+        .attr("stroke", "#000")
+        .attr("fill", (d, i) => color(parentI))
+        .attr("fill-opacity", 1);
+
+      // Create a clip path for each parent polygon
+      const clip = DOM.uid("squareClip");
+
+      innerG.append("clipPath")
+        .attr("id", clip.id)
+        .append("path")
+        .attr("d", parentD ? "M" + parentD.join("L") + "Z" : null);
+
+      // Draw child triangles within the parent polygons
+      innerG.append("g")
+        .selectAll(".child")
+        .data(parentD.values)
+        .enter().append("path")
+          .attr("clip-path", clip)
+          .attr("d", d => d ? "M" + d.join("L") + "Z" : null)
+          .attr("stroke-width", 1)
+          .attr("stroke", "#000")
+          .attr("fill", (d, i) => color(i))
+          .attr("fill-opacity", .5);
+    });
+
+  return svg.node();
+}
+
+// Define the color scale
+color = d3.scaleSequential(d3.interpolateRainbow).domain([0, n]);
+
+// Function to create random points within specified ranges
+randomPoints = (nPoints, minX, maxX, minY, maxY) => {
+  return d3.range(nPoints).map((i) =>
+    [Math.floor(Math.random() * (maxX - minX)) + minX, Math.floor(Math.random() * (maxY - minY)) + maxY]
+  );
+};
+
+// Define the width and height of the visualization
+width = window.innerWidth * 0.9;
+height = 400;
+
+// Define the margins for the visualization
+margin = ({ top: 50, bottom: 20, right: 20, left: 20 });
+
+// Initialize Voronoi diagram extent
+voronoi = d3.voronoi().extent([[-1, -1], [width + 1, height + 1]]);
+
+// Load Raphael.js library for path bounding box calculations
+raphael = require("https://unpkg.com/raphael");
+
+// Import necessary modules
+import { createSVG, d3, jitter } from '@pstuffa/helpers';
+import { slider, radio, select } from "@jashkenas/inputs";
+```

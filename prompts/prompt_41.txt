@@ -1,0 +1,421 @@
+Can you label this program for me?:
+
+viewof selection3 = {
+const files = new Map();
+  files.set( "Annual average of PM2.5", FileAttachment("PM_annualav@1.csv"));
+  files.set( "Number of person-days with ozone above recommendations", FileAttachment("ozone_pdays@1.csv"));
+  files.set( "Number of person-days with PM2.5 above recommendations", FileAttachment("PM_pdays@1.csv"));
+  files.set( "Percent of days with PM2.5 above recommendations", FileAttachment("PM_percent@1.csv"));
+  files.set('Percent of days with ozone above recommendations"', FileAttachment("ozone_percent@1.csv"));
+
+  const form = select({
+    description: "Select which indicator is needed",
+    options: Array.from(files.keys()),
+    value: 'test',
+
+  });
+
+  return Object.defineProperty(html`<div>${form}`, 'value',
+                               {get()
+                                { return files.get(form.value)}
+                               }
+                              );
+}
+
+viewof s = autoSelect({
+  options: usa.objects.states.geometries.map(d => d.properties.name),
+  placeholder: "Search for a US state . . ."
+})
+
+stateSelect = {if (s === "") return "Alabama"
+              else return s}
+
+chart3 = {
+  const svg = d3.select(DOM.svg(width, height * counties.length + margin.top + margin.bottom))
+      .style("font", "10px sans-serif");
+
+  const rectWidth = x(years[1] + 1) - x(years[0]) - 1;
+  svg.append("g")
+      .attr("transform", `translate(${rectWidth/4},${margin.top})`)
+      .call(d3.axisTop(x).tickValues(years).tickFormat(d3.format("")).tickSizeInner(0))
+      .call(g => g.select(".domain").remove())
+
+
+  svg.append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y).tickSize(0));
+
+  const row = svg.append("g")
+    .selectAll("g")
+    .data(values)
+    .enter().append("g")
+      .attr("transform", (d, i) => `translate(0,${y(counties[i])})`);
+
+  row.selectAll("rect")
+    .data(d => d)
+    .enter().append("rect")
+      .attr("x", (d, i) => x(years[i]) + 1)
+      .attr("width", (d, i) => x(years[i] + 1) - x(years[i]) - 1)
+      .attr("height", y.bandwidth() - 1)
+      .attr("fill", d => d == 0 ? "#eee" : color(d))
+     .append("title")
+        .text(d => d.toFixed(2) +" " + unit)
+
+  return svg.node();
+}
+
+legend3 = {
+  const width = 320;
+  const height = 45;
+
+  const svg = d3.select(DOM.svg(width, height))
+      .style("overflow", "visible");
+
+  const legend = svg.append("g")
+      .attr("transform", `translate(${margin.left},20)`)
+      .call(d3.axisBottom(color.copy().rangeRound([0, width])).tickSize(13).ticks(5))
+      .call(g => g.selectAll(".tick line").attr("stroke", "#fff"))
+      .call(g => g.select(".domain").remove());
+
+  legend.insert("image", "*")
+      .attr("width", width)
+      .attr("height", 13)
+      .attr("preserveAspectRatio", "none")
+      .attr("xlink:href", ramp(d3.scaleLinear().interpolate(color.interpolate()).domain([0, 1])).toDataURL());
+
+  legend.append("text")
+      .attr("class", "caption")
+      .attr("y", -6)
+      .attr("fill", "#000")
+      .attr("text-anchor", "start")
+      .attr("font-weight", "bold")
+      .text(`${selection3.name } in ${unit}`);
+
+  return svg.node();
+}
+
+unit = parsedData[0].unit
+
+values = {let a = nestedStates.get(stateSelect).size;
+          const valAr = [];
+          for (let i =0; i < a; i++) {
+            const temp = nestedStates.get(stateSelect).get(counties[i+1]);
+            let b = nestedStates.get(stateSelect).get(counties[i]).length
+            valAr.push([]);
+            for (let j=0; j<( b); j++) {
+              valAr[i].push(nestedStates.get(stateSelect).get(counties[i])[j].value);
+            }
+          }
+          return valAr;
+          }
+
+counties = { let a = nestedStates.get(stateSelect).size;
+           let temp = [];
+           const it = nestedStates.get(stateSelect).keys()
+         for (let i = 0; i < a; i++) {
+          temp.push(it.next().value);
+         }
+         return temp.sort();
+
+         }
+
+stateslist =  { let a = nestedStates.size;
+           let temp = [];
+           const it = nestedStates.keys()
+         for (let i = 0; i < a; i++) {
+          temp.push({state: it.next().value});
+         }
+         return temp.sort();
+
+         }
+
+nestedStates = d3.group(parsedData,d=>d.state, d=>d.county)
+
+years =  { let a = nestedYears.size;
+           let temp = [];
+           const it = nestedYears.keys()
+         for (let i = 0; i < a; i++) {
+          temp.push(it.next().value);
+         }
+         return temp.sort();
+
+         }
+
+nestedYears = d3.group(parsedData,d=>d.year)
+
+parsedData = d3.csvParse(await selection3.text(),
+                function(d){
+                     return {
+                       state: d.StateName,
+                       county: d.CountyName,
+                       year: +d.ReportYear,
+                       value: +d.Value,
+                       unit: d.Unit
+
+
+       };
+  }
+)
+
+margin = ({top: 20, right: 15, bottom: 1, left: 70})
+
+height = 16
+
+x = d3.scaleLinear()
+    .domain([d3.min(years), d3.max(years) + 1])
+    .rangeRound([margin.left, width - margin.right])
+
+y = d3.scaleBand()
+    .domain(counties)
+    .rangeRound([margin.top, margin.top + counties.length * height])
+
+maxi_3  = d3.max(parsedData, function(d) {
+  return d.value;
+});
+
+mini_3 = d3.min(parsedData, function(d) {
+  return d.value;
+});
+
+color = d3.scaleSqrt()
+    .interpolate(() => d3.interpolateViridis)
+    .domain([mini_3, maxi_3])
+
+d3 = require("d3@6")
+
+import {ramp} from '@mbostock/color-ramp'
+
+import {select, autoSelect, usa, states} from '@jashkenas/inputs'
+
+//////////////////////////////////////////////////////////////////////////////
+Sure, here's the labeled program:
+
+```javascript
+// Data Input
+viewof selection3 = {
+  // Map to store file attachments
+  const files = new Map();
+  files.set( "Annual average of PM2.5", FileAttachment("PM_annualav@1.csv"));
+  files.set( "Number of person-days with ozone above recommendations", FileAttachment("ozone_pdays@1.csv"));
+  files.set( "Number of person-days with PM2.5 above recommendations", FileAttachment("PM_pdays@1.csv"));
+  files.set( "Percent of days with PM2.5 above recommendations", FileAttachment("PM_percent@1.csv"));
+  files.set('Percent of days with ozone above recommendations"', FileAttachment("ozone_percent@1.csv"));
+
+  // Selection form
+  const form = select({
+    description: "Select which indicator is needed",
+    options: Array.from(files.keys()),
+    value: 'test',
+
+  });
+
+  // Return the selected file
+  return Object.defineProperty(html`<div>${form}`, 'value',
+                               {get()
+                                { return files.get(form.value)}
+                               }
+                              );
+}
+
+// Autoselect for US states
+viewof s = autoSelect({
+  options: usa.objects.states.geometries.map(d => d.properties.name),
+  placeholder: "Search for a US state . . ."
+})
+
+// State Selection
+stateSelect = {
+  if (s === "") return "Alabama"
+  else return s
+}
+
+// Chart
+chart3 = {
+  // SVG element
+  const svg = d3.select(DOM.svg(width, height * counties.length + margin.top + margin.bottom))
+      .style("font", "10px sans-serif");
+
+  // Width of each rectangle
+  const rectWidth = x(years[1] + 1) - x(years[0]) - 1;
+
+  // X-axis
+  svg.append("g")
+      .attr("transform", `translate(${rectWidth/4},${margin.top})`)
+      .call(d3.axisTop(x).tickValues(years).tickFormat(d3.format("")).tickSizeInner(0))
+      .call(g => g.select(".domain").remove())
+
+  // Y-axis
+  svg.append("g")
+      .attr("transform", `translate(${margin.left},0)`)
+      .call(d3.axisLeft(y).tickSize(0));
+
+  // Rows
+  const row = svg.append("g")
+    .selectAll("g")
+    .data(values)
+    .enter().append("g")
+      .attr("transform", (d, i) => `translate(0,${y(counties[i])})`);
+
+  // Rectangles
+  row.selectAll("rect")
+    .data(d => d)
+    .enter().append("rect")
+      .attr("x", (d, i) => x(years[i]) + 1)
+      .attr("width", (d, i) => x(years[i] + 1) - x(years[i]) - 1)
+      .attr("height", y.bandwidth() - 1)
+      .attr("fill", d => d == 0 ? "#eee" : color(d))
+     .append("title")
+        .text(d => d.toFixed(2) +" " + unit)
+
+  return svg.node();
+}
+
+// Legend
+legend3 = {
+  const width = 320;
+  const height = 45;
+
+  const svg = d3.select(DOM.svg(width, height))
+      .style("overflow", "visible");
+
+  // Legend
+  const legend = svg.append("g")
+      .attr("transform", `translate(${margin.left},20)`)
+      .call(d3.axisBottom(color.copy().rangeRound([0, width])).tickSize(13).ticks(5))
+      .call(g => g.selectAll(".tick line").attr("stroke", "#fff"))
+      .call(g => g.select(".domain").remove());
+
+  // Gradient image
+  legend.insert("image", "*")
+      .attr("width", width)
+      .attr("height", 13)
+      .attr("preserveAspectRatio", "none")
+      .attr("xlink:href", ramp(d3.scaleLinear().interpolate(color.interpolate()).domain([0, 1])).toDataURL());
+
+  // Caption
+  legend.append("text")
+      .attr("class", "caption")
+      .attr("y", -6)
+      .attr("fill", "#000")
+      .attr("text-anchor", "start")
+      .attr("font-weight", "bold")
+      .text(`${selection3.name } in ${unit}`);
+
+  return svg.node();
+}
+
+// Data Values
+values = {
+  let a = nestedStates.get(stateSelect).size;
+  const valAr = [];
+  for (let i =0; i < a; i++) {
+    const temp = nestedStates.get(stateSelect).get(counties[i+1]);
+    let b = nestedStates.get(stateSelect).get(counties[i]).length
+    valAr.push([]);
+    for (let j=0; j<( b); j++) {
+      valAr[i].push(nestedStates.get(stateSelect).get(counties[i])[j].value);
+    }
+  }
+  return valAr;
+}
+
+// Counties
+counties = {
+  let a = nestedStates.get(stateSelect).size;
+  let temp = [];
+  const it = nestedStates.get(stateSelect).keys()
+  for (let i = 0; i < a; i++) {
+    temp.push(it.next().value);
+  }
+  return temp.sort();
+}
+
+// States List
+stateslist = {
+  let a = nestedStates.size;
+  let temp = [];
+  const it = nestedStates.keys()
+  for (let i = 0; i < a; i++) {
+    temp.push({state: it.next().value});
+  }
+  return temp.sort();
+}
+
+// Nested States
+nestedStates = d3.group(parsedData,d=>d.state, d=>d.county)
+
+// Years
+years = {
+  let a = nestedYears.size;
+  let temp = [];
+  const it = nestedYears.keys()
+  for (let i = 0; i < a; i++) {
+    temp.push(it.next().value);
+  }
+  return temp.sort();
+}
+
+// Nested Years
+nestedYears = d3.group(parsedData,d=>d.year)
+
+// Parsed Data
+parsedData = d3.csvParse(await selection3.text(),
+                function(d){
+                     return {
+                       state: d.StateName,
+                       county: d.CountyName,
+                       year: +d.ReportYear,
+                       value: +d.Value,
+                       unit: d.Unit
+       };
+  }
+)
+
+// Margin
+margin = ({top: 20, right: 15, bottom: 1, left: 70})
+
+// Height of each rectangle
+height = 16
+
+// X-scale
+x = d3.scaleLinear()
+    .domain([d3.min(years), d3.max(years) + 1])
+    .rangeRound([margin.left, width - margin.right])
+
+// Y-scale
+y = d3.scaleBand()
+    .domain(counties)
+    .rangeRound([margin.top, margin.top + counties.length * height])
+
+// Maximum value
+maxi_3  = d3.max(parsedData, function(d) {
+  return d.value;
+});
+
+// Minimum value
+mini_3 = d3.min(parsedData,
+
+////////////////////////////////////////////////////////////////
+Can you finish generating the entire program?
+
+Certainly! Here's the rest of the labeled program:
+
+```javascript
+function(d) {
+  return d.value;
+});
+
+// Color scale
+color = d3.scaleSqrt()
+    .interpolate(() => d3.interpolateViridis)
+    .domain([mini_3, maxi_3])
+
+// D3 library import
+d3 = require("d3@6")
+
+// Additional library imports
+import {ramp} from '@mbostock/color-ramp'
+import {select, autoSelect, usa, states} from '@jashkenas/inputs'
+```
+
+This program seems to be a comprehensive data visualization script using D3.js. It involves file selection, state selection, chart rendering, legend creation, and data processing.

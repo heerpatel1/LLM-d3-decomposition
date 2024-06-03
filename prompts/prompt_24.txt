@@ -1,0 +1,135 @@
+Can you label this program for me?:
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) ) ;
+
+svg
+. attr ( "width" , width + margin + margin )
+. attr ( "height" , height + margin + margin ) ;
+
+const g = svg
+. append ( "g" )
+. attr ( "transform" , "translate(" + width / 2 + "," + height / 2 + ")" ) ;
+
+const color = d3 . scaleOrdinal ( )
+. domain ( dataset )
+. range ( colors )
+
+const pie = d3 . pie ( ) . value ( ( d ) => d . value ) ;
+
+const arc = d3 . arc ( ) . innerRadius ( 50 ) . outerRadius ( 200 ) ;
+
+const part = g
+. selectAll ( ".part" )
+. data ( pie ( d3 . entries ( dataset ) ) )
+. enter ( )
+. append ( "path" )
+. attr ( "d" , arc )
+. attr ( 'fill' , ( d , i ) => color ( i ) )
+
+g . selectAll ( ".part" )
+. data ( pie ( d3 . entries ( dataset ) ) )
+. enter ( )
+. append ( "text" )
+. attr ( "transform" , ( d ) => "translate(" + arc . centroid ( d ) + ")" )
+. text ( ( d ) => d . data . key )
+. attr ( "fill" , "white" )
+. attr ( "font-family" , "sans-serif" )
+. attr ( "font-weight" , "bold" )
+return svg . node ( ) ;
+}
+
+ d3 = require ( "d3@5" )
+
+ dataset = ( { samsung : 18.8 , apple : 14.8 , huawei : 13.5 , xiaomi : 10.8 , oppo : 8.3 , others : 33.7 } )
+
+ colors = [ '#003f5c' , '#444e86' , '#955196' , '#dd5182' , '#ff6e54' , '#ffa600' ]
+
+ margin = 50
+
+ height = 500
+///////////////////////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program according to your request:
+
+```javascript
+// Label: createChart
+chart = {
+    // Create an SVG element with the specified width and height
+    // Label: createSvgComponent
+    const svg = d3.select(DOM.svg(width, height));
+
+    // Set the width and height attributes of the SVG element
+    // Label: setDimensions
+    svg
+        .attr("width", width + margin + margin)
+        .attr("height", height + margin + margin);
+
+    // Create a group element within the SVG and apply a transformation to center it
+    // Label: svgAppend
+    const g = svg
+        .append("g")
+        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+    // Create a color scale for the dataset using the provided color scheme
+    // Label: colorComponent
+    const color = d3.scaleOrdinal()
+        .domain(dataset)
+        .range(colors);
+
+    // Create a pie generator with a value accessor function
+    // Label: createPie
+    const pie = d3.pie().value((d) => d.value);
+
+    // Create an arc generator with specified inner and outer radii
+    // Label: createArc
+    const arc = d3.arc()
+        .innerRadius(50)
+        .outerRadius(200);
+
+    // Append paths to the group element using the pie generator and arc generator
+    // Label: svgAppend
+    const part = g
+        .selectAll(".part")
+        .data(pie(d3.entries(dataset)))
+        .enter()
+        .append("path")
+        .attr("d", arc)
+        .attr('fill', (d, i) => color(i));
+
+    // Append text labels to the group element using the pie generator and arc generator
+    // Label: svgAppend
+    g.selectAll(".part")
+        .data(pie(d3.entries(dataset)))
+        .enter()
+        .append("text")
+        .attr("transform", (d) => "translate(" + arc.centroid(d) + ")")
+        .text((d) => d.data.key)
+        .attr("fill", "white")
+        .attr("font-family", "sans-serif")
+        .attr("font-weight", "bold");
+
+    // Return the completed SVG node
+    return svg.node();
+}
+
+// Label: setD3Version
+d3 = require("d3@5");
+
+// Label: data()
+dataset = {
+    samsung: 18.8,
+    apple: 14.8,
+    huawei: 13.5,
+    xiaomi: 10.8,
+    oppo: 8.3,
+    others: 33.7
+};
+
+// Label: colorScheme
+colors = ['#003f5c', '#444e86', '#955196', '#dd5182', '#ff6e54', '#ffa600'];
+
+// Label: setMargin
+margin = 50;
+
+// Label: setHeight
+height = 500;
+```

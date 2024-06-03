@@ -1,0 +1,74 @@
+Can you label this program for me?:
+
+chart = {
+  const arcs = pie(data);
+
+  const svg = d3.create("svg")
+      .attr("viewBox", [-width / 2, -height / 2, width, height]);
+
+  svg.append("g")
+      .attr("stroke", "white")
+    .selectAll("path")
+    .data(arcs)
+    .join("path")
+      .attr("fill", d => color(d.data.name))
+      .attr("d", arc)
+
+    .append("title")
+      .text(d => `${d.data.name}: ${d.data.value}`);//模板字符串，下面有替换的形式
+
+  svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 12)
+      .attr("text-anchor", "middle")
+    .selectAll("text")
+    .data(arcs)
+    .join("text")
+    .attr("transform", d => `translate(${arcLabel.centroid(d)})`)//等价于'translate('+arcLabel.centroid(d)+')')
+    .attr("y", "-0.4em")
+    .attr("font-weight", "bold")
+    .text(d => d.data.name)//使用call函数为每个text添加子元素tspan并设定字体属性。
+
+     svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 12)
+      .attr("text-anchor", "middle")
+    .selectAll("text")
+    .data(arcs)
+    .join("text")
+    .attr("transform", d => 'translate('+arcLabel.centroid(d)+')')//标签位置，参数可以任意只要里面包含了startAngle和endAngle就可
+    .attr("x", 0)
+    .attr("y", "0.7em")
+    .attr("fill-opacity", 0.7)
+    .text(d => {
+       if(d.endAngle-d.startAngle>0.25)
+       return d.data.value.toLocaleString()
+     });
+
+  return svg.node();
+}
+
+pie(data)
+
+data = d3.csvParse(await FileAttachment("population-by-age.csv").text(), d3.autoType)
+
+color = d3.scaleOrdinal() //离散到离散比例尺
+    .domain(data.map(d => d.name))
+    .range(d3.quantize(d3.interpolateSpectral, data.length)) //把光谱替换为普通的自定义插值试试d3.interpolate("red","yellow")
+
+height = Math.min(width, 500)
+
+arc = d3.arc()
+    .innerRadius(0)
+    .outerRadius(Math.min(width, height) / 2 - 1)//直径撑满屏幕
+
+arcLabel = {
+  const radius = Math.min(width, height) / 2 * 0.8;//标签距离圆心的位置
+  return d3.arc().innerRadius(radius).outerRadius(radius);
+}
+
+pie = d3.pie()
+.sort(null)
+.value(d => d.value)
+
+d3 = require("d3@5")

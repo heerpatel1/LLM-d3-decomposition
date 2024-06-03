@@ -1,0 +1,272 @@
+Can you label this program for me without changing its ordering?:
+
+chart = {
+  const svg = d3.select(DOM.svg(width, height))
+      .style("background", "#fff")
+      .style("width", "100%")
+      .style("height", "auto");
+
+  const {nodes, links} = sankey({
+    nodes: data.nodes.map(d => Object.assign({}, d)),
+    links: data.links.map(d => Object.assign({}, d))
+  });
+
+  svg.append("g")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+      .attr("x", d => d.x0 + 1)
+      .attr("y", d => d.y0)
+      .attr("height", d => d.y1 - d.y0)
+      .attr("width", d => d.x1 - d.x0 - 2)
+      .attr("fill", d => {
+        let c;
+        for (const link of d.sourceLinks) {
+          if (c === undefined) c = link.color;
+          else if (c !== link.color) c = null;
+        }
+        if (c === undefined) for (const link of d.targetLinks) {
+          if (c === undefined) c = link.color;
+          else if (c !== link.color) c = null;
+        }
+        return (d3.color(c) || d3.color(color)).darker(0.5);
+      })
+    .append("title")
+      .text(d => `${d.name}\n${d.value.toLocaleString()}`);
+
+  const link = svg.append("g")
+      .attr("fill", "none")
+    .selectAll("g")
+    .data(links)
+    .join("g")
+      .attr("stroke", d => d3.color(d.color) || color)
+      .style("mix-blend-mode", "multiply");
+
+  link.append("path")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke-width", d => Math.max(1, d.width));
+
+  link.append("title")
+      .text(d => `${d.source.name} → ${d.target.name}\n${d.value.toLocaleString()}`);
+
+  svg.append("g")
+      .style("font", "10px sans-serif")
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+      .attr("y", d => (d.y1 + d.y0) / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+      .text(d => d.name)
+    .append("tspan")
+      .attr("fill-opacity", 0.7)
+      .text(d => ` ${d.value.toLocaleString()}`);
+
+  return svg.node();
+}
+
+html`
+${DOM.download(await rasterize(chart), "flow-o-matic", "Download as PNG")}
+${DOM.download(await serialize(chart), "flow-o-matic", "Download as SVG")}
+`
+
+data = {
+  const links = d3.csvParseRows(source, ([source, target, value, linkColor = color]) => (source && target ? {source, target, value: !value || isNaN(value = +value) ? 1 : value, color: linkColor} : null));
+  const nodeByName = new Map;
+  for (const link of links) {
+    if (!nodeByName.has(link.source)) nodeByName.set(link.source, {name: link.source});
+    if (!nodeByName.has(link.target)) nodeByName.set(link.target, {name: link.target});
+  }
+  return {nodes: Array.from(nodeByName.values()), links};
+}
+
+sankey = d3.sankey()
+    .nodeId(d => d.name)
+    .nodeAlign(d3[`sankey${align[0].toUpperCase()}${align.slice(1)}`])
+    .nodeWidth(15)
+    .nodePadding(padding)
+    .extent([[0, 5], [width, height - 5]])
+
+width = 954
+
+viewof height = {
+  const form = html`<form class="observablehq--inspect">height = <input name=i type=number min=0 value=720 step=1  style="padding:2px;margin:-2px 0;width:120px;"></form>`;
+  (form.oninput = () => form.value = form.i.valueAsNumber)();
+  return form;
+}
+
+viewof padding = {
+  const form = html`<form class="observablehq--inspect">padding = <input name=i type=number min=0 value=10 step=1  style="padding:2px;margin:-2px 0;width:120px;"></form>`;
+  (form.oninput = () => form.value = form.i.valueAsNumber)();
+  return form;
+}
+
+viewof color = {
+  const form = html`<form class="observablehq--inspect">color = <input name=i type=color value="#dddddd" style="padding:2px;margin:-2px 0;"></form>`;
+  (form.oninput = () => form.value = form.i.value)();
+  return form;
+}
+
+import {rasterize, serialize} from "@mbostock/saving-svg"
+
+d3 = require("d3@6", "d3-sankey@0.12")
+
+viewof align = Object.assign(html`<select>
+  <option value=left>Left-aligned
+  <option value=right>Right-aligned
+  <option value=center>Centered
+  <option value=justify selected>Justified
+</select>`, {
+  value: new URLSearchParams(html`<a href>`.search).get("align") || "justify"
+})
+///////////////////////////////////////////////////////////////////////////////////////////
+Here's the program labeled without changing its ordering:
+
+```javascript
+// Main function that creates the chart
+chart = {
+  // Create an SVG element with a specified viewBox size, set background color, and auto size
+  const svg = d3.select(DOM.svg(width, height))
+    .style("background", "#fff")
+    .style("width", "100%")
+    .style("height", "auto");
+
+  // Compute sankey diagram layout with nodes and links
+  const { nodes, links } = sankey({
+    nodes: data.nodes.map(d => Object.assign({}, d)),
+    links: data.links.map(d => Object.assign({}, d))
+  });
+
+  // Create rectangles for nodes
+  svg.append("g")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+    .attr("x", d => d.x0 + 1)
+    .attr("y", d => d.y0)
+    .attr("height", d => d.y1 - d.y0)
+    .attr("width", d => d.x1 - d.x0 - 2)
+    .attr("fill", d => {
+      let c;
+      // Determine the color for each node
+      for (const link of d.sourceLinks) {
+        if (c === undefined) c = link.color;
+        else if (c !== link.color) c = null;
+      }
+      if (c === undefined) {
+        for (const link of d.targetLinks) {
+          if (c === undefined) c = link.color;
+          else if (c !== link.color) c = null;
+        }
+      }
+      // Darken the determined color
+      return (d3.color(c) || d3.color(color)).darker(0.5);
+    })
+    .append("title")
+    .text(d => `${d.name}\n${d.value.toLocaleString()}`);
+
+  // Create paths for links
+  const link = svg.append("g")
+    .attr("fill", "none")
+    .selectAll("g")
+    .data(links)
+    .join("g")
+    .attr("stroke", d => d3.color(d.color) || color)
+    .style("mix-blend-mode", "multiply");
+
+  // Define link paths and widths
+  link.append("path")
+    .attr("d", d3.sankeyLinkHorizontal())
+    .attr("stroke-width", d => Math.max(1, d.width));
+
+  // Add titles to the links
+  link.append("title")
+    .text(d => `${d.source.name} → ${d.target.name}\n${d.value.toLocaleString()}`);
+
+  // Add text labels for nodes
+  svg.append("g")
+    .style("font", "10px sans-serif")
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+    .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+    .attr("y", d => (d.y1 + d.y0) / 2)
+    .attr("dy", "0.35em")
+    .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+    .text(d => d.name)
+    .append("tspan")
+    .attr("fill-opacity", 0.7)
+    .text(d => ` ${d.value.toLocaleString()}`);
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Importing necessary modules and functions
+html`
+${DOM.download(await rasterize(chart), "flow-o-matic", "Download as PNG")}
+${DOM.download(await serialize(chart), "flow-o-matic", "Download as SVG")}
+`
+
+// Parsing the data
+data = {
+  const links = d3.csvParseRows(source, ([source, target, value, linkColor = color]) => (
+    source && target ? {source, target, value: !value || isNaN(value = +value) ? 1 : value, color: linkColor} : null
+  ));
+  const nodeByName = new Map;
+  for (const link of links) {
+    if (!nodeByName.has(link.source)) nodeByName.set(link.source, {name: link.source});
+    if (!nodeByName.has(link.target)) nodeByName.set(link.target, {name: link.target});
+  }
+  return {nodes: Array.from(nodeByName.values()), links};
+}
+
+// Configure sankey layout properties
+sankey = d3.sankey()
+  .nodeId(d => d.name)
+  .nodeAlign(d3[`sankey${align[0].toUpperCase()}${align.slice(1)}`])
+  .nodeWidth(15)
+  .nodePadding(padding)
+  .extent([[0, 5], [width, height - 5]]);
+
+// Define width and height view
+width = 954
+
+// View for user input to set height
+viewof height = {
+  const form = html`<form class="observablehq--inspect">height = <input name=i type=number min=0 value=720 step=1  style="padding:2px;margin:-2px 0;width:120px;"></form>`;
+  (form.oninput = () => form.value = form.i.valueAsNumber)();
+  return form;
+}
+
+// View for user input to set padding
+viewof padding = {
+  const form = html`<form class="observablehq--inspect">padding = <input name=i type=number min=0 value=10 step=1  style="padding:2px;margin:-2px 0;width:120px;"></form>`;
+  (form.oninput = () => form.value = form.i.valueAsNumber)();
+  return form;
+}
+
+// View for user input to set color
+viewof color = {
+  const form = html`<form class="observablehq--inspect">color = <input name=i type=color value="#dddddd" style="padding:2px;margin:-2px 0;"></form>`;
+  (form.oninput = () => form.value = form.i.value)();
+  return form;
+}
+
+// Import necessary functions for saving the chart
+import { rasterize, serialize } from "@mbostock/saving-svg";
+
+// Import necessary modules for d3 and sankey layout
+d3 = require("d3@6", "d3-sankey@0.12");
+
+// View for user input to set alignment
+viewof align = Object.assign(html`<select>
+  <option value=left>Left-aligned
+  <option value=right>Right-aligned
+  <option value=center>Centered
+  <option value=justify selected>Justified
+</select>`, {
+  value: new URLSearchParams(html`<a href>`.search).get("align") || "justify"
+})
+```

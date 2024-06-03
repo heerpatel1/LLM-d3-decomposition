@@ -1,0 +1,426 @@
+Can you label this program for me without changing its ordering?:
+
+chart = {
+  const id = DOM.uid("chart").id;
+  const svg = d3
+    .create("svg")
+    .attr("class", id)
+    .attr("viewBox", [0, 0, width, height])
+    .call(svg => svg.append("defs").html(fonts(`.${id}`)));
+
+  let { nodes, links } = sankey({
+    nodes: graph.nodes.map(d => Object.assign({}, d)),
+    links: graph.links.map(d => Object.assign({}, d))
+  });
+
+  // const lastName = "OTHER EXPORTERS"
+  // nodes = [...nodes.filter(d => d.name !== lastName),
+  //          ...nodes.filter(d => d.name === lastName)]
+  // console.log(nodes)
+
+  svg
+    .append("g")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+    .attr("x", d => d.x0)
+    .attr("y", d => d.y0)
+    .attr("height", d => d.y1 - d.y0)
+    .attr("width", d => d.x1 - d.x0)
+    .attr("fill", traseColours.get("youngmoss"))
+    .append("title")
+    .text(d => `${d.name}\n${format(d.value)}`);
+
+  svg
+    .append("g")
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+    .attr("x", d => (d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6))
+    .attr("y", d => (d.y1 + d.y0) / 2)
+    .attr("dy", "0.35em")
+    .attr("text-anchor", d => (d.x0 < width / 2 ? "start" : "end"))
+    .attr("fill", traseColours.get("moss"))
+    .style("font", "bold " + fontSizeNodeNames + "px var(--trase-sans-serif)")
+    .style("letter-spacing", "0.03em")
+    .text(d => crop(d.name))
+    .append("tspan")
+    .style("font", fontSizeValues + "px var(--trase-mono)")
+    .attr("fill", "#31464e")
+    .text(d => ` ${format(d.value)}`);
+
+  svg
+    .append("g")
+    .attr("fill", "none")
+    .selectAll("g")
+    .data(links)
+    .join("path")
+    .attr("d", d3.sankeyLinkHorizontal())
+    .attr("stroke", colour)
+    .attr("stroke-width", d => d.width)
+    .attr("stroke-opacity", 0.7)
+    .style("mix-blend-mode", "multiply")
+    .call(hover, svg);
+
+  svg.append("g").call(annotate);
+
+  return svg.node();
+}
+
+import { titleCard , html } from "@trase/title-card"
+
+ import { loadFonts , traseCategory5 } from "4be0b7b0578fccff@1102"
+
+ nodeLabelLength = 20
+
+ crop = ( text , charLength = nodeLabelLength ) => {
+const textLength = text . length ;
+return charLength >= textLength
+? text
+: text . substr ( 0 , charLength ) . trim ( ) + "..." ;
+}
+
+ height = width * 0.6
+
+ margin = ( { top : 5 , right : 0 , bottom : 5 , left : 0 } )
+
+ data = FileAttachment ( "civ_seipcs_simple@3.csv" ) . csv ( { typed : true } )
+
+ keys = Object . keys ( data [ 0 ] ) . filter ( d => d != "value" )
+
+ format = d3 . format ( ".02s" )
+
+ colourColumn = 0
+
+ colour = link => {
+const scale = d3 . scaleOrdinal ( [ ... new Set ( graph . links . map ( d => d . names [ colourColumn ] ) ) ] , [ traseCategory1 [ 1 ] , traseCategory1 [ 0 ] , ... traseCategory1 . slice ( 2 , traseCategory1 . length ) ] ) ;
+return scale ( link . names [ colourColumn ] )
+}
+
+ fontSizeNodeNames = 13
+
+ fontSizeValues = 12
+
+ segregated = false
+
+ graph = {
+let index = - 1 ;
+const nodes = [ ] ;
+const nodeByKey = new Map ;
+const indexByKey = new Map ;
+const links = [ ] ;
+
+for ( const k of keys ) {
+for ( const d of data ) {
+const key = JSON . stringify ( [ k , d [ k ] ] ) ;
+if ( nodeByKey . has ( key ) ) continue ;
+const node = { name : d [ k ] } ;
+nodes . push ( node ) ;
+nodeByKey . set ( key , node ) ;
+indexByKey . set ( key , ++ index ) ;
+}
+}
+
+for ( let i = 1 ; i < keys . length ; ++ i ) {
+const a = keys [ i - 1 ] ;
+const b = keys [ i ] ;
+const linkByKey = new Map ;
+const prefix = segregated ? keys : keys . slice ( 0 , i + 1 ) ;
+for ( const d of data ) {
+const names = prefix . map ( k => d [ k ] ) ;
+const key = JSON . stringify ( names ) ;
+const value = d . value || 1 ;
+let link = linkByKey . get ( key ) ;
+if ( link ) { link . value += value ; continue ; }
+link = {
+source : indexByKey . get ( JSON . stringify ( [ a , d [ a ] ] ) ) ,
+target : indexByKey . get ( JSON . stringify ( [ b , d [ b ] ] ) ) ,
+names ,
+value
+} ;
+links . push ( link ) ;
+linkByKey . set ( key , link ) ;
+}
+}
+
+return { nodes , links } ;
+}
+
+ sankey = d3 . sankey ( )
+. nodeSort ( sortNodes )
+. linkSort ( sortLinks )
+. nodeWidth ( 3 )
+. nodePadding ( 20 )
+. extent ( [ [ margin . left , margin . top ] , [ width - margin . right , height - margin . bottom ] ] )
+
+ sortNodes = ( a , b ) => {
+if ( [ "DIRECT SOURCING" , "INDIRECT SOURCING" , "UNKNOWN SOURCING" ] . includes ( a . name ) ) {
+return a . name . localeCompare ( b . name )
+}
+
+// if ((a.depth === 1 && a.layer === 1) || (b.depth === 1 && b.layer === 1)) {
+//   if (a.name === "OTHER EXPORTERS" || b.name === "OTHER EXPORTERS") { return 1 }
+//   return -1
+// }
+
+return b . value - a . value
+}
+
+ sortLinks = ( a , b ) => {
+if ( a . name === "UNKNOWN" ) return 1 ;
+if ( b . name === "UNKNOWN" ) return 0 ;
+}
+
+ annotate = g => { }
+
+ function hover ( g , svg ) {
+const tooltip = new Tooltip ( ) ;
+g
+. style ( "cursor" , "pointer" )
+. on ( "touchstart" , event => event . preventDefault ( ) )
+. on ( "pointerenter" , ( event , d ) => {
+tooltip . position ( ... tooltipOffset ( tooltip , d3 . pointer ( event ) , width , height ) ) ;
+const path = d . names . join ( " → " ) ;
+tooltip . show ( `${ path }` , tooltipKeyValue ( tooltipKey , formatTooltipValue ( d . value ) , d ) ) ;
+} )
+. on ( "pointermove" , function ( event , d ) {
+// add content
+const path = d . names . join ( " → " ) ;
+tooltip . show ( `${ path }` , tooltipKeyValue ( tooltipKey , formatTooltipValue ( d . value ) , d ) ) ;
+// position tooltip
+let [ x , y ] = tooltipOffset ( tooltip , d3 . pointer ( event ) , width , height ) ;
+tooltip . position ( x , y ) ;
+this . releasePointerCapture ( event . pointerId ) ;
+// highlight flow
+g . filter ( d => d . names . join ( " → " ) === path )
+. attr ( "stroke-opacity" , 1 ) ;
+} )
+. on ( "pointerout" , ( ) => {
+tooltip . hide ( ) ;
+g . attr ( "stroke-opacity" , 0.7 ) ;
+} ) ;
+svg . append ( ( ) => tooltip . node ) ;
+}
+
+ tooltipKey = "VALUE"
+
+ formatTooltipValue = d3 . format ( ".02s" )
+
+ import { getLabelLength } from "@trase/legends@376"
+
+ import { traseColours , traseCategory1 , fonts , traseGreens , traseReds , trasePurples , traseOranges , traseOrPu } from "@trase/visual-id@1366"
+
+
+ import { Tooltip , tooltipKeyValue , tooltipOffset } from "@trase/tooltip@440"
+
+ d3 = require ( "d3@6" , "d3-sankey@0.12" )
+//////////////////////////////////////////////////////////////////////////////////////////////
+Here is the program labeled with comments explaining each section:
+
+```javascript
+// Main function that creates the chart
+chart = {
+  // Create SVG element with a specific viewBox size and default cursor style
+  const id = DOM.uid("chart").id;
+  const svg = d3
+    .create("svg")
+    .attr("class", id)
+    .attr("viewBox", [0, 0, width, height])
+    .call(svg => svg.append("defs").html(fonts(`.${id}`)));
+
+  // Use sankey layout to compute nodes and links
+  let { nodes, links } = sankey({
+    nodes: graph.nodes.map(d => Object.assign({}, d)),
+    links: graph.links.map(d => Object.assign({}, d))
+  });
+
+  // Append rectangles to represent the nodes
+  svg
+    .append("g")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+    .attr("x", d => d.x0)
+    .attr("y", d => d.y0)
+    .attr("height", d => d.y1 - d.y0)
+    .attr("width", d => d.x1 - d.x0)
+    .attr("fill", traseColours.get("youngmoss"))
+    .append("title")
+    .text(d => `${d.name}\n${format(d.value)}`);
+
+  // Append text labels for the nodes
+  svg
+    .append("g")
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+    .attr("x", d => (d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6))
+    .attr("y", d => (d.y1 + d.y0) / 2)
+    .attr("dy", "0.35em")
+    .attr("text-anchor", d => (d.x0 < width / 2 ? "start" : "end"))
+    .attr("fill", traseColours.get("moss"))
+    .style("font", "bold " + fontSizeNodeNames + "px var(--trase-sans-serif)")
+    .style("letter-spacing", "0.03em")
+    .text(d => crop(d.name))
+    .append("tspan")
+    .style("font", fontSizeValues + "px var(--trase-mono)")
+    .attr("fill", "#31464e")
+    .text(d => ` ${format(d.value)}`);
+
+  // Append paths to represent the links
+  svg
+    .append("g")
+    .attr("fill", "none")
+    .selectAll("g")
+    .data(links)
+    .join("path")
+    .attr("d", d3.sankeyLinkHorizontal())
+    .attr("stroke", colour)
+    .attr("stroke-width", d => d.width)
+    .attr("stroke-opacity", 0.7)
+    .style("mix-blend-mode", "multiply")
+    .call(hover, svg);
+
+  // Append annotations to the chart
+  svg.append("g").call(annotate);
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Import required dependencies
+import { titleCard, html } from "@trase/title-card";
+import { loadFonts, traseCategory5 } from "4be0b7b0578fccff@1102";
+
+// Define functions and data
+nodeLabelLength = 20;
+crop = (text, charLength = nodeLabelLength) => {
+  const textLength = text.length;
+  return charLength >= textLength ? text : text.substr(0, charLength).trim() + "...";
+};
+
+height = width * 0.6;
+margin = { top: 5, right: 0, bottom: 5, left: 0 };
+data = FileAttachment("civ_seipcs_simple@3.csv").csv({ typed: true });
+keys = Object.keys(data[0]).filter(d => d != "value");
+format = d3.format(".02s");
+colourColumn = 0;
+
+colour = link => {
+  const scale = d3.scaleOrdinal([...new Set(graph.links.map(d => d.names[colourColumn]))], [traseCategory1[1], traseCategory1[0], ...traseCategory1.slice(2, traseCategory1.length)]);
+  return scale(link.names[colourColumn]);
+};
+
+fontSizeNodeNames = 13;
+fontSizeValues = 12;
+segregated = false;
+
+// Create the graph data structure
+graph = {
+  let index = -1;
+  const nodes = [];
+  const nodeByKey = new Map;
+  const indexByKey = new Map;
+  const links = [];
+
+  for (const k of keys) {
+    for (const d of data) {
+      const key = JSON.stringify([k, d[k]]);
+      if (nodeByKey.has(key)) continue;
+      const node = { name: d[k] };
+      nodes.push(node);
+      nodeByKey.set(key, node);
+      indexByKey.set(key, ++index);
+    }
+  }
+
+  for (let i = 1; i < keys.length; ++i) {
+    const a = keys[i - 1];
+    const b = keys[i];
+    const linkByKey = new Map;
+    const prefix = segregated ? keys : keys.slice(0, i + 1);
+    for (const d of data) {
+      const names = prefix.map(k => d[k]);
+      const key = JSON.stringify(names);
+      const value = d.value || 1;
+      let link = linkByKey.get(key);
+      if (link) {
+        link.value += value;
+        continue;
+      }
+      link = {
+        source: indexByKey.get(JSON.stringify([a, d[a]])),
+        target: indexByKey.get(JSON.stringify([b, d[b]])),
+        names,
+        value
+      };
+      links.push(link);
+      linkByKey.set(key, link);
+    }
+  }
+
+  return { nodes, links };
+};
+
+// Create a sankey layout and define sorting and other properties
+sankey = d3.sankey()
+  .nodeSort(sortNodes)
+  .linkSort(sortLinks)
+  .nodeWidth(3)
+  .nodePadding(20)
+  .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]]);
+
+// Define node sorting function
+sortNodes = (a, b) => {
+  if (["DIRECT SOURCING", "INDIRECT SOURCING", "UNKNOWN SOURCING"].includes(a.name)) {
+    return a.name.localeCompare(b.name);
+  }
+  return b.value - a.value;
+};
+
+// Define link sorting function
+sortLinks = (a, b) => {
+  if (a.name === "UNKNOWN") return 1;
+  if (b.name === "UNKNOWN") return 0;
+};
+
+// Annotate function (currently empty)
+annotate = g => {};
+
+// Hover function for links
+function hover(g, svg) {
+  const tooltip = new Tooltip();
+  g
+    .style("cursor", "pointer")
+    .on("touchstart", event => event.preventDefault())
+    .on("pointerenter", (event, d) => {
+      tooltip.position(...tooltipOffset(tooltip, d3.pointer(event), width, height));
+      const path = d.names.join(" → ");
+      tooltip.show(`${path}`, tooltipKeyValue(tooltipKey, formatTooltipValue(d.value), d));
+    })
+    .on("pointermove", function (event, d) {
+      const path = d.names.join(" → ");
+      tooltip.show(`${path}`, tooltipKeyValue(tooltipKey, formatTooltipValue(d.value), d));
+      let [x, y] = tooltipOffset(tooltip, d3.pointer(event), width, height);
+      tooltip.position(x, y);
+      this.releasePointerCapture(event.pointerId);
+      g.filter(d => d.names.join(" → ") === path)
+        .attr("stroke-opacity", 1);
+    })
+    .on("pointerout", () => {
+      tooltip.hide();
+      g.attr("stroke-opacity", 0.7);
+    });
+  svg.append(() => tooltip.node);
+}
+
+// Define tooltip key and value formatting
+tooltipKey = "VALUE";
+formatTooltipValue = d3.format(".02s");
+
+// Import required dependencies
+import { getLabelLength } from "@trase/legends@376";
+import { traseColours, traseCategory1, fonts, traseGreens, traseReds, trasePurples, traseOranges, traseOrPu } from "@trase/visual-id@1366";
+import { Tooltip, tooltipKeyValue, tooltipOffset } from "@trase/tooltip@440";
+d3 = require("d3@6", "d3-sankey@0.12");
+```

@@ -1,0 +1,325 @@
+Can you label this program for me without changing its order?:
+
+x = d3 . scalePoint ( attributes , [ margin . left , width - margin . right ] )
+
+ y = {
+let scales = new Map ( ) ;
+
+// TODO: create a suitable scale for each attribute and add it to the map
+// attribute origin is categorical, all others are quantitative. Needs scaleOrdinal, all others need scaleLinear
+attributes . forEach ( function ( attribute ) {
+
+if ( attribute == "origin" ) {
+scales . set (
+attribute ,
+d3 . scaleOrdinal ( ) . range ( [ height - margin . bottom , height / 2 , margin . top ] )
+. domain ( d3 . extent ( data , item => item [ attribute ] ) )
+) ;
+}
+else {
+scales . set (
+attribute ,
+d3 . scaleLinear ( ) . range ( [ height - margin . bottom , margin . top ] )
+. domain ( d3 . extent ( data , d => d [ attribute ] ) )
+) ;
+}
+} ) ;
+
+return scales ;
+}
+
+viewof colorAttribute = select({
+  title: "Color Attribute",
+  description: "Pick an attribute for coloring the polylines.",
+  options: attributes,
+  value: "origin"
+})
+
+ function cScale ( ) {
+if ( colorAttribute == "origin" ) {
+return d3 . scaleOrdinal ( d3 . extent ( data , d => d [ colorAttribute ] ) , d3 . schemeDark2 )
+}
+else {
+return d3 . scaleSequential ( d3 . interpolateRgb ) . domain ( d3 . extent ( data , d => d [ colorAttribute ] ) )
+}
+}
+
+
+ paracoords = {
+const svg = d3 . create ( "svg" ) . attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+// set the style of hidden data items
+svg
+. append ( "style" )
+. text ( "path.hidden { stroke: #000; stroke-opacity: 0.01;}" ) ;
+
+// a map that holds any active brush per attribute
+let activeBrushes = new Map ( ) ;
+
+const polylines = svg
+. append ( "g" )
+. attr ( "fill" , "none" )
+. attr ( "stroke-width" , 1.5 )
+. attr ( "stroke-opacity" , 0.4 )
+. selectAll ( "path" )
+. data ( data )
+. join ( "path" )
+. attr ( "stroke" , d => cScale ( ) ( d [ colorAttribute ] ) ) // TODO: apply the color scale from task 3
+. attr ( "d" , d => d3 . line ( ) // TODO: create the polylines
+. defined ( ( [ , value ] ) => value != null )
+. x ( ( [ key ] ) => x ( key ) )
+. y ( ( [ key , value ] ) => y . get ( key ) ( value ) )
+( d3 . cross ( attributes , [ d ] , ( key , d ) => [ key , d [ key ] ] ) ) ) ;
+// https://observablehq.com/@d3/parallel-coordinates was used as a source
+
+
+
+
+// create the group nodes for the axes
+const axes = svg
+. append ( "g" )
+. selectAll ( "g" )
+. data ( attributes )
+. join ( "g" )
+. attr ( "transform" , d => `translate(${ x ( d ) },0)` )
+
+// TODO: add the visual representation of the axes
+// https://observablehq.com/@d3/parallel-coordinates was used as a source
+axes . append ( "g" )
+. each ( function ( d ) { d3 . select ( this ) . call ( d3 . axisRight ( y . get ( d ) ) ) ; } )
+. call ( g => g . append ( "text" )
+. attr ( "x" , 0 )
+. attr ( "y" , 13 )
+. attr ( "text-anchor" , "start" )
+. attr ( "fill" , "black" )
+. text ( d => shortAttributeNames . get ( d ) ) ) ;
+
+
+function updateBrushing ( [ ] ) { //row index
+// TODO implement brushing & linking
+if ( d3 . event . selection === null ) return ;
+const [ [ x , y ] ] = d3 . event . selection
+
+polylines . classed ( "hidden" , d => {
+return
+//??
+
+} ) ;
+}
+
+function brushed ( attribute ) {
+activeBrushes . set ( attribute , d3 . event . selection ) ;
+updateBrushing ( ) ;
+}
+
+function brushEnd ( attribute ) {
+if ( d3 . event . selection !== null ) return ;
+activeBrushes . delete ( attribute ) ;
+updateBrushing ( ) ;
+}
+
+const brushes = axes . append ( "g" ) . call (
+d3
+. brushY ( )
+. extent ( [ [ - 10 , margin . top ] , [ 10 , height - margin . bottom ] ] )
+. on ( "brush" , brushed )
+. on ( "end" , brushEnd )
+) ;
+
+return svg . node ( ) ;
+}
+
+ md `## Appendix`
+
+ height = 500
+
+ margin = ( { top : 20 , right : 30 , bottom : 10 , left : 10 } )
+
+ data = d3 . csvParse ( await FileAttachment ( "cars.csv" ) . text ( ) , d3 . autoType )
+
+ attributes = data . columns . filter ( d => d !== "name" )
+
+ shortAttributeNames = new Map (
+Object . entries ( {
+mpg : "MPG" ,
+cylinders : "CYL" ,
+displacement : "DPL" ,
+horsepower : "HP" ,
+weight : "WGT" ,
+acceleration : "ACL" ,
+year : "YEAR" ,
+origin : "OGN"
+} )
+)
+
+ import { select } from "@jashkenas/inputs"
+
+ d3 = require ( "d3@5" )
+///////////////////////////////////////////////////////////////////////////////////
+Here's the program you provided, labeled for easier readability:
+
+```javascript
+// Define the x-scale for attributes
+x = d3.scalePoint(attributes, [margin.left, width - margin.right]);
+
+// Define the y-scales for each attribute
+y = {
+  let scales = new Map();
+
+  // Create a suitable scale for each attribute
+  // 'origin' is categorical, so it requires scaleOrdinal; others use scaleLinear
+  attributes.forEach(function(attribute) {
+    if (attribute == "origin") {
+      scales.set(
+        attribute,
+        d3.scaleOrdinal()
+          .range([height - margin.bottom, height / 2, margin.top])
+          .domain(d3.extent(data, item => item[attribute]))
+      );
+    } else {
+      scales.set(
+        attribute,
+        d3.scaleLinear()
+          .range([height - margin.bottom, margin.top])
+          .domain(d3.extent(data, d => d[attribute]))
+      );
+    }
+  });
+
+  return scales;
+}
+
+// Define a dropdown menu for selecting the color attribute
+viewof colorAttribute = select({
+  title: "Color Attribute",
+  description: "Pick an attribute for coloring the polylines.",
+  options: attributes,
+  value: "origin"
+});
+
+// Define the color scale function based on the selected attribute
+function cScale() {
+  if (colorAttribute == "origin") {
+    return d3.scaleOrdinal(d3.extent(data, d => d[colorAttribute]), d3.schemeDark2);
+  } else {
+    return d3.scaleSequential(d3.interpolateRgb)
+      .domain(d3.extent(data, d => d[colorAttribute]));
+  }
+}
+
+// Create the parallel coordinates chart
+paracoords = {
+  // Create the SVG element with a specific width and height
+  const svg = d3.create("svg").attr("viewBox", [0, 0, width, height]);
+
+  // Add a style for hidden data items
+  svg.append("style").text("path.hidden { stroke: #000; stroke-opacity: 0.01;}");
+
+  // Initialize a map for active brushes
+  let activeBrushes = new Map();
+
+  // Add the polylines to the chart
+  const polylines = svg.append("g")
+    .attr("fill", "none")
+    .attr("stroke-width", 1.5)
+    .attr("stroke-opacity", 0.4)
+    .selectAll("path")
+    .data(data)
+    .join("path")
+    .attr("stroke", d => cScale()(d[colorAttribute]))
+    .attr("d", d => d3.line()
+      .defined(([ , value]) => value !== null)
+      .x(([key]) => x(key))
+      .y(([key, value]) => y.get(key)(value))
+      (d3.cross(attributes, [d], (key, d) => [key, d[key]]))
+    );
+
+  // Create group nodes for the axes
+  const axes = svg.append("g")
+    .selectAll("g")
+    .data(attributes)
+    .join("g")
+    .attr("transform", d => `translate(${x(d)},0)`);
+
+  // Add the axes to the chart
+  axes.append("g")
+    .each(function(d) {
+      d3.select(this).call(d3.axisRight(y.get(d)));
+    })
+    .call(g => g.append("text")
+      .attr("x", 0)
+      .attr("y", 13)
+      .attr("text-anchor", "start")
+      .attr("fill", "black")
+      .text(d => shortAttributeNames.get(d))
+    );
+
+  // Define the brush update function
+  function updateBrushing() {
+    // TODO: Implement brushing and linking functionality
+    if (d3.event.selection === null) return;
+    const [ [x, y]] = d3.event.selection;
+
+    polylines.classed("hidden", d => {
+      // TODO: Implement the logic for hiding lines based on brushing
+    });
+  }
+
+  // Define the brushing function
+  function brushed(attribute) {
+    activeBrushes.set(attribute, d3.event.selection);
+    updateBrushing();
+  }
+
+  // Define the brush end function
+  function brushEnd(attribute) {
+    if (d3.event.selection !== null) return;
+    activeBrushes.delete(attribute);
+    updateBrushing();
+  }
+
+  // Add brushes to the axes
+  const brushes = axes.append("g").call(
+    d3.brushY()
+      .extent([[-10, margin.top], [10, height - margin.bottom]])
+      .on("brush", brushed)
+      .on("end", brushEnd)
+  );
+
+  // Return the SVG element for the chart
+  return svg.node();
+}
+
+// Define the chart height
+height = 500;
+
+// Define chart margins
+margin = {
+  top: 20,
+  right: 30,
+  bottom: 10,
+  left: 10
+};
+
+// Load data from CSV files
+data = d3.csvParse(await FileAttachment("cars.csv").text(), d3.autoType);
+attributes = data.columns.filter(d => d !== "name");
+
+// Define short attribute names for the axes
+shortAttributeNames = new Map(
+  Object.entries({
+    mpg: "MPG",
+    cylinders: "CYL",
+    displacement: "DPL",
+    horsepower: "HP",
+    weight: "WGT",
+    acceleration: "ACL",
+    year: "YEAR",
+    origin: "OGN"
+  })
+);
+
+// Import the required libraries
+import { select } from "@jashkenas/inputs";
+d3 = require("d3@5");
+```

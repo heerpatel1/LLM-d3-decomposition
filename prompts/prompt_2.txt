@@ -1,0 +1,132 @@
+Can you label this program for me?:
+
+chart= {
+    const svg = d3.select(DOM.svg(width, height));
+
+    const xValue=function(d){return d[0]};
+    const yValue=function(d){return d[1]};
+    const xScale=d3.scaleLinear()
+        .domain(d3.extent(data,function(d){return d[0];}))
+        .range([margin.left,width-margin.right-margin.left]);
+    const yScale=d3.scaleLinear()
+        .domain([0,d3.max(data,function(d){return d[1];})])
+        .range([height-margin.bottom-margin.top,margin.top]);
+    const X=function(d){return xScale(xValue(d))};
+    const Y=function(d){return yScale(yValue(d))};
+    const xAxis=d3.axisBottom(xScale);
+    const yAxis=d3.axisLeft(yScale);
+
+    const line=d3.line().x(X).y(Y);
+    const area=d3.area().x(X).y1(Y);
+
+
+    // svg.selectAll('path').data([data]).enter().append('path').attr('d',line).attr("stroke","black");
+  svg.selectAll('path')
+        .data([data]).enter().append('path')
+          .attr('d',area.y0(yScale.range()[0]))
+          .attr("fill","steelblue");
+
+  svg.append("g")
+          .attr("transform","translate(0,"+yScale.range()[0]+")")
+        .call(xAxis);
+  svg.append("g").attr("transform","translate("+margin.left+",0)")
+        .call(yAxis);
+
+  svg.selectAll('circle')
+        .data(data).enter().append('circle')
+           .attr('r',2)
+          .attr('cx',X)
+          .attr('cy',Y)
+          .attr("fill","red");
+
+  return svg.node();
+}
+
+height=500
+
+width=720
+
+margin = ({top: 20, right: 0, bottom: 30, left: 40})
+
+data
+
+data={
+  var datax=d3.range(1,1000,20);
+  var datay=[];
+  d3.range(1,1000).forEach(function(d,i) {datay.push(d3.randomUniform(1,100)());});
+  var data=d3.zip(datax,datay);
+  return data;
+}
+
+d3=require('d3@4')
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Import d3 library
+d3=require('d3@4')
+
+// Define chart function
+chart= {
+    // Create SVG element
+    const svg = d3.select(DOM.svg(width, height));
+
+    // Define xValue, yValue, xScale, and yScale functions
+    const xValue=function(d){return d[0]};
+    const yValue=function(d){return d[1]};
+    const xScale=d3.scaleLinear()
+        .domain(d3.extent(data,function(d){return d[0];}))
+        .range([margin.left,width-margin.right-margin.left]);
+    const yScale=d3.scaleLinear()
+        .domain([0,d3.max(data,function(d){return d[1];})])
+        .range([height-margin.bottom-margin.top,margin.top]);
+    const X=function(d){return xScale(xValue(d))};
+    const Y=function(d){return yScale(yValue(d))};
+
+    // Define x and y axes
+    const xAxis=d3.axisBottom(xScale);
+    const yAxis=d3.axisLeft(yScale);
+
+    // Define line and area functions
+    const line=d3.line().x(X).y(Y);
+    const area=d3.area().x(X).y1(Y);
+
+    // Append area path to SVG
+    svg.selectAll('path')
+        .data([data]).enter().append('path')
+          .attr('d',area.y0(yScale.range()[0]))
+          .attr("fill","steelblue");
+
+    // Append x axis to SVG
+    svg.append("g")
+          .attr("transform","translate(0,"+yScale.range()[0]+")")
+        .call(xAxis);
+
+    // Append y axis to SVG
+    svg.append("g").attr("transform","translate("+margin.left+",0)")
+        .call(yAxis);
+
+    // Append circles to SVG
+    svg.selectAll('circle')
+        .data(data).enter().append('circle')
+           .attr('r',2)
+          .attr('cx',X)
+          .attr('cy',Y)
+          .attr("fill","red");
+
+    return svg.node();
+}
+
+// Define height, width, and margin
+height=500
+width=720
+margin = ({top: 20, right: 0, bottom: 30, left: 40})
+
+// Define data
+data={
+  var datax=d3.range(1,1000,20);
+  var datay=[];
+  d3.range(1,1000).forEach(function(d,i) {datay.push(d3.randomUniform(1,100)());});
+  var data=d3.zip(datax,datay);
+  return data;
+}
+```

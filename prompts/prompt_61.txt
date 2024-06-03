@@ -1,0 +1,292 @@
+Can you label this program for wme without changing its ordering?:
+
+viewof selectedEncoding = select({
+  title: 'Path Drawings',
+  description: 'Pick how lines should be drawn',
+  options: Object.keys(paths),
+  value: 'bezier_path'
+})
+
+viewof selectedColor = select({
+  title: 'Color Map',
+  description: 'Pick which color map should be used',
+  options: ['interpolateRdYlGn', 'interpolateBlues', 'interpolateViridis'],
+  value: 'interpolateRdYlGn'
+})
+
+chart = {
+  // append the svg object to the body of the page
+  const svg = d3.create("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+  const node = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  const split_data = {};
+  for (let i = 0; i < dimensions.length; ++i) {
+    const next = i < dimensions.length-1 ? i+1 : i-1;
+    split_data[dimensions[i]] = [];
+    for (const d of iris_data) {
+      split_data[dimensions[i]].push({
+        "from": +d[dimensions[i]],
+        "to": +d[dimensions[next]]
+      });
+    }
+  }
+  function addLines(dim, next, data) {
+    node.append("g")
+      .selectAll("path")
+      .data(data)
+        .enter().append("path")
+        .attr("d",  (d) => paths[selectedEncoding](d, dim, next))
+        .style("stroke", (d) => line_color[dim](d.from))
+        .style("fill", "none")
+        .style("stroke-width", 1.5);
+  }
+
+  for (let i = 0; i < dimensions.length; ++i) {
+    const next = i < dimensions.length-1 ? i+1 : i-1;
+    addLines(dimensions[i], dimensions[next], split_data[dimensions[i]])
+  }
+
+  // Draw the axis:
+  node.selectAll("axis")
+    // For each dimension of the dataset I add a 'g' element:
+    .data(dimensions).enter()
+      .append("g")
+      // I translate this element to its right position on the x axis
+      .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+      // And I build the axis with the call function
+      .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
+      // Add axis title
+      .append("text")
+        .style("text-anchor", "middle")
+        .attr("y", -9)
+        .text(function(d) { return d; })
+        .style("fill", "black");
+  return svg.node();
+}
+
+// set the dimensions and margins of the graph
+margin = { return { top: 30, right: 10, bottom: 10, left: 0 }; }
+
+width = 1200 - margin.left - margin.right;
+
+height = 600 - margin.top - margin.bottom;
+
+iris_data = d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/iris.csv");
+
+dimensions = d3.keys(iris_data[0]).filter(function(d) { return d != "Species" });
+
+x = d3.scalePoint()
+  .range([0, width])
+  .padding(1)
+  .domain(dimensions);
+
+y = {
+  const axis = {}
+  for (let i in dimensions) {
+    let name = dimensions[i]
+    axis[name] = d3.scaleLinear()
+      .domain( d3.extent(iris_data, function(d) { return +d[name]; }) )
+      .range([height, 0])
+  }
+  return axis;
+}
+
+line_color = {
+  const cols = {};
+  for (let i in dimensions) {
+    let name = dimensions[i]
+    cols[name] = d3.scaleSequential()
+      .domain(d3.extent(iris_data, function(d) { return +d[name]; }))
+      .interpolator(d3[selectedColor]);
+  }
+  return cols;
+}
+
+paths = { return {
+ straight_path: function(d, dim, next) {
+   return d3.line()([[x(dim), y[dim](d.from)], [x(next), y[next](d.to)]]);
+ },
+ bezier_path: function(d, dim, next) {
+   return d3.linkHorizontal()
+      .x(([x]) => x)
+      .y(([, y]) => y)
+     ({source: [x(dim), y[dim](d.from)], target: [x(next), y[next](d.to)]})
+ },
+ bezier_path_down: function(d, dim, next) {
+    const p = d3.path();
+    p.moveTo(x(dim), y[dim](d.from));
+    p.quadraticCurveTo(x(dim), y[next](d.to), x(next), y[next](d.to));
+    return p.toString();
+  },
+ bezier_path_up: function(d, dim, next) {
+    const p = d3.path();
+    p.moveTo(x(dim), y[dim](d.from));
+    p.quadraticCurveTo(x(next), y[dim](d.from), x(next), y[next](d.to));
+    return p.toString();
+  }
+ };
+}
+
+d3 = require("d3@5");
+
+import {select} from "@jashkenas/inputs"
+////////////////////////////////////////////////////////////////////////////////////
+Here's the program you provided, labeled for easier readability:
+
+```javascript
+// Define a dropdown menu for selecting how lines should be drawn
+viewof selectedEncoding = select({
+  title: 'Path Drawings',
+  description: 'Pick how lines should be drawn',
+  options: Object.keys(paths),
+  value: 'bezier_path'
+});
+
+// Define a dropdown menu for selecting the color map to use
+viewof selectedColor = select({
+  title: 'Color Map',
+  description: 'Pick which color map should be used',
+  options: ['interpolateRdYlGn', 'interpolateBlues', 'interpolateViridis'],
+  value: 'interpolateRdYlGn'
+});
+
+// Main function to create the parallel coordinates chart
+chart = {
+  // Create an SVG element with the specified width and height
+  const svg = d3.create("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom);
+
+  // Create a group element for the chart content and translate it according to the margins
+  const node = svg.append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+  // Split data by dimensions
+  const split_data = {};
+  for (let i = 0; i < dimensions.length; ++i) {
+    const next = i < dimensions.length - 1 ? i + 1 : i - 1;
+    split_data[dimensions[i]] = [];
+    for (const d of iris_data) {
+      split_data[dimensions[i]].push({
+        "from": +d[dimensions[i]],
+        "to": +d[dimensions[next]]
+      });
+    }
+  }
+
+  // Function to add lines for a given dimension
+  function addLines(dim, next, data) {
+    node.append("g")
+      .selectAll("path")
+      .data(data)
+        .enter().append("path")
+        .attr("d", (d) => paths[selectedEncoding](d, dim, next))
+        .style("stroke", (d) => line_color[dim](d.from))
+        .style("fill", "none")
+        .style("stroke-width", 1.5);
+  }
+
+  // Iterate through dimensions and add lines for each
+  for (let i = 0; i < dimensions.length; ++i) {
+    const next = i < dimensions.length - 1 ? i + 1 : i - 1;
+    addLines(dimensions[i], dimensions[next], split_data[dimensions[i]]);
+  }
+
+  // Draw the axis for each dimension
+  node.selectAll("axis")
+    .data(dimensions).enter()
+      .append("g")
+      .attr("transform", function(d) { return "translate(" + x(d) + ")"; })
+      .each(function(d) { d3.select(this).call(d3.axisLeft().scale(y[d])); })
+      .append("text")
+        .style("text-anchor", "middle")
+        .attr("y", -9)
+        .text(function(d) { return d; })
+        .style("fill", "black");
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// Define the chart's margins
+margin = {
+  top: 30,
+  right: 10,
+  bottom: 10,
+  left: 0
+};
+
+// Define the chart's dimensions
+width = 1200 - margin.left - margin.right;
+height = 600 - margin.top - margin.bottom;
+
+// Load the iris data from a CSV file
+iris_data = d3.csv("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/iris.csv");
+
+// Define the dimensions from the data
+dimensions = d3.keys(iris_data[0]).filter(function(d) { return d != "Species"; });
+
+// Define the x scale
+x = d3.scalePoint()
+  .range([0, width])
+  .padding(1)
+  .domain(dimensions);
+
+// Define the y scales for each dimension
+y = {
+  const axis = {};
+  for (let i in dimensions) {
+    let name = dimensions[i];
+    axis[name] = d3.scaleLinear()
+      .domain(d3.extent(iris_data, function(d) { return +d[name]; }))
+      .range([height, 0]);
+  }
+  return axis;
+}
+
+// Define color scales for each dimension
+line_color = {
+  const cols = {};
+  for (let i in dimensions) {
+    let name = dimensions[i];
+    cols[name] = d3.scaleSequential()
+      .domain(d3.extent(iris_data, function(d) { return +d[name]; }))
+      .interpolator(d3[selectedColor]);
+  }
+  return cols;
+}
+
+// Define different path drawing functions for the lines
+paths = {
+  return {
+    straight_path: function(d, dim, next) {
+      return d3.line()([[x(dim), y[dim](d.from)], [x(next), y[next](d.to)]]);
+    },
+    bezier_path: function(d, dim, next) {
+      return d3.linkHorizontal()
+        .x(([x]) => x)
+        .y(([, y]) => y)
+        ({source: [x(dim), y[dim](d.from)], target: [x(next), y[next](d.to)]});
+    },
+    bezier_path_down: function(d, dim, next) {
+      const p = d3.path();
+      p.moveTo(x(dim), y[dim](d.from));
+      p.quadraticCurveTo(x(dim), y[next](d.to), x(next), y[next](d.to));
+      return p.toString();
+    },
+    bezier_path_up: function(d, dim, next) {
+      const p = d3.path();
+      p.moveTo(x(dim), y[dim](d.from));
+      p.quadraticCurveTo(x(next), y[dim](d.from), x(next), y[next](d.to));
+      return p.toString();
+    }
+  };
+};
+
+// Import D3.js version 5 and relevant packages
+d3 = require("d3@5");
+import { select } from "@jashkenas/inputs";
+```

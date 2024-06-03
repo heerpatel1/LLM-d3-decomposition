@@ -1,0 +1,143 @@
+Can you label this program for me?:
+{
+
+  const w = 800;
+  const h = 500;
+
+  const svg = d3.create('svg')
+    .attr('width', w)
+    .attr('height', h);
+
+  const root = d3.hierarchy(familyTree)
+    .count(); // <*>
+
+  const partition = d3.partition() // <*>
+    .size([h, w])
+    .padding(1)
+    .round(true);
+
+  partition(root);
+
+  const color = d3.scaleOrdinal([
+    '#ca0020',
+    '#f4a582',
+    '#92c5de',
+    '#0571b0']);
+
+  svg.selectAll('rect')
+    .data(root.descendants())
+    .join('rect')
+      .attr('x', d => d.y0) // <*>
+      .attr('y', d => d.x0)
+      .attr('width', d => d.y1 - d.y0)
+      .attr('height', d => d.x1 - d.x0)
+      .style('fill', d => color(d.depth))
+
+  svg.selectAll('text')
+    .data(root.descendants())
+    .join('text')
+      .classed('node-label', true)
+      .text(d => `${d.data.name}`)
+      .attr('x', d => d.y0 + 15)
+      .attr('y', d => d.x0 + 25)
+      .style('font-weight', d => d.children ? 'bold' : 'normal')
+      .style('fill', d=>d.children? 'white':'black')
+      .style('stroke','black')
+      .style('stroke-width',d => d.children ? 1 : 0)
+      .style('text-anchor', 'start')
+      .style('font-size', '20pt')
+      .style('alignment-baseline', 'middle')
+
+  return svg.node();
+}
+
+familyTree = ({
+  "name": "Lynda",
+  "children":[
+    {"name": "Lori",
+    "children": [{'name': "Jackson"},{'name': "Ryan"},{"name":"Joel"}]
+    },
+    {"name": "Kelly",
+    "children":[{'name':"Damon", "children": [{"name":"Dylan"}]},{"name": "Nicholas"}]}
+  ]
+})
+///////////////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program with comments explaining each section and the code lines:
+
+```javascript
+{
+  // Set the width and height of the SVG element
+  const w = 800;
+  const h = 500;
+
+  // Create an SVG element
+  const svg = d3.create('svg')
+    .attr('width', w) // Set the width of the SVG
+    .attr('height', h); // Set the height of the SVG
+
+  // Create a hierarchy structure from the familyTree data
+  const root = d3.hierarchy(familyTree)
+    .count(); // Calculate the count of descendants for each node
+
+  // Create a partition layout
+  const partition = d3.partition()
+    .size([h, w]) // Set the size of the partition to the height and width of the SVG
+    .padding(1) // Add padding between partitions
+    .round(true); // Round the partitions
+
+  // Apply the partition layout to the root hierarchy
+  partition(root);
+
+  // Create a color scale with a specific color scheme
+  const color = d3.scaleOrdinal([
+    '#ca0020',
+    '#f4a582',
+    '#92c5de',
+    '#0571b0'
+  ]);
+
+  // Create rectangles based on the partition data
+  svg.selectAll('rect')
+    .data(root.descendants()) // Use the descendants from the root hierarchy
+    .join('rect')
+      .attr('x', d => d.y0) // Set the x-coordinate of the rectangle
+      .attr('y', d => d.x0) // Set the y-coordinate of the rectangle
+      .attr('width', d => d.y1 - d.y0) // Set the width of the rectangle
+      .attr('height', d => d.x1 - d.x0) // Set the height of the rectangle
+      .style('fill', d => color(d.depth)); // Set the fill color based on depth
+
+  // Create text labels for each node
+  svg.selectAll('text')
+    .data(root.descendants()) // Use the descendants from the root hierarchy
+    .join('text')
+      .classed('node-label', true) // Add the 'node-label' class to the text elements
+      .text(d => `${d.data.name}`) // Set the text to the name of the node
+      .attr('x', d => d.y0 + 15) // Set the x-coordinate of the text
+      .attr('y', d => d.x0 + 25) // Set the y-coordinate of the text
+      .style('font-weight', d => d.children ? 'bold' : 'normal') // Make text bold if it has children
+      .style('fill', d => d.children ? 'white' : 'black') // Set the text color
+      .style('stroke', 'black') // Add a black stroke around the text
+      .style('stroke-width', d => d.children ? 1 : 0) // Add stroke width if it has children
+      .style('text-anchor', 'start') // Align text to the start (left)
+      .style('font-size', '20pt') // Set the font size of the text
+      .style('alignment-baseline', 'middle'); // Center the text vertically
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// The family tree data
+familyTree = ({
+  "name": "Lynda",
+  "children": [
+    {
+      "name": "Lori",
+      "children": [{'name': "Jackson"},{'name': "Ryan"},{"name":"Joel"}]
+    },
+    {
+      "name": "Kelly",
+      "children": [{'name':"Damon", "children": [{"name":"Dylan"}]},{"name": "Nicholas"}]
+    }
+  ]
+});
+```

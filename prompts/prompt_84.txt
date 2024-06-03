@@ -1,0 +1,112 @@
+Can you label this program without changing its order?:
+
+viewof order = html`<select id='dropdown'>`
+
+chart = {
+  const svg = d3.create("svg")
+    .attr("viewBox", [0,0,width,height])
+    .attr('width',width)
+    .attr('height',height)
+  const bounds = svg.append("g")
+    .style("transform", `translate(${margin.left}px, ${margin.top}px)`)
+  svg.append('g')
+    .call(xAxis)
+  svg.append('g')
+    .attr('transform',`translateX(${margin.left}px)`)
+    .call(yAxis)
+  var tooltip = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style('width','auto')
+    .style('color','lightgray')
+    .style("visibility",'hidden')
+    .style('position','absolute')
+    .style('z-index','10')
+    .style('background-color','black')
+  var dots = svg.selectAll('circle')
+	  .data(dat)
+	  .enter().append('circle')
+		.attr("cx",d => xScale(xData(d)))
+		.attr("cy",d => yScale(yData(d)))
+		.attr("r",d => d.Types.includes(order) ? 3.5 : 1.5)
+		.style("fill",d=>colorScale(colorData(d)))
+		.style('opacity',d => d.Types.includes(order) ? 1 : 0.1)
+    .on('mouseover',function(d){
+      tooltip
+        .style('visibility','visible')
+        .style("left", d3.event.pageX - 50 + "px")
+        .style("top", d3.event.pageY - 20 + "px")
+        .text(dat => d.Types)
+    })
+    .on('mouseleave',d => tooltip.style('visibility','hidden'))
+
+  return svg.node()
+}
+
+yData= d => d.TraitY
+
+xData = d => d.TraitX
+
+colorData = d => d.TraitZ
+
+yScale = d3.scaleLinear()
+	  .domain(d3.extent(dat,yData))
+	  .range([height-margin.top,margin.bottom])
+    .nice()
+
+xScale = d3.scaleLinear()
+	  .domain(d3.extent(dat,xData))
+	  .range([margin.left,width-margin.right])
+    .nice()
+
+xAxis = {
+  const xAxisGenerator = d3.axisBottom()
+	  .scale(xScale)
+    .ticks(5)
+  return g => g.append('g')
+	  .attr('class','axis')
+	  .call(xAxisGenerator)
+	  .style("transform",`translate(0,${height-margin.bottom}px)`)
+}
+
+yAxis = {
+  const yAxisGenerator = d3.axisLeft()
+    .scale(yScale)
+    .ticks(5)
+  return g => g.append('g')
+    .attr('class','axis')
+    .call(yAxisGenerator)
+    .style("transform",`translate(${margin.left}px,0)`)
+}
+
+colorScale = d3.scaleSequential(d3.interpolateRdBu)
+	  .domain(d3.extent(dat,colorData))
+
+height=300
+
+width=400
+
+dat=d3.csv('https://raw.githubusercontent.com/kylekocak/D3_examples/master/example.csv')
+
+selectOne = {
+  const sel = dat.map(d => d.Types)
+  const u= sel.map(d => d.split('/'))
+	const uniqueType = [... new Set(u.flat())]
+  return(uniqueType)
+}
+
+margin = ({top: 30, right: 30, bottom: 30, left: 30})
+
+d3 = require('d3@5')
+
+fillDD = {
+  d3.select('#dropdown')
+	  .selectAll("option")
+	  .data(selectOne.sort())
+	  .enter().append('option')
+		.text(d => d)
+		.attr("value",d => d)
+    .on('change',function(d){
+	  var selvalue = this.value
+	  console.log(selvalue)
+    })
+}

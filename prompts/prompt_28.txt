@@ -1,0 +1,308 @@
+Can you label this program for me without changing its order?:
+
+chart = {
+  const arcs = pie(data);
+
+  const svg = d3.select(DOM.svg(width, height))
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .style("font-family", "'Roboto', sans-serif");
+
+  const g = svg.append("g")
+      .attr("transform", `translate(${width / 2},${height / 2})`);
+
+  g.selectAll("path")
+    .data(arcs)
+    .enter().append("path")
+      .attr("fill", d => color(d.data.name))
+      .attr("d", arc)
+    .append("title")
+      .text(d => `${d.data.name}: ${d.data.value.toLocaleString()}`);
+
+  g.append("text")
+	   .attr("text-anchor", "middle")
+		 .attr('font-size', '1.4em')
+		 .attr('y', 8)
+     .style("font-weight", "bold")
+	   .text("3hr 22min");
+
+  const legend = svg.selectAll('legend')
+    .data(arcs)
+    .enter()
+    .append('g')
+    .attr('class', 'legend')
+    .attr('dy', '0.35em')
+    .attr("transform", function(d, i) { return "translate(" + legendX +"," + (i * (18+legendPadding) + legendTop) + ")"; });
+
+
+  legend.append("circle")
+      .data(arcs)
+      .attr("cx", -18)
+      .attr("cy", 9)
+      .attr("r", 8)
+      .style("border-radius", "9px")
+      .style("fill", d => color(d.data.name));
+
+  legend.append("text")
+	   .attr("text-anchor", "start")
+		 .attr('font-size', '1.4em')
+     .attr('x', 0)
+		 .attr('y', 9)
+     .attr("dy", "0.35em")
+	   .text(d => d.data.name);
+
+  return svg.node();
+}
+
+viewof height = slider({
+  min:100,
+  max:500,
+  step:1,
+  value:300,
+  title:"size"
+})
+
+viewof innerRadius = slider({
+  min:0,
+  max:1,
+  step:0.01,
+  value:0.7,
+  title:"Inner Radius"
+})
+
+viewof cornerRadius = slider({
+  min:0,
+  max:20,
+  step:1,
+  value:4,
+  title:"Coner Radius"
+})
+
+viewof arcPadding = slider({
+  min:0,
+  max:0.05,
+  step:0.001,
+  value:0.01,
+  title:"Arc padding"
+})
+
+viewof legendPadding = slider({
+  min:0,
+  max:16,
+  step:1,
+  value:12,
+  title:"legend padding"
+})
+
+viewof legendX = slider({
+  min:32,
+  max:900,
+  step:1,
+  value:700,
+  title:"legend x position"
+})
+
+viewof legendTop = slider({
+  min:0,
+  max:100,
+  step:1,
+  value:20,
+  title:"legendTop"
+})
+
+data = [
+  {name:"Youtube", value:80},
+  {name:"Netflix", value:60},
+  {name:"Facebook", value:50},
+  {name:"WhatsApp", value:40},
+  {name:"Instagram", value:30},
+  {name:"Chrome", value:20},
+  {name:"Other", value:10},
+]
+
+color_google = ["#4285F4", "#EA4335", "#34A853", "#FBBC04", "#FA7B17", "#F53BA0", "#A142F4", "#24C1E0"]
+
+color = d3.scaleOrdinal()
+    .domain(data.map(d => d.name))
+    .range(color_google)
+    // .range(d3.quantize(t => d3.interpolateBlues(t * 0.8 + 0.05), data.length).reverse())
+
+arc = {
+  const radius = Math.min(width, height) / 2;
+  return d3.arc().innerRadius(radius * innerRadius).outerRadius(radius - 1).cornerRadius(cornerRadius);
+}
+
+pie = d3.pie()
+    .padAngle(arcPadding)
+    .sort(null)
+    .value(d => d.value)
+
+d3 = require("d3")
+
+import {slider} from "@jashkenas/inputs"
+
+html `<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">`
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+import {slider} from "@jashkenas/inputs"
+
+// Define color scheme for data
+color_google = ["#4285F4", "#EA4335", "#34A853", "#FBBC04", "#FA7B17", "#F53BA0", "#A142F4", "#24C1E0"]
+
+// Create color scale
+color = d3.scaleOrdinal()
+    .domain(data.map(d => d.name))
+    .range(color_google)
+    // .range(d3.quantize(t => d3.interpolateBlues(t * 0.8 + 0.05), data.length).reverse())
+
+// Define arc generator function
+arc = {
+  const radius = Math.min(width, height) / 2;
+  return d3.arc().innerRadius(radius * innerRadius).outerRadius(radius - 1).cornerRadius(cornerRadius);
+}
+
+// Define pie generator function
+pie = d3.pie()
+    .padAngle(arcPadding)
+    .sort(null)
+    .value(d => d.value)
+
+d3 = require("d3")
+
+// Import required HTML
+html `<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">`
+
+// Define chart function
+chart = {
+  // Generate pie chart arcs
+  const arcs = pie(data);
+
+  // Create SVG container
+  const svg = d3.select(DOM.svg(width, height))
+      .attr("text-anchor", "middle")
+      .style("font-size", "12px")
+      .style("font-family", "'Roboto', sans-serif");
+
+  // Append group for chart elements
+  const g = svg.append("g")
+      .attr("transform", `translate(${width / 2},${height / 2})`);
+
+  // Append paths for pie slices
+  g.selectAll("path")
+    .data(arcs)
+    .enter().append("path")
+      .attr("fill", d => color(d.data.name))
+      .attr("d", arc)
+    .append("title")
+      .text(d => `${d.data.name}: ${d.data.value.toLocaleString()}`);
+
+  // Append text for duration
+  g.append("text")
+	   .attr("text-anchor", "middle")
+		 .attr('font-size', '1.4em')
+		 .attr('y', 8)
+     .style("font-weight", "bold")
+	   .text("3hr 22min");
+
+  // Create legend
+  const legend = svg.selectAll('legend')
+    .data(arcs)
+    .enter()
+    .append('g')
+    .attr('class', 'legend')
+    .attr('dy', '0.35em')
+    .attr("transform", function(d, i) { return "translate(" + legendX +"," + (i * (18+legendPadding) + legendTop) + ")"; });
+
+  // Append circles to legend
+  legend.append("circle")
+      .data(arcs)
+      .attr("cx", -18)
+      .attr("cy", 9)
+      .attr("r", 8)
+      .style("border-radius", "9px")
+      .style("fill", d => color(d.data.name));
+
+  // Append text to legend
+  legend.append("text")
+	   .attr("text-anchor", "start")
+		 .attr('font-size', '1.4em')
+     .attr('x', 0)
+		 .attr('y', 9)
+     .attr("dy", "0.35em")
+	   .text(d => d.data.name);
+
+  // Return SVG node
+  return svg.node();
+}
+
+// Define sliders for interactive control
+viewof height = slider({
+  min:100,
+  max:500,
+  step:1,
+  value:300,
+  title:"size"
+})
+
+viewof innerRadius = slider({
+  min:0,
+  max:1,
+  step:0.01,
+  value:0.7,
+  title:"Inner Radius"
+})
+
+viewof cornerRadius = slider({
+  min:0,
+  max:20,
+  step:1,
+  value:4,
+  title:"Coner Radius"
+})
+
+viewof arcPadding = slider({
+  min:0,
+  max:0.05,
+  step:0.001,
+  value:0.01,
+  title:"Arc padding"
+})
+
+viewof legendPadding = slider({
+  min:0,
+  max:16,
+  step:1,
+  value:12,
+  title:"legend padding"
+})
+
+viewof legendX = slider({
+  min:32,
+  max:900,
+  step:1,
+  value:700,
+  title:"legend x position"
+})
+
+viewof legendTop = slider({
+  min:0,
+  max:100,
+  step:1,
+  value:20,
+  title:"legendTop"
+})
+
+// Define data for pie chart
+data = [
+  {name:"Youtube", value:80},
+  {name:"Netflix", value:60},
+  {name:"Facebook", value:50},
+  {name:"WhatsApp", value:40},
+  {name:"Instagram", value:30},
+  {name:"Chrome", value:20},
+  {name:"Other", value:10},
+]
+```
+
+

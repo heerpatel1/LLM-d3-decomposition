@@ -1,0 +1,159 @@
+Can you label this ENTIRE program for me without changing its order?:
+
+chart = {
+const svg = d3 . create ( "svg" ) . attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+svg
+. append ( "g" )
+. selectAll ( "path" )
+. data ( series )
+. join ( "path" )
+. attr ( "fill" , ( { key } ) => color ( key ) )
+. attr ( "d" , area )
+. append ( "title" )
+. text ( ( { key } ) => key ) ;
+
+svg . append ( "g" ) . call ( xAxis ) ;
+
+return svg . node ( ) ;
+}
+
+ data = Object . assign (
+d3 . csvParse (
+await FileAttachment ( "federal_outlays_function.csv" ) . text ( ) ,
+d3 . autoType
+)
+)
+
+ columns = data . columns . slice ( 1 )
+
+ series = d3
+. stack ( )
+. keys ( columns )
+. offset ( d3 . stackOffsetWiggle )
+. order ( d3 . stackOrderInsideOut ) ( data )
+
+ area = d3
+. area ( )
+. x ( d => xScale ( d . data . date ) )
+. y0 ( d => yScale ( d [ 0 ] ) )
+. y1 ( d => yScale ( d [ 1 ] ) )
+
+ xScale = d3
+. scaleTime ( )
+. domain ( d3 . extent ( data , d => d . date ) )
+. range ( [ margin . left , width - margin . right ] )
+
+ yScale = d3 . scaleLinear ( )
+. domain ( [ d3 . min ( series , d => d3 . min ( d , d => d [ 0 ] ) ) , d3 . max ( series , d => d3 . max ( d , d => d [ 1 ] ) ) ] )
+. range ( [ height - margin . bottom , margin . top ] )
+
+ color = d3 . scaleOrdinal ( )
+. domain ( data . columns . slice ( 1 ) )
+. range ( d3 . schemeCategory10 )
+
+ xAxis = g =>
+g
+. attr ( "transform" , `translate(0,${ height - margin . bottom })` )
+. call (
+d3
+. axisBottom ( xScale )
+. tickFormat ( d3 . format ( ".0f" ) )
+. tickSizeOuter ( 0 )
+)
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+
+ margin = ( {
+top : 0 ,
+right : 20 ,
+bottom : 30 ,
+left : 20
+} )
+
+ height = 500
+
+ d3 = require ( "d3@6" )
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+```javascript
+// Define chart function
+chart = {
+  // Create SVG element
+  const svg = d3.create("svg").attr("viewBox", [0, 0, width, height]);
+
+  // Append path elements for each data series
+  svg
+    .append("g")
+    .selectAll("path")
+    .data(series)
+    .join("path")
+    .attr("fill", ({ key }) => color(key))
+    .attr("d", area)
+    .append("title")
+    .text(({ key }) => key);
+
+  // Append x-axis
+  svg.append("g").call(xAxis);
+
+  // Return SVG node
+  return svg.node();
+}
+
+// Load data
+data = Object.assign(
+  d3.csvParse(await FileAttachment("federal_outlays_function.csv").text(), d3.autoType)
+);
+
+// Extract columns
+columns = data.columns.slice(1);
+
+// Stack data
+series = d3
+  .stack()
+  .keys(columns)
+  .offset(d3.stackOffsetWiggle)
+  .order(d3.stackOrderInsideOut)(data);
+
+// Define area generator
+area = d3
+  .area()
+  .x(d => xScale(d.data.date))
+  .y0(d => yScale(d[0]))
+  .y1(d => yScale(d[1]));
+
+// Define x-scale
+xScale = d3
+  .scaleTime()
+  .domain(d3.extent(data, d => d.date))
+  .range([margin.left, width - margin.right]);
+
+// Define y-scale
+yScale = d3.scaleLinear()
+  .domain([d3.min(series, d => d3.min(d, d => d[0])), d3.max(series, d => d3.max(d, d => d[1]))])
+  .range([height - margin.bottom, margin.top]);
+
+// Define color scale
+color = d3.scaleOrdinal()
+  .domain(data.columns.slice(1))
+  .range(d3.schemeCategory10);
+
+// Define x-axis generator
+xAxis = g =>
+  g.attr("transform", `translate(0,${height - margin.bottom})`)
+   .call(d3.axisBottom(xScale).tickFormat(d3.format(".0f")).tickSizeOuter(0))
+   .call(g => g.select(".domain").remove());
+
+// Define margin
+margin = ({
+  top: 0,
+  right: 20,
+  bottom: 30,
+  left: 20
+});
+
+// Define height
+height = 500;
+
+// Import d3 library
+d3 = require("d3@6");
+```

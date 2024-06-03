@@ -1,0 +1,109 @@
+Can you label this program for me?:
+
+dataset = [
+  {name: 'Cats',    value:  50},
+  {name: 'Dogs',  value:  40},
+  {name: 'Parrots', value:  2},
+  {name: 'Fish', value: 3},
+  {name: 'Lizards', value: 1},
+  {name: 'Snakes', value: 1},
+  {name: 'Pigs', value: 1},
+  {name: 'Other',  value:  2}
+]
+
+{
+  const w = 420;
+  const h = 300;
+  const startAngle = 0;
+  const endAngle = 4 * Math.PI;
+  const stroke = 5;
+  const innerRadius = h/4;
+  const outerRadius = h/2 - stroke;
+
+  const divNode = d3.select("body").node();
+  //Create SVG
+  const svg = d3.create('svg')
+    .attr('width', w)
+    .attr('height', h);
+
+  //Create PIE Data converter
+  const pie = d3.pie()
+    .value(d => d.value)
+    .startAngle(startAngle)
+    .endAngle(endAngle);
+
+  //Create Arc for
+  const arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius)
+
+  const cScale = d3.scaleOrdinal(d3.schemeCategory10);
+
+  const center = svg.append('g')
+    .attr('transform', `translate(${h/2}, ${h/2})`)
+
+  const centerSvg = center.append('circle')
+    .attr('fill', cScale(0))
+    .attr('r', outerRadius - innerRadius)
+
+
+  const text = center.append('text')
+    .attr('text-anchor','middle')
+    .attr('transform', `translate(0, 10)`)
+    .attr('font-size',"1.5rem")
+    .attr('fill', '#fff')
+    .attr('id', "mainText")
+    .html("Animals");
+
+  const arcs = svg
+    .selectAll('g.arc')
+    .data(pie(dataset))
+    .join('g')
+      .classed('arc', true)
+      .attr('transform', `translate(${h/2}, ${h/2})`);
+
+  arcs.append('path')
+    .attr('fill', (d, i) => cScale(i + 1))
+    .attr('d', arc)
+    .on("mousemove",handleMouseOver)
+    .on("mouseout", handleMouseOut)
+    .append('title')    // Alt-text for the pie slice
+      .text(d => d.data.name);
+
+  function handleMouseOver(d, i) {
+    console.log(d);
+      d3.select(this)
+        .attr("stroke", "#fff")
+        .attr("stroke-width",stroke);
+      d3.select(this)
+        .transition()
+        .duration(500)
+        .attr('transform',GetTransform);
+      d3.select('#mainText')
+        .html(`${d.target.__data__.data.name} ${d.target.__data__.data.value}%`);
+  }
+
+  function GetTransform(d){
+    var dist = 1;
+    d.midAngle = ((d.endAngle - d.startAngle)/2) + d.startAngle;
+    var x = Math.sin(d.midAngle) * dist;
+    var y = Math.cos(d.midAngle) * dist;
+    return 'translate(' + x + ',' + y + ')';
+  }
+
+  function handleMouseOut(d,i){
+    d3.select(this)
+      .attr("stroke-width","0px");
+    d3.select(this)
+      .transition()
+      .duration(500)
+      .attr('transform','translate(0,0)');
+
+      d3.select('#mainText')
+        .html("Animals");
+  }
+
+  return svg.node();
+}
+
+d3Legend = require('d3-svg-legend')

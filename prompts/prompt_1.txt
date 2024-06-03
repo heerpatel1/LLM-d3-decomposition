@@ -1,0 +1,334 @@
+Can you label this program for me?:
+
+d3 = require('d3@5')
+
+import {radio} from "@jashkenas/inputs"
+
+margin = ({top: 30, right: 20, bottom: 30, left: 25});
+
+width = 600 - margin.left - margin.right
+
+height = 400 - margin.top - margin.bottom
+
+html`
+<style>
+
+svg {
+    border:1px solid #000;
+}
+
+body {
+  font-family: Arial;
+  font-size: 10px;
+}
+
+.axis line{
+    stroke: grey;
+    stroke-width: 0.5;
+    stroke-opacity: 0.2;
+}
+
+ .title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+</style>`
+
+dataset=d3.csv("https://gist.githubusercontent.com/xianwu/1937c0c2eaeded47ffb0c0db82abab1c/raw/97dee4be0fd464e9746e8103101dbed4b0e2dc35/tchCmpntLvl.csv")
+
+filteredData = dataset.filter(d =>  d.FiscalYear == selectedYear & d.MOTP_Score >0)
+
+//----------------------- STEP 1. Get distint employeeID - MOTPscore combination into a new dataset.
+    //employeeID and MOTPscore are now concatonated together as one field
+distinctData = d3.nest()
+        .key(d=> d.Fake_EmpID + d.MOTP_Score)
+        .entries(filteredData)
+        .map(d=> d.key);
+
+    //OR could use set-map method to get distinct values into an arry
+    //const distinctData = d3.set(filteredData.map(d => d.Fake_EmpID + d.MOTP_Score )).values()
+
+    //employeeID and MOTPscore are now concatonated together as one field, so now need to separate them
+newDistinct = {
+    var newDistinct=[];
+    distinctData.forEach(d => {
+        var el={};
+        el.Fake_EmpID = d.substring(0,7);
+        el.MOTP_Score = d.substring(7,11);
+        newDistinct.push(el);
+    })
+
+    return newDistinct;
+  }
+
+//----------------------- STEP 2. Roll up to get the count of teachers per MOTP score value
+    //grouping on MOTP_Score to get count of records (length of data)
+  areaData = d3.nest()
+        .key(d=> d.MOTP_Score)
+        .rollup(ids => {
+            return {
+                MOTP_Score: d3.set(ids.map(d => d.MOTP_Score)).values()[0],
+                count: ids.length
+            }
+        })
+        .entries(newDistinct)
+        .map(d=> d.value)
+
+xScale = d3.scaleLinear()
+        .domain([1,4])
+        .rangeRound([0, width])
+
+yScale = d3.scaleLinear()
+        .domain([0,d3.max(areaData.map(d => d.count))])
+        .range([height, 0])
+
+xAxis =d3.axisBottom(xScale)
+        .tickSize(-height)
+        .ticks(7)
+
+yAxis =d3.axisLeft(yScale)
+        .tickSize(-width)
+        .ticks(5)
+
+viewof selectedYear = radio({
+  title: 'Fiscal Year',
+  description: 'Please select a fiscal year to filter data',
+  options: d3.set(dataset.map(d => d.FiscalYear)).values(),
+  value: '2019'
+})
+
+myChart={
+  const div = html`<div style='max-width: 900px; overflow-x: auto; padding: 0px; margin: 0px;'></div>`;
+
+      const svg = d3.select(div)
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+
+   //sort data by MOTP_score from low to high
+    areaData.sort((a,b) => {return a.MOTP_Score - b.MOTP_Score})
+
+  var area = d3.area()
+        .x(d => xScale(d.MOTP_Score))
+        .y0(d=> yScale(0))
+        .y1(d=> yScale(d.count))
+        .curve(d3.curveBasis);//other options: d3.curveCardinal, d3.curveLinear
+
+  //add title for the chart
+  svg.append("text")
+       .attr("class", "title")
+       .attr("x",3)
+       .attr("y",-3)
+       .text("FY "+ selectedYear + " MOTP Score distribution");
+
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+
+  // text title for the y axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y",0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-size","11px")
+      .text("Number of teachers");
+
+    // text title for the x axis
+  svg.append("text")
+      .attr("y", height + (margin.bottom/2))
+      .attr("x", width/2)
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-size","11px")
+      .text("MOTP Score");
+
+    svg.append("path")
+        .datum(areaData)
+        .attr("class", "area")
+        .attr("d", area)
+        .attr("fill", "steelblue")
+        .style("fill-opacity", .8)
+		//.style("stroke", "#000")
+
+
+     return div
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+```javascript
+// Import d3 library
+d3 = require('d3@5');
+
+// Import radio input component
+import {radio} from "@jashkenas/inputs";
+
+// Define margin object
+margin = ({top: 30, right: 20, bottom: 30, left: 25});
+
+// Define width and height
+width = 600 - margin.left - margin.right;
+height = 400 - margin.top - margin.bottom;
+
+// HTML styles
+html`
+<style>
+svg {
+    border:1px solid #000;
+}
+body {
+  font-family: Arial;
+  font-size: 10px;
+}
+.axis line{
+    stroke: grey;
+    stroke-width: 0.5;
+    stroke-opacity: 0.2;
+}
+.title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    font-weight: bold;
+}
+</style>`
+
+// Load dataset from URL
+dataset=d3.csv("https://gist.githubusercontent.com/xianwu/1937c0c2eaeded47ffb0c0db82abab1c/raw/97dee4be0fd464e9746e8103101dbed4b0e2dc35/tchCmpntLvl.csv")
+
+// Filter data by selected year and MOTP score > 0
+filteredData = dataset.filter(d =>  d.FiscalYear == selectedYear & d.MOTP_Score >0)
+
+// STEP 1: Get distinct employeeID - MOTPscore combination into a new dataset
+distinctData = d3.nest()
+        .key(d=> d.Fake_EmpID + d.MOTP_Score)
+        .entries(filteredData)
+        .map(d=> d.key);
+
+newDistinct = {
+    var newDistinct=[];
+    distinctData.forEach(d => {
+        var el={};
+        el.Fake_EmpID = d.substring(0,7);
+        el.MOTP_Score = d.substring(7,11);
+        newDistinct.push(el);
+    })
+    return newDistinct;
+}
+
+// STEP 2: Roll up to get the count of teachers per MOTP score value
+areaData = d3.nest()
+        .key(d=> d.MOTP_Score)
+        .rollup(ids => {
+            return {
+                MOTP_Score: d3.set(ids.map(d => d.MOTP_Score)).values()[0],
+                count: ids.length
+            }
+        })
+        .entries(newDistinct)
+        .map(d=> d.value)
+
+// Define x and y scales
+xScale = d3.scaleLinear()
+        .domain([1,4])
+        .rangeRound([0, width])
+
+yScale = d3.scaleLinear()
+        .domain([0,d3.max(areaData.map(d => d.count))])
+        .range([height, 0])
+
+// Define x and y axes
+xAxis =d3.axisBottom(xScale)
+        .tickSize(-height)
+        .ticks(7)
+
+yAxis =d3.axisLeft(yScale)
+        .tickSize(-width)
+        .ticks(5)
+
+// Create radio input for selecting fiscal year
+viewof selectedYear = radio({
+  title: 'Fiscal Year',
+  description: 'Please select a fiscal year to filter data',
+  options: d3.set(dataset.map(d => d.FiscalYear)).values(),
+  value: '2019'
+})
+
+// Define myChart function
+myChart={
+  const div = html`<div style='max-width: 900px; overflow-x: auto; padding: 0px; margin: 0px;'></div>`;
+
+      const svg = d3.select(div)
+    .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    areaData.sort((a,b) => {return a.MOTP_Score - b.MOTP_Score})
+
+  var area = d3.area()
+        .x(d => xScale(d.MOTP_Score))
+        .y0(d=> yScale(0))
+        .y1(d=> yScale(d.count))
+        .curve(d3.curveBasis);
+
+  // Add title for the chart
+  svg.append("text")
+       .attr("class", "title")
+       .attr("x",3)
+       .attr("y",-3)
+       .text("FY "+ selectedYear + " MOTP Score distribution");
+
+    // Add x-axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    // Add y-axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .call(yAxis)
+
+  // Add title for the y axis
+  svg.append("text")
+      .attr("transform", "rotate(-90)")
+      .attr("y",0 - margin.left)
+      .attr("x",0 - (height / 2))
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-size","11px")
+      .text("Number of teachers");
+
+    // Add title for the x axis
+  svg.append("text")
+      .attr("y", height + (margin.bottom/2))
+      .attr("x", width/2)
+      .attr("dy", "1em")
+      .style("text-anchor", "middle")
+      .style("font-size","11px")
+      .text("MOTP Score");
+
+    // Add area path
+    svg.append("path")
+        .datum(areaData)
+        .attr("class", "area")
+        .attr("d", area)
+        .attr("fill", "steelblue")
+        .style("fill-opacity", .8)
+
+     return div
+}
+```

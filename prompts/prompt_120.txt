@@ -1,0 +1,337 @@
+Can you label this progra for me without changing its order?:
+
+viewof year = slider({
+  title: "Year",
+  min: 1990,
+  max: 2021,
+  step: 1,
+  value: 1
+})
+
+newWordCloud = createWordCloudSvg ( words )
+
+function createWordCloudSvg(words) {
+  var layout = d3cloud()
+    .size([width, width * 9/16])
+    .words(words)
+    .padding(cloudConfig.padding * cloudScale)
+    .rotate(rotateWord)
+    .font(baseFont)
+    .fontSize(fontSize)
+    .on('word', addWord);
+
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]); // width, height
+  const group = d3.select(svg).append('g')
+    //.attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+
+  function addWord (word) {
+    const text = group.append('text');
+    text.style('font-size', '2px')
+      .style('font-family', word.font)
+      .style('fill', wordColors(Math.random()))
+      .style('cursor', 'pointer')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+      .text(word.text)
+      //.transition()
+      //.duration(1500)
+      //.ease(d3.easeLinear)
+      .style('font-size', `${word.size}px`);
+    text.append('title').text(`${word.text} (${word.count})`); // toolitp
+  }
+
+  layout.start();
+  return svg;
+}
+
+ metrics = [
+"Count" ,
+"Citations"
+]
+
+ baseFont = function ( d ) {
+return fontFamilies [ ~ ~ ( Math . random ( ) * fontFamilies . length ) ]
+}
+
+ frequencyToSize = function ( frequency ) {
+return Math . sqrt ( frequency ) ;
+}
+
+ nlp = require ( 'compromise@11.14.3' )
+
+ words = toWords ( doc . nouns ( ) . out ( 'topk' ) ) // sort by frequency
+// .concat(toWords(doc.verbs().out('topk')))
+// .concat(toWords(doc.adverbs().out('topk')))
+// .concat(toWords(doc.adjectives().out('topk')))
+. sort ( ( a , b ) => b . freq - a . freq )
+. slice ( 0 , 100 )
+
+ text = html `<textarea rows="10" cols="60">
+${ vis_concepts_in_year . map ( d => d . Concept + "\n" ) }
+`
+
+ styles = html `<h2>Styles</h2>
+<link href="https://fonts.googleapis.com/css?family=Pacifico|Corben" rel="stylesheet">
+<br />
+<p style="font-family:Pacifico;">Pacifico</p>
+<p style="font-family:Corben;">Corben</p>
+`
+
+ function toWords ( terms ) {
+return terms . map ( term => ( {
+text : term . normal ,
+count : term . count ,
+freq : term . percent / 100
+} ) ) ;
+}
+
+ doc = nlp ( text . value ) . normalize ( {
+whitespace : true , // remove hyphens, newlines, and force one space between words
+punctuation : true , // remove commas, semicolons - but keep sentence-ending punctuation
+case : true , // keep only first-word, and 'entity' titlecasing
+numbers : true , // 'one'  →  '1'
+plurals : true , // 'eyes'  →  'eye'
+verbs : true , // 'swtiched' → 'switch'
+} )
+
+ fontSize = {
+let totalArea = 0 ;
+let minSize = frequencyToSize ( words [ words . length - 1 ] . freq ) ;
+let maxSize = frequencyToSize ( words [ 0 ] . freq ) ;
+for ( let w of words ) {
+let size = frequencyToSize ( w . freq ) ;
+let fontSize = cloudConfig . minFontSize +
+( cloudConfig . maxFontSize - cloudConfig . minFontSize ) * ( ( size - minSize ) / ( maxSize - minSize ) ) ;
+totalArea += ( w . text . length * 0.6 + cloudConfig . padding * 2 ) * fontSize * ( fontSize + cloudConfig . padding * 2 ) ;
+}
+let s = Math . sqrt ( width * cloudConfig . height / totalArea ) ;
+mutable cloudScale = s ;
+return function ( w ) {
+return s * ( cloudConfig . minFontSize +
+( cloudConfig . maxFontSize - cloudConfig . minFontSize ) * ( ( frequencyToSize ( w . freq ) - minSize ) / ( maxSize - minSize ) )
+) ;
+}
+}
+
+ rotateWord = function ( ) {
+return ~ ~ ( Math . random ( ) * 4 ) * 45 - 45 ;
+}
+
+ fontFamilies = [ 'Corben' , 'Pacifico' , 'impact' ]
+
+ mutable cloudScale = 1
+
+ d3cloud = require ( 'd3-cloud' )
+
+ wordColors = d3 . scaleSequential ( d3 . interpolateRainbow )
+
+ cloudConfig = ( {
+minFontSize : 40 ,
+maxFontSize : 160 ,
+height : width / 2 ,
+padding : 1 ,
+} )
+
+ import { rasterize , serialize } from '@mbostock/saving-svg'
+
+vis_paper_concepts = FileAttachment("32VIS - VIS_PAPER_CONCEPTS.csv").csv()
+
+vis_titles = [...new Map(vis_paper_concepts.map((m) => [m.Title, m])).values()]
+
+vis_concepts_in_year = vis_titles.filter(d => d.Year == year)
+//Filters them by year
+
+ vis_concepts = vis_titles_in_year vis_titles_in_year vis_titles_in_year . map ( d => d . Concept )
+
+ import { slider , radio } from "@jashkenas/inputs"
+
+ import { button } from "@jashkenas/inputs"
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Here's the program you provided with labeled comments explaining the different parts and functions without changing the order of the code:
+
+```javascript
+// Define a slider input for selecting the year
+viewof year = slider({
+  title: "Year",
+  min: 1990,
+  max: 2021,
+  step: 1,
+  value: 1
+});
+
+// Create a new word cloud SVG element using the words provided
+newWordCloud = createWordCloudSvg(words);
+
+// Function to create a word cloud SVG element
+function createWordCloudSvg(words) {
+  // Initialize d3-cloud layout with specified configuration
+  var layout = d3cloud()
+    .size([width, width * 9/16])  // Set the size of the layout
+    .words(words)  // Specify the words for the cloud
+    .padding(cloudConfig.padding * cloudScale)  // Set padding for words
+    .rotate(rotateWord)  // Define rotation for words
+    .font(baseFont)  // Define the base font
+    .fontSize(fontSize)  // Define the font size function
+    .on('word', addWord);  // Define the function to add words to the SVG
+
+  // Create an SVG element with the specified size
+  const svg = DOM.svg(layout.size()[0], layout.size()[1]);  // width, height
+
+  // Append a group element to the SVG to hold the word cloud
+  const group = d3.select(svg).append('g');
+
+  // Function to add a word to the word cloud
+  function addWord(word) {
+    // Create a text element for the word
+    const text = group.append('text');
+    // Set the style and attributes for the text element
+    text.style('font-size', '2px')
+      .style('font-family', word.font)
+      .style('fill', wordColors(Math.random()))  // Random word color
+      .style('cursor', 'pointer')
+      .attr('text-anchor', 'middle')
+      .attr('transform', `translate(${[word.x, word.y]})rotate(${word.rotate})`)
+      .text(word.text)
+      .style('font-size', `${word.size}px`);  // Set word size
+    // Add a tooltip to the text element
+    text.append('title').text(`${word.text} (${word.count})`);
+  }
+
+  // Start the word cloud layout
+  layout.start();
+  // Return the SVG element
+  return svg;
+}
+
+// Define an array of metrics
+metrics = [
+  "Count",
+  "Citations"
+];
+
+// Function to select a base font for a word
+baseFont = function(d) {
+  return fontFamilies[~~(Math.random() * fontFamilies.length)];
+};
+
+// Function to calculate size based on frequency
+frequencyToSize = function(frequency) {
+  return Math.sqrt(frequency);
+};
+
+// Import the Compromise NLP library
+nlp = require('compromise@11.14.3');
+
+// Process text into an array of words sorted by frequency
+words = toWords(doc.nouns().out('topk'))  // Get top nouns
+  // Uncomment these lines to include verbs, adverbs, and adjectives
+  // .concat(toWords(doc.verbs().out('topk')))
+  // .concat(toWords(doc.adverbs().out('topk')))
+  // .concat(toWords(doc.adjectives().out('topk')))
+  .sort((a, b) => b.freq - a.freq)  // Sort words by frequency
+  .slice(0, 100);  // Take the top 100 words
+
+// Define a textarea element displaying concepts in the selected year
+text = html`<textarea rows="10" cols="60">
+${vis_concepts_in_year.map(d => d.Concept + "\n")}
+`;
+
+// Define styles for font families and colors
+styles = html`<h2>Styles</h2>
+<link href="https://fonts.googleapis.com/css?family=Pacifico|Corben" rel="stylesheet">
+<br />
+<p style="font-family:Pacifico;">Pacifico</p>
+<p style="font-family:Corben;">Corben</p>`;
+
+// Function to convert terms to word objects
+function toWords(terms) {
+  return terms.map(term => ({
+    text: term.normal,
+    count: term.count,
+    freq: term.percent / 100,
+  }));
+}
+
+// Normalize and preprocess the text using the nlp library
+doc = nlp(text.value).normalize({
+  whitespace: true,  // Normalize whitespace
+  punctuation: true,  // Normalize punctuation
+  case: true,  // Normalize case
+  numbers: true,  // Normalize numbers
+  plurals: true,  // Normalize plurals
+  verbs: true,  // Normalize verbs
+});
+
+// Function to calculate font size for each word based on frequency
+fontSize = {
+  let totalArea = 0;
+  let minSize = frequencyToSize(words[words.length - 1].freq);
+  let maxSize = frequencyToSize(words[0].freq);
+  // Calculate the font size for each word
+  for (let w of words) {
+    let size = frequencyToSize(w.freq);
+    let fontSize = cloudConfig.minFontSize +
+      (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((size - minSize) / (maxSize - minSize));
+    totalArea += (w.text.length * 0.6 + cloudConfig.padding * 2) * fontSize * (fontSize + cloudConfig.padding * 2);
+  }
+  // Calculate the scale for the cloud
+  let s = Math.sqrt(width * cloudConfig.height / totalArea);
+  mutable cloudScale = s;
+  // Return a function to calculate font size for each word
+  return function(w) {
+    return s * (cloudConfig.minFontSize +
+      (cloudConfig.maxFontSize - cloudConfig.minFontSize) * ((frequencyToSize(w.freq) - minSize) / (maxSize - minSize))
+    );
+  };
+}
+
+// Function to randomly rotate words
+rotateWord = function() {
+  return ~~(Math.random() * 4) * 45 - 45;
+};
+
+// Define font families to be used for words
+fontFamilies = ['Corben', 'Pacifico', 'impact'];
+
+// Mutable variable for cloud scale
+mutable cloudScale = 1;
+
+// Import the D3 Cloud library
+d3cloud = require('d3-cloud');
+
+// Create a D3 color scale using a rainbow interpolation
+wordColors = d3.scaleSequential(d3.interpolateRainbow);
+
+// Define the configuration for the word cloud layout
+cloudConfig = {
+  minFontSize: 40,
+  maxFontSize: 160,
+  height: width / 2,
+  padding: 1,
+};
+
+// Import functions for saving SVGs
+import { rasterize, serialize } from '@mbostock/saving-svg';
+
+// Load the CSV file containing paper concepts
+vis_paper_concepts = FileAttachment("32VIS - VIS_PAPER_CONCEPTS.csv").csv();
+
+// Create a map of titles from the CSV file
+vis_titles = [...new Map(vis_paper_concepts.map((m) => [m.Title, m])).values()];
+
+// Filter concepts by the selected year
+vis_concepts_in_year = vis_titles.filter(d => d.Year == year);
+
+// Map the concepts from the filtered titles
+vis_concepts = vis_titles_in_year vis_titles_in_year vis_titles_in_year.map(d => d.Concept);
+
+// Import the slider and radio inputs from "@jashkenas/inputs"
+import { slider, radio } from "@jashkenas/inputs";
+
+// Import the button input from "@jashkenas/inputs"
+import { button } from "@jashkenas/inputs";
+```
+
+In this program, there is a slider input for selecting a year, which then filters a set of concepts for that year and creates a word cloud visualization using the `d3-cloud` library. The code includes functions for creating a word cloud SVG element, preprocessing the text data, and importing necessary libraries and data files. Let me know if you need any further assistance!
+

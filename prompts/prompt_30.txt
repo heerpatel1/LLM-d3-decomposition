@@ -1,0 +1,263 @@
+Can you label this program for me without changing its order?:
+
+FileAttachment("diversity_school.csv")
+
+data = d3.csvParse(
+  await FileAttachment("diversity_school.csv").text(),
+  d3.autoType
+)
+
+data.columns
+
+xDomain = _.uniqBy(data.map(d => d.category))
+
+state = [
+  "Alabama",
+  "Alaska",
+  "Arizona",
+  "Arkansas",
+  "California",
+  "Colorado",
+  "Connecticu",
+  "Delaware",
+  "Florida",
+  "Georgia",
+  "Hawaii",
+  "Idaho",
+  "Illinois",
+  "Indiana",
+  "Iowa",
+  "Kansas",
+  "Kentucky",
+  "Louisiana",
+  "Maine",
+  "Maryland",
+  "Massachusetts",
+  "Michigan",
+  "Minnesota",
+  "Mississippi",
+  "Missouri",
+  "Montana",
+  "Nebraska",
+  "Nevada",
+  "New Hampshire",
+  "New Jersey",
+  "New Mexico",
+  "New York",
+  "North Carolina",
+  "North Dakota",
+  "Ohio",
+  "Oklahoma",
+  "Oregon",
+  "Pennsylvania",
+  "Rhode Island",
+  "South Carolina",
+  "South Dakota",
+  "Tennessee",
+  "Texas",
+  "Utah",
+  "Vermont",
+  "Virginia",
+  "Washington",
+  "West Virginia",
+  "Wisconsin",
+  "Wyoming"
+]
+
+nested_data = d3
+  .nest()
+  .key(function(d) {
+    return d.state;
+  })
+
+  .key(function(d) {
+    return d.category;
+  })
+
+  .rollup(v => {
+    return d3.sum(v, d => d.enrollment);
+  })
+
+  .entries(data)
+
+viewof categories = select(xDomain)
+
+basic_map = {
+  const svg = d3
+    .create("svg")
+    .attr("width", 6000)
+    .attr("height", 600);
+  // Paths
+  const paths = svg
+    .selectAll("g")
+    .data(topojson.feature(us, us.objects.states).features)
+    .join("path")
+    .style("stroke", "white")
+    .style("fill", d => {
+      if (state.includes(d.properties.name)) {
+        var color_value = nested_data
+          .find(state => state.key == d.properties.name)
+          .values.find(x => x.key == categories).value;
+      }
+      return color_scale(color_value); // Any type of scale
+    })
+    .attr("d", d => path(d));
+
+  return svg.node();
+}
+
+x_scale = d3
+  .scaleBand()
+  .domain("state")
+  .range([0, width])
+
+height = 1000
+
+y_scale = d3
+  .scaleBand()
+  .domain("category")
+  .range([height, 0])
+
+import { legend } from "@d3/color-legend"
+
+path = d3.geoPath()
+
+import { us } from '@d3/bubble-map'
+
+d3 = require("d3@5")
+
+_ = require("lodash")
+
+d = require("d3-array@^2.2")
+
+color = d3.scaleQuantize([1, 10], d3.schemeBlues[9])
+
+color_scale = d3.scaleSequential(
+  d3.extent(data, d => d.enrollment),
+  d3.interpolateBlues
+)
+
+topojson = require("topojson-client@3")
+
+import { select } from "@jashkenas/inputs"
+
+/////////////////////////////////////////////////////////////////
+Here is the labeled version of your program without changing its order:
+
+```javascript
+// Load the CSV file attachment
+FileAttachment("diversity_school.csv");
+
+// Parse the CSV data and auto-type the columns
+data = d3.csvParse(
+  await FileAttachment("diversity_school.csv").text(),
+  d3.autoType
+);
+
+// Display the columns of the parsed data
+data.columns;
+
+// Extract unique categories from the data for the x-axis domain
+xDomain = _.uniqBy(data.map(d => d.category));
+
+// List of states for reference
+state = [
+  "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticu",
+  "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa",
+  "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan",
+  "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire",
+  "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma",
+  "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee",
+  "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
+];
+
+// Nest the data by state and then by category, and roll up the enrollment values
+nested_data = d3
+  .nest()
+  .key(function(d) {
+    return d.state;
+  })
+  .key(function(d) {
+    return d.category;
+  })
+  .rollup(v => {
+    return d3.sum(v, d => d.enrollment);
+  })
+  .entries(data);
+
+// Create a dropdown to select categories
+viewof categories = select(xDomain);
+
+// Create the basic map visualization
+basic_map = {
+  const svg = d3
+    .create("svg")
+    .attr("width", 6000)
+    .attr("height", 600);
+
+  // Draw the paths for the states
+  const paths = svg
+    .selectAll("g")
+    .data(topojson.feature(us, us.objects.states).features)
+    .join("path")
+    .style("stroke", "white")
+    .style("fill", d => {
+      if (state.includes(d.properties.name)) {
+        var color_value = nested_data
+          .find(state => state.key == d.properties.name)
+          .values.find(x => x.key == categories).value;
+      }
+      return color_scale(color_value); // Any type of scale
+    })
+    .attr("d", d => path(d));
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Define the x-axis scale for states
+x_scale = d3
+  .scaleBand()
+  .domain("state")
+  .range([0, width]);
+
+// Define the height for the map
+height = 1000;
+
+// Define the y-axis scale for categories
+y_scale = d3
+  .scaleBand()
+  .domain("category")
+  .range([height, 0]);
+
+// Import the legend for the color scale
+import { legend } from "@d3/color-legend";
+
+// Define the path generator for geographical shapes
+path = d3.geoPath();
+
+// Import the US map data
+import { us } from '@d3/bubble-map';
+
+// Import necessary D3 modules
+d3 = require("d3@5");
+_ = require("lodash");
+d = require("d3-array@^2.2");
+
+// Define a color scale for the map
+color = d3.scaleQuantize([1, 10], d3.schemeBlues[9]);
+
+// Define a color scale for the map based on enrollment data
+color_scale = d3.scaleSequential(
+  d3.extent(data, d => d.enrollment),
+  d3.interpolateBlues
+);
+
+// Import the TopoJSON client
+topojson = require("topojson-client@3");
+
+// Import the select input component
+import { select } from "@jashkenas/inputs";
+```
+
+In this program, data is loaded from a CSV file, parsed, and processed to create a nested structure for state and category. The code includes setup for a basic map visualization with D3, including scales, paths, and color encoding based on enrollment data. It also includes various imports and configurations for visualizing the data effectively.

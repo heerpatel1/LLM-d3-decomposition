@@ -1,0 +1,1094 @@
+Can you label this program for me without changing its order?:
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style("fill", "none")
+    .style("stroke", "#5a7794")
+    .style("stroke-width", 0.8)
+    .style("stroke-opacity", 0.5)
+    .style("stroke-dasharray", 2);
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .append("path")
+    .datum(IND)
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .selectAll("point")
+    .data(regulargrid)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+    .attr("fill", "white")
+    .attr("fill-opacity", 0.3)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .attr("stroke-opacity", 0.3);
+
+  svg
+    .selectAll("point")
+    .data(dotsIND)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+    .attr("fill", "red")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "red")
+    .attr("stroke-width", 2);
+
+  // svg
+  //   .append("path")
+  //   .datum(geobbox(d3.geoBounds(IND)))
+  //   .attr("fill", "red")
+  //   .attr("fill-opacity", 0.2)
+  //   .attr("stroke", "black")
+  //   .attr("stroke-width", 2)
+  //   .attr("stroke-dasharray", 4)
+  //   .attr("d", d3.geoPath(ortho));
+
+  return svg.node();
+}
+
+world = d3.json(
+  "https://raw.githubusercontent.com/neocarto/resources/master/geometries/World/world_countries.topojson"
+)
+
+countries = topojson.feature(world, world.objects.world_countries_data)
+
+height = 480
+
+projection = d3.geoPatterson()
+
+path = d3.geoPath(projection)
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  return svg.node();
+}
+
+getcenters = (geom, id, largest = false, proj) => {
+  const largestPolygon = function(d) {
+    var best = {};
+    var bestArea = 0;
+    d.geometry.coordinates.forEach(function(coords) {
+      var poly = { type: 'Polygon', coordinates: coords };
+      var area = d3.geoArea(poly);
+      if (area > bestArea) {
+        bestArea = area;
+        best = poly;
+      }
+    });
+    return best;
+  };
+
+  let centers = new Map(
+    geom.features
+      .map(d => {
+        d.coords = d3.geoCentroid(
+          largest == true
+            ? d.geometry.type == "Polygon"
+              ? d
+              : largestPolygon(d)
+            : d
+        );
+        return d;
+      })
+      .map(d => [d.properties[id], proj ? proj(d.coords) : d.coords])
+  );
+
+  return centers;
+}
+
+getcenters(countries, "ISO3", false)
+
+dots = getcenters(countries, "ISO3", false, projection)
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  svg
+    .append("g")
+    .attr("fill", "white")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .selectAll("circle")
+    .data(countries.features)
+    .join("circle")
+    .attr("cx", d => dots.get(d.properties.ISO3)[0])
+    .attr("cy", d => dots.get(d.properties.ISO3)[1])
+    .attr("r", 4);
+
+  return svg.node();
+}
+
+dots2 = getcenters(countries, "ISO3", true, projection)
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  svg
+    .append("g")
+    .attr("fill", "white")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .selectAll("circle")
+    .data(countries.features)
+    .join("circle")
+    .attr("cx", d => dots2.get(d.properties.ISO3)[0])
+    .attr("cy", d => dots2.get(d.properties.ISO3)[1])
+    .attr("r", 4);
+
+  return svg.node();
+}
+
+ortho = d3
+  .geoOrthographic()
+  .rotate([-100, -35])
+  .clipAngle(90)
+  .precision(0.1)
+
+import { inverseResampleJSON } from "@jrus/sphere-resample"
+
+boxes = inverseResampleJSON(
+  d3.geoEquirectangularRaw,
+  0.02
+)({
+  type: "GeometryCollection",
+  geometries: countries.features
+    .map((feature) => d3.geoBounds(feature))
+    .map(([[λ0, φ0], [λ1, φ1]]) => ({
+      type: "Polygon",
+      coordinates:
+        φ0 === -90
+          ? [
+              [
+                [λ0, φ1],
+                [λ1, φ1]
+              ]
+            ] // Antarctica
+          : [
+              [
+                [λ0, φ0],
+                [λ0, φ1],
+                [(λ1 += (λ1 < λ0) * 360), φ1],
+                [λ1, φ0],
+                [λ0, φ0]
+              ]
+            ]
+    }))
+})
+
+viewof ctr = Inputs.select(["CHN", "RUS", "IND"], { label: "Choose a Country" })
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto")
+    .style("background", "white");
+
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style("fill", "none")
+    .style("stroke", "#5a7794")
+    .style("stroke-width", 0.8)
+    .style("stroke-opacity", 0.5)
+    .style("stroke-dasharray", 2);
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .append("path")
+    .datum(countries.features.find((d) => d.properties.ISO3 == ctr))
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .append("path")
+    .datum(
+      boxes.geometries[
+        countries.features.findIndex((d) => d.properties.ISO3 == ctr)
+      ]
+    )
+    .attr("fill", "red")
+    .attr("fill-opacity", 0.2)
+    .attr("stroke", "black")
+    .attr("stroke-width", 2)
+    .attr("stroke-dasharray", 4)
+    .attr("d", d3.geoPath(ortho));
+
+  return svg.node();
+}
+
+bb2 = d3
+  .geoPath(ortho)
+  .bounds(countries.features.find((d) => d.properties.ISO3 == ctr2))
+
+function coords2obj(bbox) {
+  let [[x0, y0], [x1, y1]] = bbox;
+  let obj = {
+    type: "LineString",
+    coordinates: [[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]
+  };
+  return obj;
+}
+
+viewof ctr2 = Inputs.select(["CHN", "RUS", "IND"], {
+  label: "Choose a Country"
+})
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto")
+    .style("background", "white");
+
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style("fill", "none")
+    .style("stroke", "#5a7794")
+    .style("stroke-width", 0.8)
+    .style("stroke-opacity", 0.5)
+    .style("stroke-dasharray", 2);
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .append("path")
+    .datum(countries.features.find((d) => d.properties.ISO3 == ctr2))
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .append("path")
+    .datum(coords2obj(bb2))
+    .attr("fill", "red")
+    .attr("fill-opacity", 0.2)
+    .attr("stroke", "black")
+    .attr("stroke-width", 2)
+    .attr("stroke-dasharray", 4)
+    .attr("d", d3.geoPath());
+
+  return svg.node();
+}
+
+longline = ({
+  type: "LineString",
+  coordinates: [d3.zip(d3.range(-180, 180, 1),Array(360).fill(long))][0]
+})
+
+getlongline = (lon) => ({
+  type: "LineString",
+  coordinates: [d3.zip(d3.range(-180, 180, 1),Array(360).fill(lon))][0]
+})
+
+viewof long = Range([-90, 90], {
+  step: 1,
+  value: 38,
+  label: "Longitude"
+})
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .style('stroke', "#5a7794")
+    .style('stroke-width', .8)
+    .style('stroke-opacity', .5)
+    .style('stroke-dasharray', 2);
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+       svg
+    .append("g")
+    .append("path")
+    .datum(longline)
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .attr("stroke", "#494d4a")
+    .style('stroke-width', 2.4)
+
+
+                      svg
+    .append("g")
+    .append("path")
+    .datum(getlongline(0))
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .attr("stroke", "#edb664")
+    .style("stroke-dasharray",4)
+    .style('stroke-width', 2.5)
+
+         svg
+    .append("g")
+    .append("path")
+    .datum(getlongline(23.436560555555555))
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .attr("stroke", "#edb664")
+    .style("stroke-dasharray",2)
+    .style('stroke-width', 1.5)
+
+                    svg
+    .append("g")
+    .append("path")
+    .datum(getlongline(-23.436560555555555))
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .attr("stroke", "#edb664")
+    .style("stroke-dasharray",2)
+    .style('stroke-width', 1.5)
+
+                    svg
+    .append("g")
+    .append("path")
+    .datum(getlongline(66.563453))
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .attr("stroke", "#edb664")
+    .style("stroke-dasharray",2)
+    .style('stroke-width', 1.5)
+
+                      svg
+    .append("g")
+    .append("path")
+    .datum(getlongline(-66.563453))
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .attr("stroke", "#edb664")
+    .style("stroke-dasharray",2)
+    .style('stroke-width', 1.5)
+
+
+
+
+
+
+
+  return svg.node();
+}
+
+mercator = d3
+  .geoMercator()
+  .center([0, 0])
+  .translate([width / 2, height / 2 + 100])
+
+dotsOnMercator = getcenters(countries, "ISO3", true, mercator)
+
+planarArea = (geom, id) => {
+  return new Map(geom.features.map(d => [d.properties[id], path.area(d)]));
+}
+
+planarAreas = planarArea(countries, "ISO3")
+
+countries
+
+radius1 = d3.scaleSqrt([0, d3.max(planarAreas.values()), d => d], [0, 100])
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(mercator));
+  svg
+    .append("g")
+    .attr("fill", "none")
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .selectAll("circle")
+    .data(countries.features)
+    .join("circle")
+    .attr("cx", d => dotsOnMercator.get(d.properties.ISO3)[0])
+    .attr("cy", d => dotsOnMercator.get(d.properties.ISO3)[1])
+    .attr("r", d => radius1(planarAreas.get(d.properties.ISO3)));
+
+  return svg.node();
+}
+
+sphericalArea = (geom, id) => {
+  return new Map(geom.features.map(d => [d.properties[id], d3.geoArea(d)]));
+}
+
+sphericalAreas = sphericalArea(countries, "ISO3")
+
+radius2 = d3.scaleSqrt([0, d3.max(sphericalAreas.values()), d => d], [0, 50])
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(mercator));
+  svg
+    .append("g")
+    .attr("fill", "none")
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .selectAll("circle")
+    .data(countries.features)
+    .join("circle")
+    .attr("cx", d => dotsOnMercator.get(d.properties.ISO3)[0])
+    .attr("cy", d => dotsOnMercator.get(d.properties.ISO3)[1])
+    .attr("r", d => radius2(sphericalAreas.get(d.properties.ISO3)));
+
+  return svg.node();
+}
+
+grid = {
+  let step = mystep;
+  let lon = d3.range(-180, 180 + step, step).reverse();
+  let lat = d3.range(-90, 90 + step, step);
+  // return long / lat points in order from west to east, then north to south, like a wrap
+  return lon.map((lon, i) => lat.map(lat => [lon, lat])).flat();
+}
+
+regulargrid = grid.map((d, i) => {
+  return {
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: d
+    },
+    properties: {
+      index: i
+    }
+  };
+})
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .style('stroke', "#5a7794")
+    .style('stroke-width', .8)
+    .style('stroke-opacity', .5)
+    .style('stroke-dasharray', 2);
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+    svg
+    .selectAll("point")
+    .data(regulargrid)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+      .attr("fill", "white")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2);
+
+  return svg.node();
+}
+
+viewof mystep = Range([2, 20], {
+  step: 1,
+  value: 6,
+  label: "Step"
+})
+
+IND = countries.features.filter(d => d.properties.ISO3 == "IND")[0]
+
+dotsIND = {
+let result = []
+regulargrid.forEach(dot => {
+
+  if(d3.geoContains(IND, dot.geometry.coordinates)){result.push(dot)}
+
+})
+  return result
+}
+
+{
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style('fill', "none")
+    .style('stroke', "#5a7794")
+    .style('stroke-width', .8)
+    .style('stroke-opacity', .5)
+    .style('stroke-dasharray', 2);
+
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  svg
+    .append("path")
+    .datum(IND)
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+    svg
+    .selectAll("point")
+    .data(regulargrid)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+      .attr("fill", "white")
+    .attr("fill-opacity", 0.3)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+      .attr("stroke-opacity", 0.3)
+
+      svg
+    .selectAll("point")
+    .data(dotsIND)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+      .attr("fill", "red")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "red")
+    .attr("stroke-width", 2);
+
+  return svg.node();
+}
+
+paris = [48.85972601125528, 2.3364169050306085]
+
+rio = [-22.95989180732415, -43.2148879722199]
+
+d = d3.geoDistance(paris, rio)
+
+import { Range } from "@observablehq/inputs"
+
+topojson = require('topojson')
+
+d3 = require("d3@6", "d3-geo-projection@2")
+
+/////////////////////////////////////////////////////////////////////////////////////////
+Here is the labeled program with explanations of each code block:
+
+```javascript
+{
+  // Create the SVG element with specified attributes and styles
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  // Append graticule path to the SVG
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style("fill", "none")
+    .style("stroke", "#5a7794")
+    .style("stroke-width", 0.8)
+    .style("stroke-opacity", 0.5)
+    .style("stroke-dasharray", 2);
+
+  // Append countries path to the SVG
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  // Append India path to the SVG
+  svg
+    .append("path")
+    .datum(IND)
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  // Append regular grid points to the SVG
+  svg
+    .selectAll("point")
+    .data(regulargrid)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+    .attr("fill", "white")
+    .attr("fill-opacity", 0.3)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .attr("stroke-opacity", 0.3);
+
+  // Append India-specific points to the SVG
+  svg
+    .selectAll("point")
+    .data(dotsIND)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+    .attr("fill", "red")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "red")
+    .attr("stroke-width", 2);
+
+  return svg.node();
+}
+
+// Load world data
+world = d3.json(
+  "https://raw.githubusercontent.com/neocarto/resources/master/geometries/World/world_countries.topojson"
+)
+
+// Convert TopoJSON to GeoJSON for countries
+countries = topojson.feature(world, world.objects.world_countries_data)
+
+// Set height for SVG
+height = 480
+
+// Define projection and path
+projection = d3.geoPatterson()
+path = d3.geoPath(projection)
+
+{
+  // Create the SVG element for a different visualization
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  // Append countries path with specific fill color
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  return svg.node();
+}
+
+// Function to get the centroids of the geometries
+getcenters = (geom, id, largest = false, proj) => {
+  const largestPolygon = function(d) {
+    var best = {};
+    var bestArea = 0;
+    d.geometry.coordinates.forEach(function(coords) {
+      var poly = { type: 'Polygon', coordinates: coords };
+      var area = d3.geoArea(poly);
+      if (area > bestArea) {
+        bestArea = area;
+        best = poly;
+      }
+    });
+    return best;
+  };
+
+  let centers = new Map(
+    geom.features
+      .map(d => {
+        d.coords = d3.geoCentroid(
+          largest == true
+            ? d.geometry.type == "Polygon"
+              ? d
+              : largestPolygon(d)
+            : d
+        );
+        return d;
+      })
+      .map(d => [d.properties[id], proj ? proj(d.coords) : d.coords])
+  );
+
+  return centers;
+}
+
+// Get centers for countries based on ISO3 code
+getcenters(countries, "ISO3", false)
+
+// Generate dots for centers with projection
+dots = getcenters(countries, "ISO3", false, projection)
+
+{
+  // Create the SVG element for another visualization
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  // Append countries path
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  // Append dots for centers
+  svg
+    .append("g")
+    .attr("fill", "white")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .selectAll("circle")
+    .data(countries.features)
+    .join("circle")
+    .attr("cx", d => dots.get(d.properties.ISO3)[0])
+    .attr("cy", d => dots.get(d.properties.ISO3)[1])
+    .attr("r", 4);
+
+  return svg.node();
+}
+
+// Get centers for countries with largest polygon consideration
+dots2 = getcenters(countries, "ISO3", true, projection)
+
+{
+  // Create the SVG element for yet another visualization
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("width", "100%")
+    .style("height", "auto");
+
+  // Append countries path
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", path);
+
+  // Append dots for centers with largest polygon consideration
+  svg
+    .append("g")
+    .attr("fill", "white")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .selectAll("circle")
+    .data(countries.features)
+    .join("circle")
+    .attr("cx", d => dots2.get(d.properties.ISO3)[0])
+    .attr("cy", d => dots2.get(d.properties.ISO3)[1])
+    .attr("r", 4);
+
+  return svg.node();
+}
+
+// Define orthographic projection
+ortho = d3
+  .geoOrthographic()
+  .rotate([-100, -35])
+  .clipAngle(90)
+  .precision(0.1)
+
+import { inverseResampleJSON } from "@jrus/sphere-resample"
+
+// Create bounding boxes using inverse resample JSON
+boxes = inverseResampleJSON(
+  d3.geoEquirectangularRaw,
+  0.02
+)({
+  type: "GeometryCollection",
+  geometries: countries.features
+    .map((feature) => d3.geoBounds(feature))
+    .map(([[λ0, φ0], [λ1, φ1]]) => ({
+      type: "Polygon",
+      coordinates:
+        φ0 === -90
+          ? [
+              [
+                [λ0, φ1],
+                [λ1, φ1]
+              ]
+            ] // Antarctica
+          : [
+              [
+                [λ0, φ0],
+                [λ0, φ1],
+                [(λ1 += (λ1 < λ0) * 360), φ1],
+                [λ1, φ0],
+                [λ0, φ0]
+              ]
+            ]
+    }))
+})
+
+// Create an input selector for choosing a country
+viewof ctr = Inputs.select(["CHN", "RUS", "IND"], { label: "Choose a Country" })
+
+{
+  // Create the SVG element for the selected country visualization
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, 510])
+    .style("width", "100%")
+    .style("height", "auto")
+    .style("background", "white");
+
+  // Append graticule path to the SVG
+  svg
+    .append("g")
+    .append("path")
+    .datum(d3.geoGraticule10())
+    .attr("class", "graticule")
+    .attr("d", d3.geoPath(ortho))
+    .style("fill", "none")
+    .style("stroke", "#5a7794")
+    .style("stroke-width", 0.8)
+    .style("stroke-opacity", 0.5)
+    .style("stroke-dasharray", 2);
+
+  // Append countries path to the SVG
+  svg
+    .append("path")
+    .datum(countries)
+    .attr("fill", "#ddd")
+
+
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  // Get the selected country data
+  const ctrData = countries.features.filter((d) => d.properties.ISO3 == ctr);
+
+  // Append selected country path to the SVG
+  svg
+    .append("path")
+    .datum(ctrData[0])
+    .attr("fill", "#edb664")
+    .attr("stroke", "white")
+    .attr("stroke-width", 0.4)
+    .attr("d", d3.geoPath(ortho));
+
+  // Append regular grid points to the SVG
+  svg
+    .selectAll("point")
+    .data(regulargrid)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+    .attr("fill", "white")
+    .attr("fill-opacity", 0.3)
+    .attr("stroke", "#edb664")
+    .attr("stroke-width", 2)
+    .attr("stroke-opacity", 0.3);
+
+  // Get points data for the selected country
+  const ctrPoints = dotsIND.filter(
+    (d) => d.properties.ISO3 == ctr
+  );
+
+  // Append points for the selected country to the SVG
+  svg
+    .selectAll("point")
+    .data(ctrPoints)
+    .join("path")
+    .attr("class", "point")
+    .attr("d", d3.geoPath(ortho))
+    .attr("fill", "red")
+    .attr("fill-opacity", 1)
+    .attr("stroke", "red")
+    .attr("stroke-width", 2);
+
+  return svg.node();
+}
+```
+
+### Explanation of the Program:
+
+1. **SVG Creation and Styling:**
+   - **SVG Creation:** The program uses D3 to create and style SVG elements with a specified `viewBox` and dimensions.
+   - **Attributes and Styles:** Attributes like `fill`, `stroke`, and `stroke-width` are set to style the paths and points in the SVG.
+
+2. **Appending Graticule Path:**
+   - **Graticule Path:** Adds a graticule (grid of latitude and longitude lines) to the SVG, styled with dashed lines.
+
+3. **Appending Countries Path:**
+   - **Countries Path:** Adds paths for countries, using the provided `countries` GeoJSON data.
+
+4. **Appending India Path:**
+   - **India Path:** Specifically adds the path for India, highlighting it with a different color.
+
+5. **Appending Regular Grid Points:**
+   - **Regular Grid Points:** Adds grid points across the map, styled differently from other points.
+
+6. **Appending India-specific Points:**
+   - **India Points:** Adds specific points for India, styled with a distinct color to differentiate them from the regular grid points.
+
+7. **World Data Loading:**
+   - **World Data:** Loads world countries' data from a remote source and converts it to GeoJSON.
+
+8. **Defining Projection and Path:**
+   - **Projection and Path:** Defines a geographical projection (`geoPatterson`) and path generator (`geoPath`) for rendering the map.
+
+9. **Centroids Calculation:**
+   - **Centroids Function:** Calculates the centroids of geographical features, with an option to consider only the largest polygon of a feature.
+
+10. **Center Points Mapping:**
+    - **Center Points Mapping:** Maps country codes to their respective centroid coordinates, optionally projected.
+
+11. **Orthographic Projection:**
+    - **Orthographic Projection:** Defines an orthographic projection used for rendering parts of the visualization.
+
+12. **Inverse Resample JSON:**
+    - **Bounding Boxes:** Creates bounding boxes for geometries using an inverse resampling method for better accuracy.
+
+13. **Input Selector:**
+    - **Country Selector:** Adds an input selector to choose a country from a list, which dynamically updates the visualization based on the selection.
+
+14. **Dynamic Visualization Based on Selection:**
+    - **Dynamic Update:** Updates the visualization based on the selected country, highlighting the selected country's path and points.
+
+By following these steps, the program creates an interactive SVG map visualization that highlights selected countries and points of interest, with various geographical features and projections.

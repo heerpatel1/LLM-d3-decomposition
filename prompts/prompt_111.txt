@@ -1,0 +1,291 @@
+Can you label this program for me without separating it?:
+
+viewof randomize = Inputs.button("🎲 Randomize")
+
+viewof distribution = Inputs.radio(Object.keys(distributions), {
+  value: Object.keys(distributions)[1],
+  label: "Distribution of points"
+})
+
+viewof showVoronoi = Inputs.toggle({ label: "Show Voronoi cells", value: true })
+
+viewof showPts = Inputs.toggle({ label: "Show Points", value: true })
+
+viewof numOfPoints = Inputs.range([10, 500], {
+  value: 300,
+  label: "Points",
+  step: 10
+})
+
+chart = {
+const xScale = d3 . scaleLinear ( ) . domain ( [ 0 , 1 ] ) . range ( [ 0 , width ] ) ;
+const yScale = d3 . scaleLinear ( ) . domain ( [ 0 , 1 ] ) . range ( [ 0 , height ] ) ;
+const rScale = d3 . scaleLinear ( ) . domain ( [ 0 , 1 ] ) . range ( [ 2 , 5 ] ) ;
+
+const svg = d3 . create ( "svg" ) . attr ( "width" , width ) . attr ( "height" , height ) ;
+
+if ( showPts ) {
+svg
+. selectAll ( "circle" )
+. data ( pts )
+. join ( "circle" )
+. attr ( "class" , "dot" )
+. attr ( "cx" , ( d ) => xScale ( d [ 0 ] ) )
+. attr ( "cy" , ( d ) => yScale ( d [ 1 ] ) )
+. attr ( "r" , ( d ) => rScale ( d [ 2 ] ) ) ;
+}
+
+const delaunay = d3 . Delaunay . from (
+pts ,
+( d ) => xScale ( d [ 0 ] ) ,
+( d ) => yScale ( d [ 1 ] )
+) ;
+
+const voronoi = delaunay . voronoi ( ) ;
+voronoi . xmax = width ;
+voronoi . ymax = height ;
+
+svg
+. append ( "g" )
+. selectAll ( ".voronoi" )
+. data ( pts )
+. join ( "path" )
+. attr ( "class" , "voronoi" )
+. attr ( "d" , ( d , i ) => voronoi . renderCell ( i ) )
+. on ( "mouseenter" , onMouseEnter )
+. on ( "mouseleave" , onMouseLeave ) ;
+
+function onMouseEnter ( _ , d ) {
+showPts &&
+svg
+. append ( "circle" )
+. attr ( "class" , "dot--marker" )
+. attr ( "cx" , xScale ( d [ 0 ] ) )
+. attr ( "cy" , yScale ( d [ 1 ] ) )
+. attr ( "r" , rScale ( d [ 2 ] ) ) ;
+}
+function onMouseLeave ( ) {
+svg . selectAll ( ".dot--marker" ) . remove ( ) ;
+}
+
+return svg . node ( ) ;
+}
+
+ htl . html `<style>
+.dot {
+  stroke: white;
+  fill: hsl(197.4, 60%, 30%);
+  stroke-width: 1px;
+}
+
+.dot--marker {
+  fill: hsl(30, 75%, 50%);
+  stroke: white;
+  pointer-events: none;
+}
+
+.voronoi {
+  stroke: ${ showVoronoi ? "hsl(197.4, 71.4%, 72.5%)" : "none" };
+  fill: ${ showVoronoi ? "hsla(197.4, 71.4%, 72.5%, 0.05)" : "transparent" };
+  stroke-width: 1px;
+}
+
+.voronoi:hover {
+  fill: ${ showVoronoi ? "hsla(30, 75%, 50%, 0.1)" : "transparent" };
+}
+
+</style>`
+
+ distributions = ( {
+"Inside a rectangle" : ( count ) =>
+math
+. linspace ( count , true )
+. map ( ( ) => [ random . value ( ) , random . value ( ) , random . value ( ) ] ) ,
+"Inside a circle" : ( count ) =>
+math . linspace ( count , true ) . map ( ( ) => {
+const [ u , v ] = random . insideCircle ( ) ;
+
+return [ u * aspectRatio * 0.5 + 0.5 , v * 0.5 + 0.5 , random . value ( ) ] ;
+} ) ,
+"On a circle" : ( count ) =>
+math . linspace ( count , true ) . map ( ( ) => {
+const [ u , v ] = random . onCircle ( ) ;
+
+return [ u * aspectRatio * 0.5 + 0.5 , v * 0.5 + 0.5 , random . value ( ) ] ;
+} )
+} )
+
+ pts = {
+randomize ;
+const dataGenerator = distributions [ distribution ] ;
+return dataGenerator ( numOfPoints ) ;
+}
+
+ height = width * aspectRatio
+
+ aspectRatio = 9 / 16
+
+ import { CSRandom as random , CSMath as math } from "@saneef/canvas-sketch-util"
+
+//////////////////////////////////////////////////////////////////////////////////////////
+Here's the program labeled with its key components:
+
+1. **User Inputs**:
+    - **Randomize Button**:
+        ```javascript
+        viewof randomize = Inputs.button("🎲 Randomize")
+        ```
+
+    - **Distribution Selection**:
+        ```javascript
+        viewof distribution = Inputs.radio(Object.keys(distributions), {
+          value: Object.keys(distributions)[1],
+          label: "Distribution of points"
+        })
+        ```
+
+    - **Voronoi Cells Toggle**:
+        ```javascript
+        viewof showVoronoi = Inputs.toggle({ label: "Show Voronoi cells", value: true })
+        ```
+
+    - **Points Toggle**:
+        ```javascript
+        viewof showPts = Inputs.toggle({ label: "Show Points", value: true })
+        ```
+
+    - **Number of Points**:
+        ```javascript
+        viewof numOfPoints = Inputs.range([10, 500], {
+          value: 300,
+          label: "Points",
+          step: 10
+        })
+        ```
+
+2. **SVG Chart Creation**:
+    ```javascript
+    chart = {
+    const xScale = d3 . scaleLinear ( ) . domain ( [ 0 , 1 ] ) . range ( [ 0 , width ] ) ;
+    const yScale = d3 . scaleLinear ( ) . domain ( [ 0 , 1 ] ) . range ( [ 0 , height ] ) ;
+    const rScale = d3 . scaleLinear ( ) . domain ( [ 0 , 1 ] ) . range ( [ 2 , 5 ] ) ;
+
+    const svg = d3 . create ( "svg" ) . attr ( "width" , width ) . attr ( "height" , height ) ;
+
+    if ( showPts ) {
+    svg
+    . selectAll ( "circle" )
+    . data ( pts )
+    . join ( "circle" )
+    . attr ( "class" , "dot" )
+    . attr ( "cx" , ( d ) => xScale ( d [ 0 ] ) )
+    . attr ( "cy" , ( d ) => yScale ( d [ 1 ] ) )
+    . attr ( "r" , ( d ) => rScale ( d [ 2 ] ) ) ;
+    }
+
+    const delaunay = d3 . Delaunay . from (
+    pts ,
+    ( d ) => xScale ( d [ 0 ] ) ,
+    ( d ) => yScale ( d [ 1 ] )
+    ) ;
+
+    const voronoi = delaunay . voronoi ( ) ;
+    voronoi . xmax = width ;
+    voronoi . ymax = height ;
+
+    svg
+    . append ( "g" )
+    . selectAll ( ".voronoi" )
+    . data ( pts )
+    . join ( "path" )
+    . attr ( "class" , "voronoi" )
+    . attr ( "d" , ( d , i ) => voronoi . renderCell ( i ) )
+    . on ( "mouseenter" , onMouseEnter )
+    . on ( "mouseleave" , onMouseLeave ) ;
+
+    function onMouseEnter ( _ , d ) {
+    showPts &&
+    svg
+    . append ( "circle" )
+    . attr ( "class" , "dot--marker" )
+    . attr ( "cx" , xScale ( d [ 0 ] ) )
+    . attr ( "cy" , yScale ( d [ 1 ] ) )
+    . attr ( "r" , rScale ( d [ 2 ] ) ) ;
+    }
+    function onMouseLeave ( ) {
+    svg . selectAll ( ".dot--marker" ) . remove ( ) ;
+    }
+
+    return svg . node ( ) ;
+    }
+    ```
+
+3. **CSS Styling**:
+    ```javascript
+    htl . html `<style>
+    .dot {
+      stroke: white;
+      fill: hsl(197.4, 60%, 30%);
+      stroke-width: 1px;
+    }
+
+    .dot--marker {
+      fill: hsl(30, 75%, 50%);
+      stroke: white;
+      pointer-events: none;
+    }
+
+    .voronoi {
+      stroke: ${ showVoronoi ? "hsl(197.4, 71.4%, 72.5%)" : "none" };
+      fill: ${ showVoronoi ? "hsla(197.4, 71.4%, 72.5%, 0.05)" : "transparent" };
+      stroke-width: 1px;
+    }
+
+    .voronoi:hover {
+      fill: ${ showVoronoi ? "hsla(30, 75%, 50%, 0.1)" : "transparent" };
+    }
+
+    </style>`
+    ```
+
+4. **Data Distributions**:
+    ```javascript
+    distributions = ( {
+    "Inside a rectangle" : ( count ) =>
+    math
+    . linspace ( count , true )
+    . map ( ( ) => [ random . value ( ) , random . value ( ) , random . value ( ) ] ) ,
+    "Inside a circle" : ( count ) =>
+    math . linspace ( count , true ) . map ( ( ) => {
+    const [ u , v ] = random . insideCircle ( ) ;
+
+    return [ u * aspectRatio * 0.5 + 0.5 , v * 0.5 + 0.5 , random . value ( ) ] ;
+    } ) ,
+    "On a circle" : ( count ) =>
+    math . linspace ( count , true ) . map ( ( ) => {
+    const [ u , v ] = random . onCircle ( ) ;
+
+    return [ u * aspectRatio * 0.5 + 0.5 , v * 0.5 + 0.5 , random . value ( ) ] ;
+    } )
+    } )
+    ```
+
+5. **Points Generation**:
+    ```javascript
+    pts = {
+    randomize ;
+    const dataGenerator = distributions [ distribution ] ;
+    return dataGenerator ( numOfPoints ) ;
+    }
+    ```
+
+6. **Chart Dimensions**:
+    ```javascript
+    height = width * aspectRatio
+
+    aspectRatio = 9 / 16
+
+    import { CSRandom as random , CSMath as math } from "@saneef/canvas-sketch-util"
+    ```
+
+This program allows the user to visualize different distributions of points using Voronoi diagrams and provides options to randomize the distribution, control the number of points, and toggle the display of Voronoi cells and points.

@@ -1,0 +1,404 @@
+Can you label this program for me?:
+chart = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+
+svg . selectAll ( "circle" )
+. data ( data3 )
+. join ( "circle" )
+. attr ( 'r' , d => airbnb_scale_r ( d . perc_Airbnb ) )
+. attr ( 'cx' , d => x ( d . x ) )
+. attr ( 'cy' , d => y ( d . y ) )
+. style ( 'mix-blend-mode' , 'multiply' )
+. attr ( "fill" , function ( d ) {
+if ( d . perc_Airbnb > 10 ) {
+return "#F9DC5C" ;
+}
+return "#29DDC7" ;
+} )
+. attr ( "opacity" , function ( d ) {
+if ( d . perc_Airbnb > 10 && d . perc_Airbnb < 30 ) {
+return 1 ;
+} else if ( d . perc_Airbnb > 29 && d . perc_Airbnb < 50 ) {
+return 1 ;
+} else if ( d . perc_Airbnb > 49 && d . perc_Airbnb < 100 ) {
+return 1 ;
+} else if ( d . perc_Airbnb > 99 ) {
+return 1 ;
+}
+return 1 ;
+} )
+
+return svg . node ( ) ;
+}
+
+/*.attr("fill", function(d) {
+        if (d.perc_Airbnb > 10 && d.perc_Airbnb < 30) {
+          return "#F9DC5C";
+        }else if (d.perc_Airbnb > 29 && d.perc_Airbnb < 50){
+          return "#F9DC5C";
+        }else if (d.perc_Airbnb > 49 && d.perc_Airbnb < 100){
+          return "#F9DC5C";
+        }else if (d.perc_Airbnb > 99){
+          return "#F9DC5C";
+        }
+        return "#29DDC7";
+      })*/
+
+//.attr('fill', "#29DDC7")
+//.attr('stroke', "#29DDC7")
+//.attr('stroke-width', 0.5)
+
+ chart2 = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+
+svg . selectAll ( "circle" )
+. data ( data3 )
+. join ( "circle" )
+. attr ( 'r' , d => airbnb_scale_r ( d . perc_Airbnb ) )
+. attr ( 'cx' , d => x ( d . x ) )
+. attr ( 'cy' , d => y ( d . y ) )
+. style ( 'mix-blend-mode' , 'multiply' )
+. attr ( "fill" , function ( d ) {
+if ( d . perc_Airbnb > 50 ) {
+return "#FF047D" ;
+}
+return "#29DDC7" ;
+} )
+. attr ( "opacity" , function ( d ) {
+if ( d . perc_Airbnb > 50 ) {
+return 1 ;
+}
+return 1 ;
+} )
+
+return svg . node ( ) ;
+}
+
+ chart3 = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+
+svg . selectAll ( "circle" )
+. data ( data3 )
+. join ( "circle" )
+. attr ( 'r' , d => airbnb_scale_r ( d . perc_Airbnb ) )
+. attr ( 'cx' , d => x ( d . x ) )
+. attr ( 'cy' , d => y ( d . y ) )
+. style ( 'mix-blend-mode' , 'multiply' )
+. attr ( "fill" , function ( d ) {
+if ( d . perc_Airbnb > 99 ) {
+return "#FF047D" ;
+}
+return "#29DDC7" ;
+} )
+. attr ( "opacity" , function ( d ) {
+if ( d . perc_Airbnb > 99 ) {
+return 1 ;
+}
+return 1 ;
+} )
+
+return svg . node ( ) ;
+}
+
+ airbnb_scale_r = d3 . scaleSqrt ( )
+. domain ( [ 0 , d3 . max ( data3 , d => d . perc_Airbnb !== 'NA' ? d . perc_Airbnb : NaN ) ] )
+. range ( [ 1 , 20 ] ) ;
+
+ circle = d3 . symbol ( ) . type ( d3 . symbolCircle ) ;
+
+
+ chart1 = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+
+
+
+svg . append ( "g" )
+. call ( grid ) ;
+
+svg . append ( "g" )
+. attr ( "stroke" , "white" )
+. attr ( "stroke-width" , 0.5 )
+. attr ( "fill" , "none" )
+. selectAll ( "path" )
+. data ( data3 )
+. join ( "path" )
+. attr ( 'fill' , d => colorScale ( d . brand ) )
+. attr ( 'fill-opacity' , 0.7 )
+. attr ( 'd' , d => circle ( d ) )
+. attr ( 'transform' , d => `translate(${ x1 ( d . Population ) },${ y1 ( d . Per_Airbnb ) })` )
+
+
+return svg . node ( ) ;
+}
+
+ shape = d3 . scaleOrdinal ( data3 . map ( d => d . muni ) , d3 . symbols . map ( s => d3 . symbol ( ) . size ( width / 3 ) . type ( s ) ( ) ) )
+
+
+
+ data2 = FileAttachment ( "data_airbnb_v1.csv" ) . csv ( { typed : true } )
+
+ data3 = data2 . map ( d => { return {
+Perc_Tourist : + d . Perc_TuristicHouseholds_INE ,
+x : d . x ,
+y : d . y ,
+INECode : d . INECode ,
+IdescatCode : d . IdescatCode ,
+municipality : d . Municipality ,
+brand : d . brand ,
+province : d . province ,
+population : d . Population ,
+perc_Airbnb : d . perc_AirbnbOk ,
+airbnb : d . airbnb
+} } )
+
+ x = d3 . scaleLinear ( )
+. domain ( d3 . extent ( data3 , d => d . x ) ) . nice ( )
+. range ( [ margin . left , width - margin . right ] )
+
+ x1 = d3 . scaleLinear ( )
+. domain ( d3 . extent ( data3 , d => d . Population ) ) . nice ( )
+. range ( [ margin . left , width - margin . right ] )
+
+ y = d3 . scaleLinear ( )
+. domain ( d3 . extent ( data3 , d => d . y ) ) . nice ( )
+. range ( [ height - margin . bottom , margin . top ] )
+
+ y1 = d3 . scaleLinear ( )
+. domain ( d3 . extent ( data3 , d => d . Per_Airbnb ) ) . nice ( )
+. range ( [ height - margin . bottom , margin . top ] )
+
+ xAxis = g => g
+. attr ( "transform" , `translate(0,${ height - margin . bottom })` )
+. call ( d3 . axisBottom ( x ) . ticks ( width / 80 ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+. call ( g => g . append ( "text" )
+. attr ( "x" , width )
+. attr ( "y" , margin . bottom - 4 )
+. attr ( "fill" , "currentColor" )
+. attr ( "text-anchor" , "end" )
+. text ( data3 . x ) )
+
+ yAxis = g => g
+. attr ( "transform" , `translate(${ margin . left },0)` )
+. call ( d3 . axisLeft ( y1 ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+. call ( g => g . append ( "text" )
+. attr ( "x" , - margin . left )
+. attr ( "y" , 10 )
+. attr ( "fill" , "gray" )
+. attr ( "text-anchor" , "start" )
+. text ( data3 . y ) )
+
+
+
+ grid = g => g
+. attr ( "stroke" , "currentColor" )
+. attr ( "stroke-opacity" , 0.1 )
+
+. call ( g => g . append ( "g" )
+. selectAll ( "line" )
+. data ( y . ticks ( ) )
+. join ( "line" )
+. attr ( "y1" , d => 0.5 + y ( d ) )
+. attr ( "y2" , d => 0.5 + y ( d ) )
+. attr ( "x1" , - margin . left )
+. attr ( "x2" , width + margin . right ) ) ;
+
+ margin = ( { top : 25 , right : 20 , bottom : 35 , left : 40 } )
+
+ width = 600
+
+ height = 600
+
+ colors = [ `#7bd2ed` , `#ffd208` , `#7bd2ed` , `#7bd2ed` , `#7bd2ed` , `#7bd2ed` , `#7bd2ed` , `#7bd2ed` , `#7bd2ed` ]
+
+ colorScale = d3 . scaleOrdinal ( ) . domain ( data3 . map ( d => d . brand ) ) . range ( colors )
+
+
+
+ colors2 = [ "#cee2ef" , "#9fc5e2" , "#75a7d6" , "#5088c5" , "#376aab" ]
+
+
+
+
+
+ fillScale = d3 . scaleSqrt ( colors2 )
+
+ d3 = require ( "d3@6" )
+
+ chroma = require ( 'd3-scale-chromatic' )
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+Here is the labeled program according to your request:
+
+```javascript
+// Label: markdownTitle
+md `# Scatter plot`
+
+{
+    // Label: createSvgComponent
+    const svg = d3.create('svg').attr("viewBox", [0, 0, width, height]);
+
+    // Label: plotCircles
+    svg.selectAll("circle")
+        .data(data3)
+        .join("circle")
+        .attr('r', d => airbnb_scale_r(d.perc_Airbnb))
+        .attr('cx', d => x(d.x))
+        .attr('cy', d => y(d.y))
+        .style('mix-blend-mode', 'multiply')
+        .attr("fill", function(d) {
+            if (d.perc_Airbnb > 10) {
+                return "#F9DC5C";
+            }
+            return "#29DDC7";
+        })
+        .attr("opacity", function(d) {
+            if (d.perc_Airbnb > 10 && d.perc_Airbnb < 30) {
+                return 1;
+            } else if (d.perc_Airbnb > 29 && d.perc_Airbnb < 50) {
+                return 1;
+            } else if (d.perc_Airbnb > 49 && d.perc_Airbnb < 100) {
+                return 1;
+            } else if (d.perc_Airbnb > 99) {
+                return 1;
+            }
+            return 1;
+        });
+
+    // Label: returnSvgNode
+    return svg.node();
+}
+
+// Label: defineCircleColors
+const circleColors = ["#7bd2ed", "#ffd208", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed"];
+const colorScale = d3.scaleOrdinal().domain(data3.map(d => d.brand)).range(circleColors);
+
+// Label: defineAirbnbScale
+const airbnb_scale_r = d3.scaleSqrt()
+    .domain([0, d3.max(data3, d => d.perc_Airbnb !== 'NA' ? d.perc_Airbnb : NaN)])
+    .range([1, 20]);
+
+// Label: defineScatterplotScales
+const x = d3.scaleLinear()
+    .domain(d3.extent(data3, d => d.x)).nice()
+    .range([margin.left, width - margin.right]);
+
+const y = d3.scaleLinear()
+    .domain(d3.extent(data3, d => d.y)).nice()
+    .range([height - margin.bottom, margin.top]);
+
+// Label: defineXAxis
+const xAxis = g => g.attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(width / 80))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.append("text")
+        .attr("x", width)
+        .attr("y", margin.bottom - 4)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "end")
+        .text(data3.x));
+
+// Label: defineYAxis
+const yAxis = g => g.attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y))
+    .call(g => g.select(".domain").remove())
+    .call(g => g.append("text")
+        .attr("x", -margin.left)
+        .attr("y", 10)
+        .attr("fill", "gray")
+        .attr("text-anchor", "start")
+        .text(data3.y));
+
+// Label: defineScatterplot
+const scatterplot = svg => {
+    svg.append("g").call(grid);
+
+    svg.append("g")
+        .attr("stroke", "white")
+        .attr("stroke-width", 0.5)
+        .attr("fill", "none")
+        .selectAll("path")
+        .data(data3)
+        .join("path")
+        .attr('fill', d => colorScale(d.brand))
+        .attr('fill-opacity', 0.7)
+        .attr('d', d => circle(d))
+        .attr('transform', d => `translate(${x1(d.Population)},${y1(d.Per_Airbnb)})`);
+
+    return svg.node();
+};
+
+// Label: defineShape
+const shape = d3.scaleOrdinal(data3.map(d => d.muni), d3.symbols.map(s => d3.symbol().size(width / 3).type(s)()));
+
+// Label: defineData3
+const data2 = FileAttachment("data_airbnb_v1.csv").csv({ typed: true });
+
+const data3 = data2.map(d => ({
+    Perc_Tourist: +d.Perc_TuristicHouseholds_INE,
+    x: d.x,
+    y: d.y,
+    INECode: d.INECode,
+    IdescatCode: d.IdescatCode,
+    municipality: d.Municipality,
+    brand: d.brand,
+    province: d.province,
+    population: d.Population,
+    perc_Airbnb: d.perc_AirbnbOk,
+    airbnb: d.airbnb
+}));
+
+// Label: defineX1Scale
+const x1 = d3.scaleLinear()
+    .domain(d3.extent(data3, d => d.Population)).nice()
+    .range([margin.left, width - margin.right]);
+
+// Label: defineY1Scale
+const y1 = d3.scaleLinear()
+    .domain(d3.extent(data3, d => d.Per_Airbnb)).nice()
+    .range([height - margin.bottom, margin.top]);
+
+// Label: defineGrid
+const grid = g => g.attr("stroke", "currentColor")
+    .attr("stroke-opacity", 0.1)
+    .call(g => g.append("g")
+        .selectAll("line")
+        .data(y.ticks())
+        .join("line")
+        .attr("y1", d => 0.5 + y(d))
+        .attr("y2", d => 0.5 + y(d))
+        .attr("x1", -margin.left)
+        .attr("x2", width + margin.right));
+
+// Label: defineMargin
+const margin = { top: 25, right: 20, bottom: 35, left: 40 };
+
+// Label: defineWidth
+const width = 600;
+
+// Label: defineHeight
+const height = 600;
+
+// Label: defineColors
+const colors = ["#7bd2ed", "#ffd208", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed", "#7bd2ed"];
+
+const colorScale = d3.scaleOrdinal().domain(data3.map(d => d.brand)).range(colors);
+
+// Label: defineColors2
+const colors2 = ["#cee2ef", "#9fc5e2", "#75a7d6", "#5088c5", "#376aab"];
+
+// Label: defineFillScale
+const fillScale = d3.scaleSqrt(colors2);
+
+// Import d3 and chroma
+d3 = require("d3@6");
+chroma = require('d3-scale-chromatic');
+```

@@ -1,0 +1,354 @@
+Can you label this program for me?:
+
+viewof update = html`<button>Update data`
+
+viewof farouts = checkbox({
+  title: 'Far outs',
+  description: 'Add far outs (extreme outliers) to min and/or max value',
+  options: [
+    { value: 'min', label: 'Min-value' },
+    { value: 'max', label: 'Max-value' },
+  ],
+  value: ['min']
+})
+
+svg = {
+  const root = d3.select(DOM.svg(width, height))
+  root.append('g')
+    .attr('class', 'data')
+    .attr('transform', `translate(0, ${height * 0.35})`)
+  root.append('g')
+    .attr('class', 'five-nums-ticks')
+    .attr('transform', `translate(0, ${height * 0.30})`)
+  root.append('g')
+    .attr('class', 'five-nums-labels')
+    .attr('transform', `translate(0, ${height * 0.30 - 10})`)
+  root.append('g')
+    .attr('class', 'fences-ticks')
+    .attr('transform', `translate(0, ${height * 0.45})`)
+  root.append('g')
+    .attr('class', 'fences-labels')
+    .attr('transform', `translate(0, ${height * 0.45 + 10})`)
+  root.append('g')
+    .attr('class', 'plot')
+    .attr('transform', `translate(0, ${height * 0.65})`)
+  root.append('g')
+    .attr('class', 'axis')
+    .attr('transform', `translate(0, ${height - 20})`)
+    .attr('color', '#888')
+    .call(d3.axisBottom().scale(x))
+  root.select('.axis').selectAll('line')
+    .attr('stroke', '#888')
+  root.select('.axis').selectAll('path')
+    .attr('stroke', '#888')
+  root.select('.axis').selectAll('text')
+    .attr('fill', '#888')
+    .style('font-family', 'sans-serif')
+    .style('font-size', '11')
+
+  return root.node()
+}
+
+DOM.download(() => rasterize(svg), 'boxplot', "Save as PNG")
+
+{
+  // render box plot
+  const root = d3.select(svg)
+  const plot = d3boxplot.boxplot()
+    .scale(x)
+    .bandwidth(30)
+    .jitter(false)
+    .opacity(1.0)
+    .showInnerDots(false)
+  root.select('.plot')
+    .datum(stats)
+    .transition()
+    .attr('color', 'steelblue')
+    .call(plot)
+
+  // render annotations
+  const fiveNums = stats.fiveNums
+  const iqr = stats.iqr
+  const step = stats.step
+  const whiskers = stats.whiskers
+  const outliers = stats.points.filter(d => d.outlier)
+  const farouts = stats.points.filter(d => d.farout)
+  const fences = stats.fences.slice()
+  const sixNums = fiveNums.slice()
+  sixNums.push(d3.mean(data))
+
+  // data dots
+  const dots = root.select('.data').selectAll('circle').data(stats.points, d => d.value)
+  dots.enter()
+    .append('circle')
+    .attr('cx', d => x(d.value))
+    .attr('r', 0)
+    .attr('opacity', 0.0)
+    .attr('fill', '#888')
+    .merge(dots)
+    .transition()
+    .attr('cx', d => x(d.value))
+    .attr('r', 3)
+    .attr('opacity', 0.8)
+  dots.exit()
+    .transition()
+    .attr('r', 0)
+    .attr('opacity', 0.0)
+    .remove()
+
+  // five numbers + mean
+  const fiveNumsTicks = root.select('.five-nums-ticks').selectAll('line').data(sixNums)
+  fiveNumsTicks.enter()
+    .append('line')
+    .attr('y1', (_, i) => i === 5 ? -24 : -8)
+    .attr('y2', 0)
+    .attr('stroke', '#888')
+    .attr('x1', x(fiveNums[2]))
+    .attr('x2', x(fiveNums[2]))
+    .merge(fiveNumsTicks)
+    .transition()
+    .attr('x1', x)
+    .attr('x2', x)
+  fiveNumsTicks.exit()
+    .remove()
+
+  const fiveNumsLabels = root.select('.five-nums-labels').selectAll('text').data(sixNums)
+  fiveNumsLabels.enter()
+    .append('text')
+    .style('font-family', 'sans-serif')
+    .style('font-size', '13')
+    .attr('fill', '#888')
+    .attr('text-anchor', 'start')
+    .text((_, i) => ['min', 'q1', 'q2', 'q3', 'max', 'mean'][i])
+    .attr('transform', (_, i) => `translate(${x(fiveNums[2]) + 3}, ${i === 5 ? -16 : 0}) rotate(-45)`)
+    .merge(fiveNumsLabels)
+    .transition()
+    .attr('transform', (d, i) => `translate(${x(d) + 3}, ${i === 5 ? -16 : 0}) rotate(-45)`)
+  fiveNumsLabels.exit()
+    .remove()
+
+  // fences
+  const fencesTicks = root.select('.fences-ticks').selectAll('path').data(fences)
+  fencesTicks.enter()
+    .append('path')
+    .attr('fill', 'none')
+    .attr('stroke', '#888')
+    .attr('d', fencePath)
+    .merge(fencesTicks)
+    .transition()
+    .attr('d', fencePath)
+  fencesTicks.exit()
+    .remove()
+
+  const fencesLabels = root.select('.fences-labels').selectAll('text').data(fences)
+  fencesLabels.enter()
+    .append('text')
+    .style('font-family', 'sans-serif')
+    .style('font-size', '13')
+    .attr('fill', '#888')
+    .attr('text-anchor', 'middle')
+    .attr('alignment-baseline', 'hanging')
+    .attr('transform', `translate(${x(fiveNums[2]) + 3}, 0)`)
+    .text((d, i) => ['outer', 'inner', 'iqr', 'inner', 'outer'][i])
+    .merge(fencesLabels)
+    .transition()
+    .attr('transform', d =>`translate(${x((d.start + d.end) * 0.5) + 3}, 0)`)
+  fencesLabels.exit()
+    .remove()
+}
+
+fencePath = fence => `M${x(fence.start)},0 L${x(fence.start)},5 L${x(fence.end)},5 L${x(fence.end)},0`
+
+x = d3.scaleLinear()
+  .domain([-5, +5])
+  .range([20, width - 20])
+
+height = Math.max(250, width * 0.25|0)
+
+stats = d3boxplot.boxplotStats(data)
+
+data = {
+  let data = []
+  randomValues.forEach(v => data.push(v))
+  if(farouts.includes('min')) data.push(-4.5)
+  if(farouts.includes('max')) data.push(4.5)
+  return data.sort(d3.ascending)
+}
+
+randomValues = {
+  update;
+  const rand = d3.randomNormal()
+  return d3.range(40).map(n => parseInt(rand() * 100) / 100)
+}
+
+d3 = require("https://d3js.org/d3.v5.min.js")
+
+d3boxplot = require('d3-boxplot@1.0.0')
+
+import {checkbox} from '@jashkenas/inputs'
+
+import {rasterize} from "@mbostock/saving-svg"
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Define button for updating data
+viewof update = html`<button>Update data`
+
+// Define checkbox for toggling far outs
+viewof farouts = checkbox({
+  title: 'Far outs',
+  description: 'Add far outs (extreme outliers) to min and/or max value',
+  options: [
+    { value: 'min', label: 'Min-value' },
+    { value: 'max', label: 'Max-value' },
+  ],
+  value: ['min']
+})
+
+// Define SVG element and its structure
+svg = {
+  const root = d3.select(DOM.svg(width, height))
+  // Append groups for different chart elements
+  root.append('g')
+    .attr('class', 'data')
+    .attr('transform', `translate(0, ${height * 0.35})`)
+  root.append('g')
+    .attr('class', 'five-nums-ticks')
+    .attr('transform', `translate(0, ${height * 0.30})`)
+  root.append('g')
+    .attr('class', 'five-nums-labels')
+    .attr('transform', `translate(0, ${height * 0.30 - 10})`)
+  root.append('g')
+    .attr('class', 'fences-ticks')
+    .attr('transform', `translate(0, ${height * 0.45})`)
+  root.append('g')
+    .attr('class', 'fences-labels')
+    .attr('transform', `translate(0, ${height * 0.45 + 10})`)
+  root.append('g')
+    .attr('class', 'plot')
+    .attr('transform', `translate(0, ${height * 0.65})`)
+  root.append('g')
+    .attr('class', 'axis')
+    .attr('transform', `translate(0, ${height - 20})`)
+    .attr('color', '#888')
+    .call(d3.axisBottom().scale(x))
+  // Customize axis appearance
+  root.select('.axis').selectAll('line')
+    .attr('stroke', '#888')
+  root.select('.axis').selectAll('path')
+    .attr('stroke', '#888')
+  root.select('.axis').selectAll('text')
+    .attr('fill', '#888')
+    .style('font-family', 'sans-serif')
+    .style('font-size', '11')
+
+  return root.node()
+}
+
+// Add functionality to download SVG as PNG
+DOM.download(() => rasterize(svg), 'boxplot', "Save as PNG")
+
+// Function to render box plot and annotations
+{
+  // Select SVG root
+  const root = d3.select(svg)
+  // Define and render box plot
+  const plot = d3boxplot.boxplot()
+    .scale(x)
+    .bandwidth(30)
+    .jitter(false)
+    .opacity(1.0)
+    .showInnerDots(false)
+  root.select('.plot')
+    .datum(stats)
+    .transition()
+    .attr('color', 'steelblue')
+    .call(plot)
+
+  // Render annotations
+  const fiveNums = stats.fiveNums
+  const iqr = stats.iqr
+  const step = stats.step
+  const whiskers = stats.whiskers
+  const outliers = stats.points.filter(d => d.outlier)
+  const farouts = stats.points.filter(d => d.farout)
+  const fences = stats.fences.slice()
+  const sixNums = fiveNums.slice()
+  sixNums.push(d3.mean(data))
+
+  // Render data dots
+  const dots = root.select('.data').selectAll('circle').data(stats.points, d => d.value)
+  dots.enter()
+    .append('circle')
+    .attr('cx', d => x(d.value))
+    .attr('r', 0)
+    .attr('opacity', 0.0)
+    .attr('fill', '#888')
+    .merge(dots)
+    .transition()
+    .attr('cx', d => x(d.value))
+    .attr('r', 3)
+    .attr('opacity', 0.8)
+  dots.exit()
+    .transition()
+    .attr('r', 0)
+    .attr('opacity', 0.0)
+    .remove()
+
+  // Render five numbers and mean
+  const fiveNumsTicks = root.select('.five-nums-ticks').selectAll('line').data(sixNums)
+  // ...
+
+  const fiveNumsLabels = root.select('.five-nums-labels').selectAll('text').data(sixNums)
+  // ...
+
+  // Render fences
+  const fencesTicks = root.select('.fences-ticks').selectAll('path').data(fences)
+  // ...
+
+  const fencesLabels = root.select('.fences-labels').selectAll('text').data(fences)
+  // ...
+}
+
+// Function to generate fence path
+fencePath = fence => `M${x(fence.start)},0 L${x(fence.start)},5 L${x(fence.end)},5 L${x(fence.end)},0`
+
+// Define x scale
+x = d3.scaleLinear()
+  .domain([-5, +5])
+  .range([20, width - 20])
+
+// Define height of SVG
+height = Math.max(250, width * 0.25|0)
+
+// Calculate statistics for box plot
+stats = d3boxplot.boxplotStats(data)
+
+// Generate data for box plot
+data = {
+  let data = []
+  randomValues.forEach(v => data.push(v))
+  if(farouts.includes('min')) data.push(-4.5)
+  if(farouts.includes('max')) data.push(4.5)
+  return data.sort(d3.ascending)
+}
+
+// Generate random values for data
+randomValues = {
+  update;
+  const rand = d3.randomNormal()
+  return d3.range(40).map(n => parseInt(rand() * 100) / 100)
+}
+
+// Import D3 library
+d3 = require("https://d3js.org/d3.v5.min.js")
+
+// Import d3-boxplot library
+d3boxplot = require('d3-boxplot@1.0.0')
+
+// Import checkbox component from inputs library
+import {checkbox} from '@jashkenas/inputs'
+
+// Import rasterize function from saving-svg library
+import {rasterize} from "@mbostock/saving-svg"
+```

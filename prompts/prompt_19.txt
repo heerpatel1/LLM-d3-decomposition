@@ -1,0 +1,575 @@
+Can you label this program for me?:
+{
+  const svg = d3.select(DOM.svg(width + margin.left + margin.right, height + margin.top + margin.bottom))
+
+  const g = svg
+    .attr('height', '100%')
+    .attr('width', '100%')
+    .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+    .append("g")
+  	.attr("transform","translate(" + (margin.left + width/2)+ "," + (margin.top + height/2) + ")")
+  	.append("g")
+  	.attr("transform","rotate(" + treeRotation + ")")
+  	.datum(chord(matrix));
+
+  const group = g.append("g")
+    .attr("class", "groups")
+  	.selectAll("g")
+ 	.data(function(chords) { return chords.groups; })
+  	.enter()
+  	.append("g")
+      .style("display", function(d) { if( branchBySource.get(sourceByIndex.get(d.index)) == 'spacer') {
+  				return 'none';}
+    	else {
+        	return null;
+        }
+  	})
+
+  group.append("path")
+    .style("fill", function(d) { return color(branchBySource.get(sourceByIndex.get(d.index))); })
+    .style("stroke", function(d) { return d3.rgb(color(branchBySource.get(sourceByIndex.get(d.index)))).darker(); })
+    .attr("d", arc)
+
+
+   group.append("text")
+      .each(function(d) { d.angle = (d.startAngle + d.endAngle) / 2; })
+      .attr("dy", ".35em")
+      .attr("transform", function(d) {
+        return "rotate(" + (d.angle * 180 / Math.PI - 90) + ")"
+            + "translate(" + (innerRadius + 35) + ")"
+            + (d.angle > Math.PI - treeRotation*Math.PI/180 && d.angle < 2*Math.PI - treeRotation*Math.PI/180 ? "rotate(180)" : "");
+      })
+      .style("text-anchor", function(d) { return d.angle > Math.PI - treeRotation*Math.PI/180 && d.angle < 2*Math.PI - treeRotation*Math.PI/180 ? "end" : null; })
+      .text(function(d) { return sourceByIndex.get(d.index); });
+
+  g.append("g")
+    .attr("class", "ribbons")
+  	.selectAll("path")
+  	.data(function(chords) { return chords; })
+  	.enter()
+  	.append("path")
+    .style('mix-blend-mode','multiply')
+    .attr("d", ribbon)
+    .style("fill", function(d) { return color(branchBySource.get(sourceByIndex.get(d.target.index))); })
+    .style("stroke", function(d) { return d3.rgb(color(branchBySource.get(sourceByIndex.get(d.target.index)))).darker(); })
+  	.style("display", function(d) {
+    	if( branchBySource.get(sourceByIndex.get(d.source.index)) == 'spacer') {
+          return 'none';
+        } else {
+          return null;
+        }
+  	})
+
+
+
+
+  yield svg.node()
+
+}
+
+width = 960
+
+viewof trunkSpacer = html`<input type=range min=0 max=50 value=${trunkSpacerTicker}>`
+
+viewof branchSpacer = html`<input type=range min=0 max=10 value=${branchSpacerTicker}>`
+
+viewof padAngle = html`<input type=range min=0 max=.15 value=${padAngleTicker} step=.01 >`
+
+tickerSpeed = 500
+
+trunkSpacerTicker = iTick*1.5
+
+branchSpacerTicker = iTick/10
+
+padAngleTicker = iTick/500
+
+iTick = {
+    let i = 0;
+    while (i<11) {
+      yield Promises.tick(tickerSpeed, i++)
+    }
+}
+
+treeRotation =  {
+  var padDegrees = padAngle * 180/Math.PI;
+  var totalPadDegrees = (sourceByIndex.keys().length - 1) * padDegrees
+
+  var rootFreq = d3.sum(matrix[1])
+
+  var arcRotate = ((trunkSpacer + rootFreq/2)/d3.sum(tree, function(d) { return d.freq }))*(360-totalPadDegrees)
+  var padRotate = padDegrees;
+
+  yield -(arcRotate + padDegrees) + 180;
+
+}
+
+matrix = {
+  yield indexBySource.keys().map(function(src) {
+  	return indexBySource.keys().map(function(tar) {
+    	var op =  tree.filter(function(d) { return d.source == src && d.target == tar;})[0] || {freq:0};
+      	return op.freq;
+    })
+  })
+}
+
+
+branchBySource = {
+	var bbs = d3.map();
+  	var n=0;
+ 	tree.forEach(function(d) {
+    	if(!bbs.has(d.branch)) bbs.set(d.source,d.branch)
+    })
+
+  	yield bbs;
+
+}
+
+sourceByIndex = {
+	var sbi = d3.map();
+  	var n = 0;
+ 	branchBySource.keys().forEach(function(d) {
+    	if(!sbi.has(d)) sbi.set(n++,d);
+    })
+
+  	yield sbi;
+}
+
+indexBySource = {
+	var ibs = d3.map();
+  	var n = 0;
+ 	tree.forEach(function(d) {
+    	if(!ibs.has(d.source)) ibs.set(d.source,n++);
+    })
+
+  	yield ibs;
+}
+
+
+function groupTicks(d, step) {
+  var k = (d.endAngle - d.startAngle) / d.value;
+  return d3.range(0, d.value, step).map(function(value) {
+    return {value: value, angle: value * k + d.startAngle};
+  });
+}
+
+color = {
+  var domain = [0,1,2,3,4].map(function(d) { return d3.interpolateRainbow(d/6) });
+  //d3.schemeSpectral[6]
+  yield d3.scaleOrdinal(domain).domain(d3.set(branchBySource.values()).values())
+}
+
+ribbon = d3.ribbon()
+    .radius(innerRadius)
+
+arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius)
+
+chord = d3.chord()
+    .padAngle(padAngle)
+    .sortSubgroups(d3.descending)
+
+formatValue = d3.formatPrefix(",.0", 1e3)
+
+innerRadius = outerRadius -30
+
+outerRadius = Math.min(width, height) * 0.5 - 40
+
+height = width * 500/960
+
+margin = ({top:100, left:10,bottom:105,right:80})
+
+tree = makeTree(dataIn,"Beach Club Villas", 'sourceBranch','targetBranch')
+
+function makeTree(data,hubName,sbn,tbn) {
+
+  	// sort the data for adding spacers
+ 	data = data.sort(twigSorter);
+
+    var sources = d3.set(data, function(d) { return d.source }).values()
+  	var targets = d3.set(data, function(d) { return d.target }).values()
+
+    targets.forEach(function(d) {
+      if(!(sources.includes(d))) {
+        var row = data.filter(function(e) { return e.target == d })[0];
+        var o = {};
+       	o.source = d;
+        o.target = d;
+        o[sbn] = row[tbn];
+        o[tbn] = row[tbn]
+        o.freq = 0;
+        data.push(o);
+      }
+    })
+
+  	data = data.sort(twigSorter);
+
+  	var output = [];
+
+  	data.forEach(function(d,i) {
+
+      	// Insert first hub spacer
+      	if(i == 0) output.push({source:'hubSpacer1',target:'hubSpacer1', branch:"spacer", freq:trunkSpacer});
+
+        if(d.source != hubName && data[i-1].source != hubName && data[i-1][sbn] != d[sbn] ) {
+          output.push({source:d[sbn]+'spacer',target:d[sbn]+'spacer', branch:"spacer", freq:branchSpacer});
+        }
+
+      	if(d.source != hubName && data[i-1].source == hubName) {
+          output.push({source:'hubSpacer2',target:'hubSpacer2', branch:"spacer", freq:trunkSpacer});
+        }
+
+      	// Insert data
+      	output.push({source:d.source,target:d.target,branch:d[sbn], freq:d.freq});
+      	// Insert second hub spacer
+    })
+
+  var sources = d3.set(data, function(d) { return d.source }).values()
+  var targets = d3.set(data, function(d) { return d.target }).values()
+
+  targets.forEach(function(d) {
+    if(!(sources.includes(d))) {
+    	var row = data.filter(function(e) { return e.target == d })[0];
+      	output.push({source:d,target:d,branch:row[tbn], freq:0});
+    }
+  })
+
+
+
+  	return output;
+
+  	function twigSorter(a,b) {
+      	if(a.source == hubName) return -1;
+        if(b.source == hubName)  return 1;
+
+        if(a[sbn] == b[sbn]) {
+        	if(a.source > b.source) return 1;
+          	if(a.source < b.source) return -1;
+        } else {
+        	if(a[sbn] > b[sbn]) return 1;
+          	if(a[sbn] < b[sbn]) return -1;
+        }
+      }
+
+}
+
+dataIn = [
+  {source:"Beach Club Villas", target:"Seven Dwarfs Mine Train", sourceBranch:'hotel',targetBranch:'Magic Kingdom',freq:4},
+    {source:"Beach Club Villas", target:"Peter Pan's Flight", sourceBranch:'hotel',targetBranch:'Magic Kingdom',freq:2},
+   {source:"Beach Club Villas", target:"Space Ranger Spin", sourceBranch:'hotel',targetBranch:'Magic Kingdom',freq:2},
+  {source:"Beach Club Villas", target:"Space Mountain", sourceBranch:'hotel',targetBranch:'Magic Kingdom',freq:1},
+  {source:"Beach Club Villas", target:"Spaceship Earth", sourceBranch:'hotel',targetBranch:'Epcot',freq:1},
+  {source:"Beach Club Villas", target:"Test Track", sourceBranch:'hotel',targetBranch:'Epcot',freq:2},
+  {source:"Beach Club Villas", target:"Soarin'", sourceBranch:'hotel',targetBranch:'Epcot',freq:2},
+  {source:"Beach Club Villas", target:"Flights of Passage", sourceBranch:'hotel',targetBranch:'Animal Kingdom',freq:1},
+   {source:"Beach Club Villas", target:"Kilimanjaro Safaris", sourceBranch:'hotel',targetBranch:'Animal Kingdom',freq:1},
+  {source:"Beach Club Villas", target:"Midway Madness", sourceBranch:'hotel',targetBranch:'Hollywood Studios',freq:3},
+   {source:"Beach Club Villas", target:"Indiana Jones", sourceBranch:'hotel',targetBranch:'Hollywood Studios',freq:1},
+  {source:"Space Mountain", target:"Seven Dwarfs Mine Train", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+   {source:"Seven Dwarfs Mine Train", target:"Big Thunder Railroad", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+     {source:"Seven Dwarfs Mine Train", target:"Seven Dwarfs Mine Train", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+     {source:"It's a Small World", target:"Peter Pan's Flight", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+       {source:"Peter Pan's Flight", target:"It's a Small World", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:2},
+         {source:"Space Ranger Spin", target:"Astro Orbiter", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+           {source:"Astro Orbiter", target:"It's a Small World", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+           {source:"Space Ranger Spin", target:"Tomorrowland Transit", sourceBranch:'Magic Kingdom',targetBranch:'Magic Kingdom',freq:1},
+             {source:"Tomorrowland Transit", target:"Beach Club Villas", sourceBranch:'Magic Kingdom',targetBranch:'hotel',freq:1},
+  {source:"Big Thunder Railroad", target:"Beach Club Villas", sourceBranch:'Magic Kingdom',targetBranch:'hotel',freq:1},
+  {source:"Kilimanjaro Safaris", target:"It's Tough to be a Bug", sourceBranch:'Animal Kingdom',targetBranch:'Animal Kingdom',freq:1},
+    {source:"It's Tough to be a Bug", target:"Navi River Journey", sourceBranch:'Animal Kingdom',targetBranch:'Animal Kingdom',freq:1},
+      {source:"It's Tough to be a Bug", target:"Flights of Passage", sourceBranch:'Animal Kingdom',targetBranch:'Animal Kingdom',freq:1},
+      {source:"Navi River Journey", target:"Beach Club Villas", sourceBranch:'Animal Kingdom',targetBranch:'hotel',freq:1},
+        {source:"Flights of Passage", target:"Beach Club Villas", sourceBranch:'Animal Kingdom',targetBranch:'hotel',freq:1},
+  {source:"Test Track", target:"Mission Space", sourceBranch:'Epcot',targetBranch:'Epcot',freq:1},
+  {source:"Soarin'", target:"The Seas", sourceBranch:'Epcot',targetBranch:'Epcot',freq:1},
+  {source:"Mission Space", target:"The Seas", sourceBranch:'Epcot',targetBranch:'Epcot',freq:1},
+  {source:"The Seas", target:"Journey in to Imagination", sourceBranch:'Epcot',targetBranch:'Epcot',freq:1},
+  {source:"Test Track", target:"Beach Club Villas", sourceBranch:'Epcot',targetBranch:'hotel',freq:2},
+  {source:"Midway Madness", target:"Star Tours", sourceBranch:'Hollywood Studios',targetBranch:'Hollywood Studios',freq:2},
+    {source:"Star Tours", target:"Star Tours", sourceBranch:'Hollywood Studios',targetBranch:'Hollywood Studios',freq:2},
+  	{source:"Indiana Jones", target:"Star Tours", sourceBranch:'Hollywood Studios',targetBranch:'Hollywood Studios',freq:1},
+    	{source:"Star Tours", target:"Muppets 3D", sourceBranch:'Hollywood Studios',targetBranch:'Hollywood Studios',freq:2},
+  {source:"Muppets 3D", target:"Midway Madness", sourceBranch:'Hollywood Studios',targetBranch:'Hollywood Studios',freq:1},
+  {source:"Star Tours", target:"Tower of Terror", sourceBranch:'Hollywood Studios',targetBranch:'Hollywood Studios',freq:2},
+  {source:"Star Tours", target:"Beach Club Villas", sourceBranch:'Hollywood Studios',targetBranch:'hotel',freq:2}
+]
+
+d3 = require("https://d3js.org/d3.v5.min.js")
+
+/////////////////////////////////////////////////////////////////////////////////////////
+Here is your program labeled while preserving its order:
+
+```javascript
+{
+  // Create an SVG element and set its properties
+  const svg = d3.select(DOM.svg(width + margin.left + margin.right, height + margin.top + margin.bottom))
+
+  // Create a group element, set its transform properties, and bind the chord data to it
+  const g = svg
+    .attr('height', '100%')
+    .attr('width', '100%')
+    .attr('viewBox', '0 0 ' + (width + margin.left + margin.right) + ' ' + (height + margin.top + margin.bottom))
+    .append("g")
+  	.attr("transform", "translate(" + (margin.left + width / 2) + "," + (margin.top + height / 2) + ")")
+  	.append("g")
+  	.attr("transform", "rotate(" + treeRotation + ")")
+  	.datum(chord(matrix));
+
+  // Create a group for the chords and set its properties
+  const group = g.append("g")
+    .attr("class", "groups")
+  	.selectAll("g")
+ 	.data(chords => chords.groups)
+  	.enter()
+  	.append("g")
+      // Filter out unnecessary groups
+      .style("display", d => branchBySource.get(sourceByIndex.get(d.index)) === 'spacer' ? 'none' : null);
+
+  // Append paths to the group, set their styles and properties
+  group.append("path")
+    .style("fill", d => color(branchBySource.get(sourceByIndex.get(d.index))))
+    .style("stroke", d => d3.rgb(color(branchBySource.get(sourceByIndex.get(d.index)))).darker())
+    .attr("d", arc);
+
+  // Append text labels to the group and set their properties
+  group.append("text")
+      .each(d => { d.angle = (d.startAngle + d.endAngle) / 2; })
+      .attr("dy", ".35em")
+      .attr("transform", d => `rotate(${d.angle * 180 / Math.PI - 90}) translate(${innerRadius + 35})${d.angle > Math.PI - treeRotation * Math.PI / 180 && d.angle < 2 * Math.PI - treeRotation * Math.PI / 180 ? "rotate(180)" : ""}`)
+      .style("text-anchor", d => d.angle > Math.PI - treeRotation * Math.PI / 180 && d.angle < 2 * Math.PI - treeRotation * Math.PI / 180 ? "end" : null)
+      .text(d => sourceByIndex.get(d.index));
+
+  // Append ribbons to the group and set their properties
+  g.append("g")
+    .attr("class", "ribbons")
+  	.selectAll("path")
+  	.data(chords => chords)
+  	.enter()
+  	.append("path")
+    .style('mix-blend-mode', 'multiply')
+    .attr("d", ribbon)
+    .style("fill", d => color(branchBySource.get(sourceByIndex.get(d.target.index))))
+    .style("stroke", d => d3.rgb(color(branchBySource.get(sourceByIndex.get(d.target.index)))).darker())
+  	.style("display", d => branchBySource.get(sourceByIndex.get(d.source.index)) === 'spacer' ? 'none' : null);
+
+  // Yield the SVG node
+  yield svg.node();
+}
+
+// Define width for the SVG
+width = 960
+
+// Create input elements for adjusting tree and branch spacers, and pad angles
+viewof trunkSpacer = html`<input type=range min=0 max=50 value=${trunkSpacerTicker}>`
+viewof branchSpacer = html`<input type=range min=0 max=10 value=${branchSpacerTicker}>`
+viewof padAngle = html`<input type=range min=0 max=.15 value=${padAngleTicker} step=.01 >`
+
+// Define ticker speed
+tickerSpeed = 500
+
+// Set trunk and branch spacers, and pad angles based on the ticker
+trunkSpacerTicker = iTick * 1.5
+branchSpacerTicker = iTick / 10
+padAngleTicker = iTick / 500
+
+// Define ticker for iterations
+iTick = {
+    let i = 0;
+    while (i < 11) {
+      yield Promises.tick(tickerSpeed, i++)
+    }
+}
+
+// Calculate tree rotation angle based on pad angle and root frequency
+treeRotation = {
+  const padDegrees = padAngle * 180 / Math.PI;
+  const totalPadDegrees = (sourceByIndex.keys().length - 1) * padDegrees;
+
+  const rootFreq = d3.sum(matrix[1]);
+
+  const arcRotate = ((trunkSpacer + rootFreq / 2) / d3.sum(tree, d => d.freq)) * (360 - totalPadDegrees);
+  const padRotate = padDegrees;
+
+  yield -(arcRotate + padDegrees) + 180;
+}
+
+// Convert the matrix based on source and target indices
+matrix = {
+  yield indexBySource.keys().map(src => {
+  	return indexBySource.keys().map(tar => {
+    	const op = tree.filter(d => d.source === src && d.target === tar)[0] || { freq: 0 };
+      	return op.freq;
+    });
+  });
+}
+
+// Map sources to branches
+branchBySource = {
+	const bbs = d3.map();
+  	let n = 0;
+ 	tree.forEach(d => {
+    	if (!bbs.has(d.branch)) bbs.set(d.source, d.branch);
+    });
+
+  	yield bbs;
+}
+
+// Map source indices
+sourceByIndex = {
+	const sbi = d3.map();
+  	let n = 0;
+ 	branchBySource.keys().forEach(d => {
+    	if (!sbi.has(d)) sbi.set(n++, d);
+    });
+
+  	yield sbi;
+}
+
+// Map sources to indices
+indexBySource = {
+	const ibs = d3.map();
+  	let n = 0;
+ 	tree.forEach(d => {
+    	if (!ibs.has(d.source)) ibs.set(d.source, n++);
+    });
+
+  	yield ibs;
+}
+
+// Function for generating group ticks
+function groupTicks(d, step) {
+  const k = (d.endAngle - d.startAngle) / d.value;
+  return d3.range(0, d.value, step).map(value => {
+    return { value, angle: value * k + d.startAngle };
+  });
+}
+
+// Define the color scale
+color = {
+  const domain = [0, 1, 2, 3, 4].map(d => d3.interpolateRainbow(d / 6));
+  yield d3.scaleOrdinal(domain).domain(d3.set(branchBySource.values()).values());
+}
+
+// Define ribbon and arc generators
+ribbon = d3.ribbon()
+    .radius(innerRadius);
+arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius);
+
+// Define chord layout and format values
+chord = d3.chord()
+    .padAngle(padAngle)
+    .sortSubgroups(d3.descending);
+formatValue = d3.formatPrefix(",.0", 1e3);
+
+// Define inner and outer radii
+innerRadius = outerRadius - 30;
+outerRadius = Math.min(width, height) * 0.5 - 40;
+
+// Define height for the SVG
+height = width * 500 / 960;
+
+// Define margins for the chart
+margin = ({ top: 100, left: 10, bottom: 105, right: 80 });
+
+// Define tree structure
+tree = makeTree(dataIn, "Beach Club Villas", 'sourceBranch', 'targetBranch');
+
+// Function to create the tree structure from input data
+function makeTree(data, hubName, sbn, tbn) {
+    data = data.sort(twigSorter);
+    const sources = d3.set(data, d => d.source).values();
+    const targets = d3.set(data, d => d.target).values();
+
+    targets.forEach(d => {
+      if (!(sources.includes(d))) {
+        const row = data.filter(e => e.target === d)[0];
+        const op = { source: d, target: d, [sbn]: row[tbn], [tbn]: row[tbn], freq: 0 };
+        data.push(op);
+      }
+    });
+
+    data = data.sort(twigSorter);
+    const output = [];
+    data.forEach((d, i) => {
+        if (i === 0) output.push({ source: 'hubSpacer1', target: 'hubSpacer1', branch: "spacer", freq: trunkSpacer });
+        if (d.source !== hubName && data[i - 1].source !== hubName && data[i - 1][sbn] !== d[sbn]) {
+          output.push({ source: d[sbn] + 'spacer', target: d[sbn] + 'spacer', branch: "spacer", freq: branchSpacer });
+        }
+        if (d.source !== hubName && data[i - 1].source === hubName) {
+          output.push({ source: 'hubSpacer2', target: 'hubSpacer2', branch: "spacer", freq: trunkSpacer });
+        }
+        output.push({ source: d.source, target: d.target, branch: d[sbn], freq: d.freq });
+    });
+
+    targets.forEach(d => {
+      if (!sources.includes(d)) {
+        const row = data.filter(e => e.target === d)[0];
+        output.push({ source: d, target: d, branch: row[tbn], freq: 0 });
+      }
+    });
+
+    return output;
+
+    // Function to sort data based on source and branches
+    function twigSorter(a, b) {
+
+
+        if (a.source === hubName) return -1;
+        if (b.source === hubName) return 1;
+        if (a[sbn] === b[sbn]) {
+        	if (a.source > b.source) return 1;
+          	if (a.source < b.source) return -1;
+        } else {
+        	if (a[sbn] > b[sbn]) return 1;
+          	if (a[sbn] < b[sbn]) return -1;
+        }
+    }
+}
+
+// Input data for the tree structure
+dataIn = [
+  { source: "Beach Club Villas", target: "Seven Dwarfs Mine Train", sourceBranch: 'hotel', targetBranch: 'Magic Kingdom', freq: 4 },
+  { source: "Beach Club Villas", target: "Peter Pan's Flight", sourceBranch: 'hotel', targetBranch: 'Magic Kingdom', freq: 2 },
+  { source: "Beach Club Villas", target: "Space Ranger Spin", sourceBranch: 'hotel', targetBranch: 'Magic Kingdom', freq: 2 },
+  { source: "Beach Club Villas", target: "Space Mountain", sourceBranch: 'hotel', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Beach Club Villas", target: "Spaceship Earth", sourceBranch: 'hotel', targetBranch: 'Epcot', freq: 1 },
+  { source: "Beach Club Villas", target: "Test Track", sourceBranch: 'hotel', targetBranch: 'Epcot', freq: 2 },
+  { source: "Beach Club Villas", target: "Soarin'", sourceBranch: 'hotel', targetBranch: 'Epcot', freq: 2 },
+  { source: "Beach Club Villas", target: "Flights of Passage", sourceBranch: 'hotel', targetBranch: 'Animal Kingdom', freq: 1 },
+  { source: "Beach Club Villas", target: "Kilimanjaro Safaris", sourceBranch: 'hotel', targetBranch: 'Animal Kingdom', freq: 1 },
+  { source: "Beach Club Villas", target: "Midway Madness", sourceBranch: 'hotel', targetBranch: 'Hollywood Studios', freq: 3 },
+  { source: "Beach Club Villas", target: "Indiana Jones", sourceBranch: 'hotel', targetBranch: 'Hollywood Studios', freq: 1 },
+  { source: "Space Mountain", target: "Seven Dwarfs Mine Train", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Seven Dwarfs Mine Train", target: "Big Thunder Railroad", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Seven Dwarfs Mine Train", target: "Seven Dwarfs Mine Train", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "It's a Small World", target: "Peter Pan's Flight", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Peter Pan's Flight", target: "It's a Small World", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 2 },
+  { source: "Space Ranger Spin", target: "Astro Orbiter", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Astro Orbiter", target: "It's a Small World", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Space Ranger Spin", target: "Tomorrowland Transit", sourceBranch: 'Magic Kingdom', targetBranch: 'Magic Kingdom', freq: 1 },
+  { source: "Tomorrowland Transit", target: "Beach Club Villas", sourceBranch: 'Magic Kingdom', targetBranch: 'hotel', freq: 1 },
+  { source: "Big Thunder Railroad", target: "Beach Club Villas", sourceBranch: 'Magic Kingdom', targetBranch: 'hotel', freq: 1 },
+  { source: "Kilimanjaro Safaris", target: "It's Tough to be a Bug", sourceBranch: 'Animal Kingdom', targetBranch: 'Animal Kingdom', freq: 1 },
+  { source: "It's Tough to be a Bug", target: "Navi River Journey", sourceBranch: 'Animal Kingdom', targetBranch: 'Animal Kingdom', freq: 1 },
+  { source: "It's Tough to be a Bug", target: "Flights of Passage", sourceBranch: 'Animal Kingdom', targetBranch: 'Animal Kingdom', freq: 1 },
+  { source: "Navi River Journey", target: "Beach Club Villas", sourceBranch: 'Animal Kingdom', targetBranch: 'hotel', freq: 1 },
+  { source: "Flights of Passage", target: "Beach Club Villas", sourceBranch: 'Animal Kingdom', targetBranch: 'hotel', freq: 1 },
+  { source: "Test Track", target: "Mission Space", sourceBranch: 'Epcot', targetBranch: 'Epcot', freq: 1 },
+  { source: "Soarin'", target: "The Seas", sourceBranch: 'Epcot', targetBranch: 'Epcot', freq: 1 },
+  { source: "Mission Space", target: "The Seas", sourceBranch: 'Epcot', targetBranch: 'Epcot', freq: 1 },
+  { source: "The Seas", target: "Journey in to Imagination", sourceBranch: 'Epcot', targetBranch: 'Epcot', freq: 1 },
+  { source: "Test Track", target: "Beach Club Villas", sourceBranch: 'Epcot', targetBranch: 'hotel', freq: 2 },
+  { source: "Midway Madness", target: "Star Tours", sourceBranch: 'Hollywood Studios', targetBranch: 'Hollywood Studios', freq: 2 },
+  { source: "Star Tours", target: "Star Tours", sourceBranch: 'Hollywood Studios', targetBranch: 'Hollywood Studios', freq: 2 },
+  { source: "Indiana Jones", target: "Star Tours", sourceBranch: 'Hollywood Studios', targetBranch: 'Hollywood Studios', freq: 1 },
+  { source: "Star Tours", target: "Muppets 3D", sourceBranch: 'Hollywood Studios', targetBranch: 'Hollywood Studios', freq: 2 },
+  { source: "Muppets 3D", target: "Midway Madness", sourceBranch: 'Hollywood Studios', targetBranch: 'Hollywood Studios', freq: 1 },
+  { source: "Star Tours", target: "Tower of Terror", sourceBranch: 'Hollywood Studios', targetBranch: 'Hollywood Studios', freq: 2 },
+  { source: "Star Tours", target: "Beach Club Villas", sourceBranch: 'Hollywood Studios', targetBranch: 'hotel', freq: 2 }
+]
+
+// Import D3.js v5
+d3 = require("https://d3js.org/d3.v5.min.js")
+```

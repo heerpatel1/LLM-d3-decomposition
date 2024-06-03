@@ -1,0 +1,496 @@
+Can you label this entire program for me without changing its order:
+
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) )
+. attr ( "viewBox" , `${ - width / 2 } ${ - height / 2 } ${ width } ${ height }` )
+. style ( "width" , "100%" )
+. style ( "height" , "auto" )
+. style ( "font" , "10px sans-serif" ) ;
+
+svg . append ( "g" )
+. selectAll ( "g" )
+. data ( filledData )
+. join ( "g" )
+. selectAll ( "path" )
+. data ( filledData )
+. join ( "path" )
+. attr ( "fill" , ( d , i ) => z ( i ) )
+. attr ( "d" , d => arc ( d ) ) ;
+
+svg . append ( "text" )
+. attr ( "transform" , `translate(0,${ - outerRadius + 80 })` )
+. attr ( "text-anchor" , "middle" )
+. style ( "font" , "40px sans-serif" )
+. text ( title ) ;
+
+svg . append ( "g" )
+. call ( xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis ) ;
+
+svg . append ( "g" )
+. call ( legend ) ;
+
+return svg . node ( ) ;
+}
+
+ chart2 = {
+const svg2 = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+svg2 . append ( "g" )
+. attr ( "fill" , "steelblue" )
+. selectAll ( "rect" )
+. data ( data )
+. join ( "rect" )
+. attr ( "x" , xBar ( 0 ) )
+. attr ( "y" , ( d , i ) => yBar ( i ) )
+. attr ( "width" , d => xBar ( d . proportion ) - xBar ( 0 ) )
+. attr ( "height" , yBar . bandwidth ( ) )
+. attr ( "fill" , ( d , i ) => z ( filledData . findIndex ( x => x . spice === d . spice ) ) )
+
+svg2 . append ( "g" )
+. attr ( "fill" , "white" )
+. attr ( "text-anchor" , "end" )
+. attr ( "font-family" , "sans-serif" )
+. attr ( "font-size" , 30 )
+. selectAll ( "text" )
+. data ( data )
+. join ( "text" )
+. attr ( "x" , d => xBar ( d . proportion ) - 4 )
+. attr ( "y" , ( d , i ) => yBar ( i ) + yBar . bandwidth ( ) / 2 )
+. attr ( "dy" , "0.35em" )
+. text ( d => d . proportion ) ;
+
+svg2 . append ( "g" )
+. call ( xAxisBar ) ;
+
+svg2 . append ( "g" )
+. call ( yAxisBar ) ;
+
+svg2 . append ( "text" )
+. attr ( "transform" , `translate(${ ( width ) / 2 },${ margin . top / 2 })` )
+. attr ( "text-anchor" , "middle" )
+. style ( "font" , "40px sans-serif" )
+. text ( title ) ;
+
+return svg2 . node ( ) ;
+}
+
+spiceBlendRawData = ({
+   "Cajun Seasoning Blend": ["2.5 tablespoons salt","1 tablespoon oregano","1 tablespoon paprika","1 tablespoon cayenne pepper","1 tablespoon black pepper","1 teaspoon onion powder","1 teaspoon garlic powder"],
+   "Chili Seasoning Blend":["2.5 tablespoons chili powder","1 tablespoon cumin","1 tablespoon garlic powder","1 tablespoon paprika","1 tablespoon onion powder","0.5 tablespoon oregano","1 teaspoon salt","1 teaspoon black pepper"],
+   "Jerk Seasoning Blend":["3.5 tablespoons dried minced onion","1 tablespoon thyme","1 tablespoon allspice","1 tablespoon black pepper","1 teaspoon cinnamon","1 teaspoon cayenne pepper","0.5 teaspoon salt","1 teaspoon garlic powder"],
+   "Mediterranean Seasoning Blend":["2 tablespoons basil","2 tablespoons oregano","2 tablespoons salt","1 tablespoon parsley","1 tablespoon dried minced onion","1 teaspoon black pepper"],
+   "Salt Free All Purpose Seasoning Blend":["2 tablespoons garlic powder","2 tablespoons onion powder","1 tablespoon chili powder","1 tablespoon paprika","1 tablespoon parsley","1.5 teaspoons black pepper"],
+   "Ranch Seasoning Blend":["2.5 tablespoons parsley","2 teaspoons dried dill","2.5 teaspoons garlic powder","2.5 teaspoons onion powder","2 teaspoons dried minced onion","1 teaspoon black pepper","1.5 teaspoons salt"],
+   "Pumpkin Pie Spice Blend":["4.5 tablespoons cinnamon","1 tablespoon ginger","1 tablespoon nutmeg","1 tablespoon allspice","2 teaspoons ground cloves"],
+   "Italian Seasoning Blend":["4 teaspoons basil","4 teaspoons oregano","4 teaspoons rosemary","4 teaspoons marjoram","4 teaspoons thyme","4 teaspoons savory","2 teaspoons garlic powder"],
+   "Taco & Fajita Seasoning Blend":["2 tablespoons chili powder","4 teaspoons cumin","2 teaspoons coriander","1 teaspoon onion powder","1 teaspoon garlic powder","1 teaspoon oregano","1 teaspoon smoked paprika","2 teaspoons salt","0.5 teaspoon black pepper"]
+});
+
+ blendsData = Object . entries ( spiceBlendRawData ) . map ( entry => ( {
+name : entry [ 0 ] ,
+recipe : entry [ 1 ] . map ( item => item . replace ( 'spoons' , 'spoon' ) ) . map ( item => {
+const [ amount , spice ] = item . split ( 'spoon ' )
+const [ quantity , unit ] = amount . split ( ' ' )
+const proportion = unit === 'table' ? Number ( quantity ) * 3 : Number ( quantity )
+return { originalQuantity : Number ( quantity ) , originalUnit : `${ unit }spoon` , spice , proportion }
+} )
+} ) )
+
+ blendsIngredients = blendsData . map ( blend => blend . recipe . map ( item => item . spice ) )
+
+ spices = [ ]
+
+ blendsIngredients . forEach ( list => list . forEach ( ingredient => {
+if ( ! spices . includes ( ingredient ) ) {
+spices . push ( ingredient )
+}
+} ) )
+
+spices
+
+ data = blendsData [ 1 ] . recipe
+
+ title = blendsData [ 1 ] . name
+
+ getSpicesNotIncludedInRecipe = ( spices , spicesInRecipe ) => spices . filter ( x => ! spicesInRecipe . includes ( x ) )
+
+ spicesInRecipe = data . map ( d => d . spice ) ;
+
+ spicesNotIncludedInRecipe = getSpicesNotIncludedInRecipe ( spices , spicesInRecipe )
+
+ dataToFill = spicesNotIncludedInRecipe . map ( spice => ( { spice , originalQuantity : 0 , originalUnit : '' , proportion : 0 } ) )
+
+ filledData = [ ... data , ... dataToFill ] . sort ( ( a , b ) => a . spice > b . spice ? 1 : - 1 )
+
+ arc = d3 . arc ( )
+. innerRadius ( d => y ( 0 ) )
+. outerRadius ( d => y ( d . proportion ) )
+. startAngle ( d => x ( d . spice ) )
+. endAngle ( d => x ( d . spice ) + x . bandwidth ( ) )
+. padAngle ( 1 )
+. padRadius ( 10 )
+
+ arc ( data [ 0 ] )
+
+ x = d3 . scaleBand ( )
+. domain ( filledData . map ( d => d . spice ) )
+. range ( [ 0 , 2 * Math . PI ] )
+. align ( 0 )
+
+ y = {
+// This scale maintains area proportionality of radial bars!
+const y = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( data , d => d . proportion ) ] )
+. range ( [ innerRadius * innerRadius , outerRadius * outerRadius ] ) ;
+return Object . assign ( d => Math . sqrt ( y ( d ) ) , y ) ;
+}
+
+ domain = filledData . map ( d => d . spice ) ;
+
+ z = d3 . scaleLinear ( )
+. domain ( [ 0 , filledData . length / 4 , filledData . length / 2 , ( 3 * filledData . length ) / 4 , filledData . length ] )
+. range ( [ "#dbcccc" , "#8faab3" , "#c4bd8b" , "#81b14f" , "#451b04" ] )
+
+ getIsInLeftHalf = d => ( x ( d . spice ) + x . bandwidth ( ) / 2 ) % ( 2 * Math . PI ) < Math . PI
+
+ xAxis = g => g
+. attr ( "text-anchor" , "middle" )
+. call ( g => g . selectAll ( "g" )
+. data ( filledData )
+. join ( "g" )
+. attr ( "transform" , d => `
+          rotate(${ ( ( x ( d . spice ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) })
+          translate(${ y ( 0 ) },0)
+        ` )
+. call ( g => g . append ( "text" )
+. attr ( "transform" , d => getIsInLeftHalf ( d )
+? "translate(8,4)"
+: "rotate(180)translate(-8,4)" )
+. attr ( "fill" , "white" )
+. style ( "font" , "bold 12px sans-serif" )
+. style ( "text-anchor" , d => getIsInLeftHalf ( d ) ? "start" : "end" )
+. text ( d => d . proportion > 0 ? `${ d . spice }` : "" ) ) )
+
+ yAxis = g => g
+. attr ( "text-anchor" , "middle" )
+. call ( g => g . selectAll ( "g" )
+. data ( y . ticks ( 8 ) . slice ( 1 ) )
+. join ( "g" )
+. attr ( "fill" , "none" )
+. call ( g => g . append ( "circle" )
+. attr ( "stroke" , "#fff" )
+. attr ( "stroke-opacity" , 0.5 )
+. attr ( "r" , y ) )
+)
+
+ legend = g => g . append ( "g" )
+. selectAll ( "g" )
+. data ( data )
+. join ( "g" )
+. attr ( "transform" , ( d , i ) => `translate(-40,${ ( i - ( data . length - 1 ) / 2 ) * 20 })` )
+. call ( g => g . append ( "rect" )
+. attr ( "width" , 18 )
+. attr ( "height" , 18 )
+. attr ( "fill" , ( d , i ) => z ( filledData . findIndex ( x => x . spice === d . spice ) ) ) )
+. call ( g => g . append ( "text" )
+. attr ( "x" , 9 )
+. attr ( "y" , 9 )
+. attr ( "dy" , "0.35em" )
+. attr ( "fill" , "white" )
+. style ( "text-anchor" , "middle" )
+. text ( d => d . proportion ) )
+. call ( g => g . append ( "text" )
+. attr ( "x" , 24 )
+. attr ( "y" , 9 )
+. attr ( "dy" , "0.35em" )
+. text ( d => d . spice ) )
+
+ width = 975
+
+ height = width
+
+ innerRadius = data . length * 15
+
+ outerRadius = Math . min ( width , height ) / 2
+
+ d3 = require ( "d3@5" )
+
+ xBar = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( data , d => d . proportion ) ] )
+. range ( [ margin . left , width - margin . right ] )
+
+ yBar = d3 . scaleBand ( )
+. domain ( d3 . range ( data . length ) )
+. rangeRound ( [ margin . top , height - margin . bottom ] )
+. padding ( 0.2 )
+
+ xAxisBar = g => g
+. attr ( "transform" , `translate(0,${ height - margin . bottom })` )
+. call ( d3 . axisTop ( xBar ) . tickSizeInner ( height - margin . top - margin . bottom ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+. call ( g => g . selectAll ( ".tick:not(:first-of-type) line" )
+. attr ( "stroke" , "white" )
+. attr ( "stroke-dasharray" , "4,4" ) )
+
+ yAxisBar = g => g
+. style ( "font" , "20px arial" )
+. attr ( "transform" , `translate(${ margin . left },0)` )
+. call ( d3 . axisLeft ( yBar ) . tickFormat ( i => data [ i ] . spice ) . tickSizeOuter ( 0 ) )
+
+ barHeight = ( height - margin . top - margin . bottom ) / ( data . length + 20 )
+
+ margin = ( { top : 100 , right : 60 , bottom : 10 , left : 160 } )
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Define chart 1
+chart = {
+  // Create SVG element
+  const svg = d3.select(DOM.svg(width, height))
+    .attr("viewBox", `${-width / 2} ${-height / 2} ${width} ${height}`)
+    .style("width", "100%")
+    .style("height", "auto")
+    .style("font", "10px sans-serif");
+
+  // Append groups and elements to SVG
+  svg.append("g")
+    .selectAll("g")
+    .data(filledData)
+    .join("g")
+    .selectAll("path")
+    .data(filledData)
+    .join("path")
+    .attr("fill", (d, i) => z(i))
+    .attr("d", d => arc(d));
+
+  svg.append("text")
+    .attr("transform", `translate(0,${-outerRadius + 80})`)
+    .attr("text-anchor", "middle")
+    .style("font", "40px sans-serif")
+    .text(title);
+
+  svg.append("g")
+    .call(xAxis);
+
+  svg.append("g")
+    .call(yAxis);
+
+  svg.append("g")
+    .call(legend);
+
+  return svg.node();
+}
+
+// Define chart 2
+chart2 = {
+  const svg2 = d3.create("svg")
+    .attr("viewBox", [0, 0, width, height]);
+
+  svg2.append("g")
+    .attr("fill", "steelblue")
+    .selectAll("rect")
+    .data(data)
+    .join("rect")
+    .attr("x", xBar(0))
+    .attr("y", (d, i) => yBar(i))
+    .attr("width", d => xBar(d.proportion) - xBar(0))
+    .attr("height", yBar.bandwidth())
+    .attr("fill", (d, i) => z(filledData.findIndex(x => x.spice === d.spice)))
+
+  svg2.append("g")
+    .attr("fill", "white")
+    .attr("text-anchor", "end")
+    .attr("font-family", "sans-serif")
+    .attr("font-size", 30)
+    .selectAll("text")
+    .data(data)
+    .join("text")
+    .attr("x", d => xBar(d.proportion) - 4)
+    .attr("y", (d, i) => yBar(i) + yBar.bandwidth() / 2)
+    .attr("dy", "0.35em")
+    .text(d => d.proportion);
+
+  svg2.append("g")
+    .call(xAxisBar);
+
+  svg2.append("g")
+    .call(yAxisBar);
+
+  svg2.append("text")
+    .attr("transform", `translate(${(width) / 2},${margin.top / 2})`)
+    .attr("text-anchor", "middle")
+    .style("font", "40px sans-serif")
+    .text(title);
+
+  return svg2.node();
+}
+
+// Raw data of spice blends and ingredients
+spiceBlendRawData = ({
+  // Raw data omitted for brevity
+});
+
+// Process spice blends data
+blendsData = Object.entries(spiceBlendRawData).map(entry => ({
+  name: entry[0],
+  recipe: entry[1].map(item => item.replace('spoons', 'spoon')).map(item => {
+    const [amount, spice] = item.split('spoon ')
+    const [quantity, unit] = amount.split(' ')
+    const proportion = unit === 'table' ? Number(quantity) * 3 : Number(quantity)
+    return { originalQuantity: Number(quantity), originalUnit: `${unit}spoon`, spice, proportion }
+  })
+}))
+
+// Process spices data
+blendsIngredients = blendsData.map(blend => blend.recipe.map(item => item.spice))
+spices = []
+blendsIngredients.forEach(list => list.forEach(ingredient => {
+  if (!spices.includes(ingredient)) {
+    spices.push(ingredient)
+  }
+}))
+
+// Process data to be filled for chart 2
+dataToFill = spicesNotIncludedInRecipe.map(spice => ({ spice, originalQuantity: 0, originalUnit: '', proportion: 0 }))
+filledData = [...data, ...dataToFill].sort((a, b) => a.spice > b.spice ? 1 : -1)
+
+// Define arc for chart 1
+arc = d3.arc()
+  .innerRadius(d => y(0))
+  .outerRadius(d => y(d.proportion))
+  .startAngle(d => x(d.spice))
+  .endAngle(d => x(d.spice) + x.bandwidth())
+  .padAngle(1)
+  .padRadius(10)
+
+// Define scales and axes for chart 1
+x = d3.scaleBand()
+  .domain(filledData.map(d => d.spice))
+  .range([0, 2 * Math.PI])
+  .align(0)
+
+y = {
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.proportion)])
+    .range([innerRadius * innerRadius, outerRadius * outerRadius]);
+  return Object.assign(d => Math.sqrt(y(d)), y);
+}
+
+// Domain for color scale of chart 1
+domain = filledData.map(d => d.spice);
+
+z = d3.scaleLinear()
+  .domain([0, filledData.length / 4, filledData.length / 2, (3 * filledData.length) / 4, filledData.length])
+  .range(["#dbcccc", "#8faab3", "#c4bd8b", "#81b14f", "#451b04"])
+
+// Function to determine if a spice is in the left half of the chart
+getIsInLeftHalf = d => (x(d.spice) + x.bandwidth() / 2) % (2 * Math.PI) < Math.PI
+
+// Define axes for chart 1
+xAxis = g => g
+  .attr("text-anchor", "middle")
+  .call(g => g.selectAll("g")
+    .data(filledData)
+    .join("g")
+    .attr("transform", d => `
+          rotate(${((x(d.spice) + x.bandwidth() / 2) * 180 / Math.PI - 90)})
+          translate(${y(0)},0)
+        `)
+    .call(g => g.append("text")
+      .attr("transform", d => getIsInLeftHalf(d)
+        ? "translate(8,4)"
+        : "rotate(180)translate(-8,4)")
+      .attr("fill", "white")
+      .style("font", "bold 12px sans-serif")
+      .style("text-anchor", d => getIsInLeftHalf(d) ? "start" : "end")
+      .text(d => d.proportion > 0 ? `${d.spice}` : "")))
+
+yAxis = g => g
+  .attr("text-anchor", "middle")
+  .call(g => g.selectAll("g")
+    .data(y.ticks(8).slice(1))
+    .join("g")
+    .attr("fill", "none")
+    .call(g => g.append("circle")
+      .attr("stroke
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////
+Can you label the rest of the program?
+
+```javascript
+// Program label continues...
+
+  .attr("stroke", "#fff")
+      .attr("stroke-opacity", 0.5)
+      .attr("r", y)))
+
+// Define legend for chart 1
+legend = g => g.append("g")
+  .selectAll("g")
+  .data(data)
+  .join("g")
+  .attr("transform", (d, i) => `translate(-40,${(i - (data.length - 1) / 2) * 20})`)
+  .call(g => g.append("rect")
+    .attr("width", 18)
+    .attr("height", 18)
+    .attr("fill", (d, i) => z(filledData.findIndex(x => x.spice === d.spice))))
+  .call(g => g.append("text")
+    .attr("x", 9)
+    .attr("y", 9)
+    .attr("dy", "0.35em")
+    .attr("fill", "white")
+    .style("text-anchor", "middle")
+    .text(d => d.proportion))
+  .call(g => g.append("text")
+    .attr("x", 24)
+    .attr("y", 9)
+    .attr("dy", "0.35em")
+    .text(d => d.spice))
+
+// Set width and height for charts
+width = 975
+height = width
+
+// Define inner and outer radius for chart 1
+innerRadius = data.length * 15
+outerRadius = Math.min(width, height) / 2
+
+// Import D3 library
+d3 = require("d3@5")
+
+// Define scales and axes for chart 2
+xBar = d3.scaleLinear()
+  .domain([0, d3.max(data, d => d.proportion)])
+  .range([margin.left, width - margin.right])
+
+yBar = d3.scaleBand()
+  .domain(d3.range(data.length))
+  .rangeRound([margin.top, height - margin.bottom])
+  .padding(0.2)
+
+xAxisBar = g => g
+  .attr("transform", `translate(0,${height - margin.bottom})`)
+  .call(d3.axisTop(xBar).tickSizeInner(height - margin.top - margin.bottom))
+  .call(g => g.select(".domain").remove())
+  .call(g => g.selectAll(".tick:not(:first-of-type) line")
+    .attr("stroke", "white")
+    .attr("stroke-dasharray", "4,4"))
+
+yAxisBar = g => g
+  .style("font", "20px arial")
+  .attr("transform", `translate(${margin.left},0)`)
+  .call(d3.axisLeft(yBar).tickFormat(i => data[i].spice).tickSizeOuter(0))
+
+// Calculate bar height for chart 2
+barHeight = (height - margin.top - margin.bottom) / (data.length + 20)
+
+// Define margin for chart 2
+margin = { top: 100, right: 60, bottom: 10, left: 160 }
+```
+
+This labels the remaining parts of the program, including the legend, chart dimensions, scales, axes, and margins for both charts.

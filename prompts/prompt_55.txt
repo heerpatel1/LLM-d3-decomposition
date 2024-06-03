@@ -1,0 +1,196 @@
+Can you label this program for me?:
+colors = {
+
+const countryNames = data . map ( d => d [ 0 ] . name )
+
+return d3 . scaleOrdinal (
+countryNames ,
+d3 . schemeCategory10
+)
+
+}
+
+ xScale = {
+
+const startDate = data [ 0 ] [ 0 ] . date ,
+endDate = data [ 0 ] [ data [ 0 ] . length - 1 ] . date
+
+return d3 . scaleTime (
+// domain
+[ startDate , endDate ] ,
+// range
+[ margin . left , width - margin . right ]
+)
+
+}
+
+ yScale = {
+// flatten the data into a single array
+const prices = data . flat ( ) . map ( d => d . price ) ,
+// and find the max value from that array
+yMax = d3 . max ( [ ... prices , 8 ] )
+
+return d3 . scaleLinear (
+[ 1 , yMax ] ,
+[ height - margin . bottom , margin . top ]
+)
+}
+
+ yAxis = {
+
+const formatter = d3 . format ( '$.2f' )
+
+return d3 . axisLeft ( yScale )
+. tickFormat ( d => formatter ( d ) )
+
+}
+
+ xAxis = d3 . axisBottom ( xScale )
+
+ line = d3 . line ( )
+. x ( d => xScale ( d . date ) )
+. y ( d => yScale ( d . price ) )
+. curve ( d3 . curveNatural )
+
+ container = {
+
+const svg = html `<svg width="900" height="500" />`
+
+d3 . select ( svg )
+. selectAll ( 'path' )
+. data ( data )
+. join ( 'path' )
+. attr ( 'class' , 'big-mac-line' )
+// Using our line generator here
+. attr ( 'd' , line )
+// Every data point in the array has a name key
+// so we just grab the one from d[0]
+. style ( 'stroke' , d => colors ( d [ 0 ] . name ) )
+. style ( 'stroke-width' , 2 )
+. style ( 'fill' , 'transparent' )
+
+
+// This places the labels to the right of each line
+d3 . select ( svg )
+. selectAll ( 'text.label' )
+. data ( data )
+. join ( 'text' )
+. attr ( 'class' , 'label' )
+// place the ticks to the right of the chart
+. attr ( 'x' , width - margin . right + 5 )
+// Place the ticks at the same y position as
+// the last y value of the line (remember, d is our array of points)
+. attr ( 'y' , d => yScale ( d [ d . length - 1 ] . price ) + ( d [ 0 ] . name === 'Sweden' ? - 10 : 0 ) )
+. attr ( 'dy' , '0.35em' )
+. style ( 'fill' , d => colors ( d [ 0 ] . name ) )
+. style ( 'font-family' , 'sans-serif' )
+. style ( 'font-size' , 12 )
+. text ( d => d [ 0 ] . name )
+
+d3 . select ( svg )
+. append ( 'g' )
+. attr ( 'class' , 'x-axis' )
+. attr ( 'transform' , `translate(0,${  height - margin . bottom  })` )
+. call ( xAxis )
+
+d3 . select ( svg )
+. append ( 'g' )
+. attr ( 'class' , 'y-axis' )
+. attr ( 'transform' , `translate(${  margin . left  },0)` )
+. call ( yAxis )
+// This removes the vertical line on the axis between the ticks and the rest of the chart.
+// Purely an aesthetic choice
+. selectAll ( '.domain' ) . remove ( )
+
+return svg
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// Label: colorComponent()
+colors = {
+    const countryNames = data.map(d => d[0].name);
+    return d3.scaleOrdinal(countryNames, d3.schemeCategory10);
+}
+
+// Label: scaleComponent()
+xScale = {
+    const startDate = data[0][0].date;
+    const endDate = data[0][data[0].length - 1].date;
+    return d3.scaleTime(
+        [startDate, endDate],
+        [margin.left, width - margin.right]
+    );
+}
+
+// Label: scaleComponent()
+yScale = {
+    // Flatten the data into a single array and find the max value
+    const prices = data.flat().map(d => d.price);
+    const yMax = d3.max([...prices, 8]);
+
+    return d3.scaleLinear([1, yMax], [height - margin.bottom, margin.top]);
+}
+
+// Label: yAxis
+yAxis = {
+    const formatter = d3.format('$.2f');
+    return d3.axisLeft(yScale).tickFormat(d => formatter(d));
+}
+
+// Label: xAxis
+xAxis = d3.axisBottom(xScale);
+
+// Label: lineComponent()
+line = d3.line()
+    .x(d => xScale(d.date))
+    .y(d => yScale(d.price))
+    .curve(d3.curveNatural);
+
+// Label: createSvgComponent()
+container = {
+    const svg = html`<svg width="900" height="500" />`;
+
+    // Label: svgAppend()
+    d3.select(svg)
+        .selectAll('path')
+        .data(data)
+        .join('path')
+        .attr('class', 'big-mac-line')
+        .attr('d', line)
+        .style('stroke', d => colors(d[0].name))
+        .style('stroke-width', 2)
+        .style('fill', 'transparent');
+
+    // Label: svgAppend()
+    d3.select(svg)
+        .selectAll('text.label')
+        .data(data)
+        .join('text')
+        .attr('class', 'label')
+        .attr('x', width - margin.right + 5)
+        .attr('y', d => yScale(d[d.length - 1].price) + (d[0].name === 'Sweden' ? -10 : 0))
+        .attr('dy', '0.35em')
+        .style('fill', d => colors(d[0].name))
+        .style('font-family', 'sans-serif')
+        .style('font-size', 12)
+        .text(d => d[0].name);
+
+    // Label: svgAppend()
+    d3.select(svg)
+        .append('g')
+        .attr('class', 'x-axis')
+        .attr('transform', `translate(0,${height - margin.bottom})`)
+        .call(xAxis);
+
+    // Label: svgAppend()
+    d3.select(svg)
+        .append('g')
+        .attr('class', 'y-axis')
+        .attr('transform', `translate(${margin.left},0)`)
+        .call(yAxis)
+        .selectAll('.domain').remove();
+
+    return svg;
+}
+

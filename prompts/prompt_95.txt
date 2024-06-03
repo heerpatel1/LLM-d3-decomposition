@@ -1,0 +1,381 @@
+Can you label this program for me?:
+
+key = swatches({color, marginLeft: streamMargin.left, columns: "180px"})
+
+streamChart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  svg.append("g")
+    .selectAll("path")
+    .data(streamSeries)
+    .join("path")
+      .attr("fill", ({key}) => color(key))
+      .attr("d", area)
+    .append("title")
+      .text(({key}) => key);
+
+  svg.append("g")
+      .call(streamxAxis);
+
+  return svg.node();
+}
+
+streamMargin = ({top: 50, right: 20, bottom: 30, left: 20})
+//chartMargin
+
+height = 600
+
+streamx = d3.scaleUtc()
+    .domain(d3.extent(data, d => d.date))
+    .range([streamMargin.left, width - streamMargin.right])
+//x value range for Streamgraph
+
+streamy = d3.scaleLinear()
+    .domain([d3.min(streamSeries, d => d3.min(d, d => d[0])), d3.max(streamSeries, d => d3.max(d, d => d[1]))])
+    .range([height - streamMargin.bottom, streamMargin.top])
+//y value range for StreamGraph
+
+streamxAxis = g => g
+    .attr("transform", `translate(0,${height - streamMargin.bottom})`)
+    .call(d3.axisBottom(streamx).ticks(width/80).tickSizeOuter(0))
+    .call(g => g.select(".domain").remove())
+//x Axis definition for Streamgraph
+
+key1 = swatches({color, marginLeft: streamMargin.left, columns: "180px"})
+
+TextChartNumber = {
+  const q = md`${SUM[0]["sum"]}`;
+  q.style.color = d3.interpolateRainbow(now / 1000);
+  const p = md `Total cases:<h2>${q}<h2>`;
+  return p;
+}
+
+streamMyColor = ["#abdda4","#778899","#FFFACD", "#e15759", "#bab0ab", "#9c755f","#9370DB", "#af7aa1","#D2691E","darkgreen","#191970", "#2E8B57","#FAEBD7", "#9e0142", "#f46d43","#3288bd"]
+//草坪绿  浅石板灰  //柠檬薄纱。
+//definition of legend color
+
+data = transformedLHDData
+
+streamSeries = d3.stack()
+    .keys(theKeys)
+    .offset(d3.stackOffsetWiggle)
+    .order(d3.stackOrderInsideOut)
+  (transformedLHDData)
+//stackOffsetWiggle function in chart
+//stackOrderInsideOut function in chart
+
+area = d3.area()
+    .x(d => streamx(d.data.date))
+    .y0(d => streamy(d[0]))
+    .y1(d => streamy(d[1]))
+
+color = d3.scaleOrdinal()
+    .domain(Object.keys(transformedLHDData[0]).slice(1))
+    .range(streamMyColor)
+//In each element in per line of transformedLHDData. Render colour I defined below with relevant "LHD name"
+
+d3 = require("d3@6")
+
+import {swatches} from "@d3/color-legend"
+
+rawData = fetch('https://data.nsw.gov.au/data/dataset/97ea2424-abaf-4f3e-a9f2-b5c883f42b6a/resource/2776dbb8-f807-4fb2-b1ed-184a6fc2c8aa/download/confirmed_cases_table4_location_likely_source.csv')
+//fetch data from CSV data URL
+
+rawOnes = d3.csvParse(await rawData.text(), d3.autoType)
+//wait response from URL
+
+startDate = new Date("2021-06-30")
+
+updateData = rawOnes.filter(
+  (d) =>
+    d.notification_date > startDate && isNumber(d.postcode) && isNull(d.lga_code19)
+)
+//filter with date, check whether postcode is number and is null
+//if suitable, a new array is generated without inconsistent data
+
+function isNumber(obj) {
+  return obj !== undefined && typeof(obj) === 'number' && !isNaN(obj);
+}
+//function to check whether the value is number and NaN or not
+
+function isNull(obj) {
+  return obj !== null
+}
+//a function used to check whether the value is "null" or not
+
+transformerLHD = (inData) => {
+
+  let outData = [];
+
+  function findRow(arr, d) {
+    for (let i = 0; i < arr.length; i++) {
+      // let newStringDate = arr[i]["notification_date"].toString();
+      // let originalStringDate = d["notification_date"].toString();
+      if (arr[i]["date"].toString() === d["notification_date"].toString()){
+        return i;
+      }
+    }
+    return null;
+  }
+
+  for (const d of inData) {
+
+    let rowIndex = findRow(outData, d);
+
+//Continue to add key and value from this line
+    if (rowIndex !== null) {
+//If there is already a same key in this array line, the value increases
+      if (d["lhd_2010_name"] in outData[rowIndex]){
+        // throw "age group already in row";
+        // outData[d["lhd_2010_name"]] ++;
+        let obj = {};
+        let number = {};
+        number[0] = outData[rowIndex][d["lhd_2010_name"]]
+        obj[d["lhd_2010_name"]] = number[0] + 1;
+        Object.assign(outData[rowIndex], obj);
+        // outData.push(obj)
+      }
+    }
+      //Create a new series of numbers, starting from the date
+    else {
+      let obj = {
+        "date": d["notification_date"],
+        // "rowIndex": rowIndex
+      };
+      for(let j=0 ; j < theKeys.length; j++){
+        obj[theKeys[j]]= 0;
+      }
+      obj[d["lhd_2010_name"]] = 1;
+      outData.push(obj);
+    }
+  }
+  return outData;
+}
+//A function that accumulate the number of cases in different LHDs on the day and form a new array
+
+transformedLHDData = transformerLHD(updateData)
+//use transformer to accumulate the number of cases in different LHDs on the day and form a new array
+
+theKeys = ["Central Coast", "Correctional settings", "Far West", "Hunter New England", "Illawarra Shoalhaven", "Mid North Coast", "Murrumbidgee","Nepean Blue Mountains", "Northern NSW", "Northern Sydney","Sydney", "South Eastern Sydney","Southern NSW", "South Western Sydney", "Western NSW", "Western Sydney"]
+//definition of different LHDs
+
+Summarier = (inData) => {
+
+  let outData = [];
+  let obj = {};
+  let sum = 0;
+///transformedData
+  function SummarierF(inData) {
+    for (let i = 0; i < inData.length; i++) {
+      for (let j = 0; j < theKeys.length; ++j) {
+        sum = sum + inData[i][theKeys[j]];
+      }
+    }
+    obj = {
+    "sum": sum
+    }
+    outData.push(obj);
+  }
+
+  // obj = {
+  //   "sum": sum
+  // }
+
+  SummarierF(inData);
+  // outData.push(obj);
+  return outData;
+}
+//a function calculate the number of total cases from 2021-07-01 to the newest date
+
+SUM = Summarier(transformedLHDData)
+
+lastDate = transformedLHDData[(transformedLHDData.length - 1)].date.toISOString().slice(0, 10)
+//show the date into title
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+```javascript
+// Define key swatches for legend
+key = swatches({color, marginLeft: streamMargin.left, columns: "180px"});
+
+// Define streamChart function
+streamChart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  svg.append("g")
+    .selectAll("path")
+    .data(streamSeries)
+    .join("path")
+      .attr("fill", ({key}) => color(key))
+      .attr("d", area)
+    .append("title")
+      .text(({key}) => key);
+
+  svg.append("g")
+      .call(streamxAxis);
+
+  return svg.node();
+};
+
+// Define streamMargin object
+streamMargin = ({top: 50, right: 20, bottom: 30, left: 20});
+
+// Define height variable
+height = 600;
+
+// Define streamx scale
+streamx = d3.scaleUtc()
+    .domain(d3.extent(data, d => d.date))
+    .range([streamMargin.left, width - streamMargin.right]);
+
+// Define streamy scale
+streamy = d3.scaleLinear()
+    .domain([d3.min(streamSeries, d => d3.min(d, d => d[0])), d3.max(streamSeries, d => d3.max(d, d => d[1]))])
+    .range([height - streamMargin.bottom, streamMargin.top]);
+
+// Define streamxAxis function
+streamxAxis = g => g
+    .attr("transform", `translate(0,${height - streamMargin.bottom})`)
+    .call(d3.axisBottom(streamx).ticks(width/80).tickSizeOuter(0))
+    .call(g => g.select(".domain").remove());
+
+// Define legend swatches
+key1 = swatches({color, marginLeft: streamMargin.left, columns: "180px"});
+
+// Define TextChartNumber function
+TextChartNumber = {
+  const q = md`${SUM[0]["sum"]}`;
+  q.style.color = d3.interpolateRainbow(now / 1000);
+  const p = md `Total cases:<h2>${q}<h2>`;
+  return p;
+};
+
+// Define streamMyColor array for legend
+streamMyColor = ["#abdda4","#778899","#FFFACD", "#e15759", "#bab0ab", "#9c755f","#9370DB", "#af7aa1","#D2691E","darkgreen","#191970", "#2E8B57","#FAEBD7", "#9e0142", "#f46d43","#3288bd"];
+
+// Define data variable
+data = transformedLHDData;
+
+// Define streamSeries stack
+streamSeries = d3.stack()
+    .keys(theKeys)
+    .offset(d3.stackOffsetWiggle)
+    .order(d3.stackOrderInsideOut)
+  (transformedLHDData);
+
+// Define area function for stream graph
+area = d3.area()
+    .x(d => streamx(d.data.date))
+    .y0(d => streamy(d[0]))
+    .y1(d => streamy(d[1]));
+
+// Define color scale for legend
+color = d3.scaleOrdinal()
+    .domain(Object.keys(transformedLHDData[0]).slice(1))
+    .range(streamMyColor);
+
+// Import d3 library
+d3 = require("d3@6");
+
+// Import swatches function from color-legend module
+import {swatches} from "@d3/color-legend";
+
+// Fetch raw data from URL
+rawData = fetch('https://data.nsw.gov.au/data/dataset/97ea2424-abaf-4f3e-a9f2-b5c883f42b6a/resource/2776dbb8-f807-4fb2-b1ed-184a6fc2c8aa/download/confirmed_cases_table4_location_likely_source.csv');
+
+// Parse raw data as CSV
+rawOnes = d3.csvParse(await rawData.text(), d3.autoType);
+
+// Define startDate
+startDate = new Date("2021-06-30");
+
+// Filter and update data
+updateData = rawOnes.filter(
+  (d) =>
+    d.notification_date > startDate && isNumber(d.postcode) && isNull(d.lga_code19)
+);
+
+// Function to check if a value is a number
+function isNumber(obj) {
+  return obj !== undefined && typeof(obj) === 'number' && !isNaN(obj);
+}
+
+// Function to check if a value is null
+function isNull(obj) {
+  return obj !== null;
+}
+
+// Transform data by accumulating cases in different LHDs
+transformerLHD = (inData) => {
+  let outData = [];
+
+  function findRow(arr, d) {
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i]["date"].toString() === d["notification_date"].toString()){
+        return i;
+      }
+    }
+    return null;
+  }
+
+  for (const d of inData) {
+    let rowIndex = findRow(outData, d);
+
+    if (rowIndex !== null) {
+      if (d["lhd_2010_name"] in outData[rowIndex]){
+        let obj = {};
+        let number = {};
+        number[0] = outData[rowIndex][d["lhd_2010_name"]];
+        obj[d["lhd_2010_name"]] = number[0] + 1;
+        Object.assign(outData[rowIndex], obj);
+      }
+    } else {
+      let obj = {
+        "date": d["notification_date"]
+      };
+      for(let j=0 ; j < theKeys.length; j++){
+        obj[theKeys[j]]= 0;
+      }
+      obj[d["lhd_2010_name"]] = 1;
+      outData.push(obj);
+    }
+  }
+  return outData;
+};
+
+// Transform data
+transformedLHDData = transformerLHD(updateData);
+
+// Define keys for LHDs
+theKeys = ["Central Coast", "Correctional settings", "Far West", "Hunter New England", "Illawarra Shoalhaven", "Mid North Coast", "Murrumbidgee","Nepean Blue Mountains", "Northern NSW", "Northern Sydney","Sydney", "South Eastern Sydney","Southern NSW", "South Western Sydney", "Western NSW", "Western Sydney"];
+
+// Summarize function to calculate total cases
+Summarier = (inData) => {
+  let outData = [];
+  let obj = {};
+  let sum = 0;
+
+  function SummarierF(inData) {
+    for (let i = 0; i < inData.length; i++) {
+      for (let j = 0; j < theKeys.length; ++j) {
+        sum = sum + inData[i][theKeys[j]];
+      }
+    }
+    obj = {
+    "sum": sum
+    }
+    outData.push(obj);
+  }
+
+  SummarierF(inData);
+  return outData;
+};
+
+// Calculate total cases
+SUM = Summarier(transformedLHDData);
+
+// Define lastDate
+lastDate = transformedLHDData[(transformedLHDData.length - 1)].date.toISOString().slice(0, 10);
+```

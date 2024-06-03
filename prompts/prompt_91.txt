@@ -1,0 +1,458 @@
+Can you label this ENTIRE program for me without changing its order?:
+
+legend = {
+  const svg = d3.create("svg")
+      .attr("width", "100%")
+      .attr("height", legend_height*2.5)
+      .attr("viewbox", [0, 0, width, legend_height*4]);
+
+  svg.append("text")
+      .attr("y", legend_height / 2)
+      .text("Sent to them")
+
+  svg.append("text")
+      .attr("y", legend_height * 3 / 2)
+      .text("Received from them")
+
+  svg.selectAll("text")
+      .attr("x", margin.left + 110 - 5)
+      .attr("font-size", "smaller")
+      .attr("text-anchor", "end")
+
+  const legend_x = d3.scaleBand()
+      .domain(closest_friends)
+      .range([margin.left + 110, width - margin.right])
+
+
+  const cols = svg.selectAll("g")
+    .data(closest_friends)
+    .join("g")
+      .attr("transform", (d) => `translate(${legend_x(d)}, 0)`);
+
+  cols.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("fill", d => color(d + " - me"))
+
+  cols.append("rect")
+      .attr("x", 0)
+      .attr("y", legend_height)
+      .attr("fill", d => color(d + " - them"));
+
+  cols.append("text")
+      .attr("x", legend_x.bandwidth() / 2)
+      .attr("y", legend_height*2.3)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "smaller")
+      .text(d => d.split(' ')[0]);
+
+  cols.selectAll("rect")
+      .attr("width", legend_x.bandwidth())
+      .attr("height", legend_height);
+
+  return svg.node();
+}
+
+stream_chart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  svg.append("g")
+    .selectAll("path")
+    .data(stream_series)
+    .join("path")
+      .attr("fill", ({key}) => color(key))
+      .attr("d", area)
+
+  svg.append("g")
+      .call(xAxis);
+
+  svg.append("g")
+      .call(yAxisStream);
+
+  return svg.node();
+}
+
+function bucket(chat)
+{
+  const buckets = new Array(n_bins).fill(0);
+  for(const ts of chat)
+  {
+    ++(buckets[ts_to_bin(ts)]);
+  }
+
+  return buckets;
+}
+
+bucketed_chats = {
+  const chats = {};
+  for(const chat in all_data)
+  {
+    chats[chat] = {'me': bucket(all_data[chat]['me']), 'them': bucket(all_data[chat]['them'])};
+  }
+
+  return chats;
+}
+
+chatted_buckets = {
+  const ret = new Array(n_bins);
+
+  for(let bin = 0; bin < n_bins; ++bin)
+  {
+    ret[bin] = {};
+    for(const chat in bucketed_chats)
+    {
+      let val = 0;
+      for(const participant in bucketed_chats[chat])
+      {
+        val += bucketed_chats[chat][participant][bin];
+      }
+      ret[bin][chat] = val;
+    }
+  }
+
+  return ret;
+}
+
+series = d3.stack()
+    .keys(Object.keys(chatted_buckets[0]))
+  (chatted_buckets);
+
+stream_series = d3.stack()
+    .keys(Object.keys(chatted_buckets[0]))
+    .order(d3.stackOrderInsideOut)
+    .offset(d3.stackOffsetSilhouette)
+  (chatted_buckets);
+
+area = d3.area()
+    .x((d, i) => x(ts_to_bin.invert(i)))
+    .y0(d => stream_y(d[0]))
+    .y1(d => stream_y(d[1]))
+
+color_scale = d3.scaleOrdinal()
+    .domain(friend_ranking.map(d => d[0]))
+    .range(d3.schemeCategory10.slice(exclude_ruthy));
+
+function color(name)
+{
+  const name_parts = name.split(' - ');
+  let ret = d3.hsl(color_scale(name_parts[0]));
+
+  if(name_parts[1] === "me")
+  {
+    ret.s -= 0.1;
+    ret.l -= 0.1;
+  }
+  else
+  {
+    ret.s += 0.1;
+    ret.l += 0.1;
+  }
+
+  return ret;
+}
+
+friend_ranking = {
+  const ranking = {};
+  for(const chat in all_data)
+  {
+    ranking[chat] = all_data[chat]['me'].length + all_data[chat]['them'].length;
+  }
+
+  return Object.entries(ranking).sort((a, b) => (b[1] - a[1]));
+}
+
+closest_friends = friend_ranking.slice(0, 10).map(d => d[0])
+
+height = 500
+
+legend_height = 50
+
+period = 1000 * 60 * 60 * 24 * 28;
+
+exclude_ruthy = false;
+
+all_data = {
+  const ret = JSON.parse(await FileAttachment("timestamps.json").text());
+
+  if(exclude_ruthy)
+  {
+    delete ret['Ruthy Tucker'];
+  }
+
+  return ret;
+}
+
+date_range = d3.extent(Object.entries(all_data).map((e) => (d3.extent(Object.entries(e[1]).map((e) => (d3.extent(e[1]))).flat()))).flat());
+
+n_bins = Math.ceil((date_range[1] - date_range[0]) / period);
+
+ts_to_bin = d3.scaleLinear()
+  .domain(date_range)
+  .range([0, n_bins])
+  .interpolate(d3.interpolateRound);
+
+x = d3.scaleTime()
+    .domain(date_range)
+    .range([margin.left, width - margin.right])
+
+y = d3.scaleLinear()
+    .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+    .range([height - margin.bottom, margin.top])
+
+stream_y = d3.scaleLinear()
+    .domain([d3.min(stream_series, d => d3.min(d, d => d[0])), d3.max(stream_series, d => d3.max(d, d => d[1]))]).nice()
+    .range([height - margin.bottom, margin.top])
+
+xAxis = g => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+    .call(g => g.selectAll(".domain").remove())
+
+yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(null, "s"))
+    .call(g => g.selectAll(".domain").remove())
+
+yAxisStream =  g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(stream_y).ticks(null, "s"))
+    .call(g => g.selectAll(".domain").remove())
+
+margin = ({top: 20, left: 30, right: 20, bottom: 30})
+
+d3 = require("d3@5");
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+```javascript
+legend = {
+  const svg = d3.create("svg")
+      .attr("width", "100%")
+      .attr("height", legend_height*2.5)
+      .attr("viewbox", [0, 0, width, legend_height*4]);
+
+  svg.append("text")
+      .attr("y", legend_height / 2)
+      .text("Sent to them")
+
+  svg.append("text")
+      .attr("y", legend_height * 3 / 2)
+      .text("Received from them")
+
+  svg.selectAll("text")
+      .attr("x", margin.left + 110 - 5)
+      .attr("font-size", "smaller")
+      .attr("text-anchor", "end")
+
+  const legend_x = d3.scaleBand()
+      .domain(closest_friends)
+      .range([margin.left + 110, width - margin.right])
+
+
+  const cols = svg.selectAll("g")
+    .data(closest_friends)
+    .join("g")
+      .attr("transform", (d) => `translate(${legend_x(d)}, 0)`);
+
+  cols.append("rect")
+      .attr("x", 0)
+      .attr("y", 0)
+      .attr("fill", d => color(d + " - me"))
+
+  cols.append("rect")
+      .attr("x", 0)
+      .attr("y", legend_height)
+      .attr("fill", d => color(d + " - them"));
+
+  cols.append("text")
+      .attr("x", legend_x.bandwidth() / 2)
+      .attr("y", legend_height*2.3)
+      .attr("text-anchor", "middle")
+      .attr("font-size", "smaller")
+      .text(d => d.split(' ')[0]);
+
+  cols.selectAll("rect")
+      .attr("width", legend_x.bandwidth())
+      .attr("height", legend_height);
+
+  return svg.node();
+}
+
+stream_chart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  svg.append("g")
+    .selectAll("path")
+    .data(stream_series)
+    .join("path")
+      .attr("fill", ({key}) => color(key))
+      .attr("d", area)
+
+  svg.append("g")
+      .call(xAxis);
+
+  svg.append("g")
+      .call(yAxisStream);
+
+  return svg.node();
+}
+
+function bucket(chat)
+{
+  const buckets = new Array(n_bins).fill(0);
+  for(const ts of chat)
+  {
+    ++(buckets[ts_to_bin(ts)]);
+  }
+
+  return buckets;
+}
+
+bucketed_chats = {
+  const chats = {};
+  for(const chat in all_data)
+  {
+    chats[chat] = {'me': bucket(all_data[chat]['me']), 'them': bucket(all_data[chat]['them'])};
+  }
+
+  return chats;
+}
+
+chatted_buckets = {
+  const ret = new Array(n_bins);
+
+  for(let bin = 0; bin < n_bins; ++bin)
+  {
+    ret[bin] = {};
+    for(const chat in bucketed_chats)
+    {
+      let val = 0;
+      for(const participant in bucketed_chats[chat])
+      {
+        val += bucketed_chats[chat][participant][bin];
+      }
+      ret[bin][chat] = val;
+    }
+  }
+
+  return ret;
+}
+
+series = d3.stack()
+    .keys(Object.keys(chatted_buckets[0]))
+  (chatted_buckets);
+
+stream_series = d3.stack()
+    .keys(Object.keys(chatted_buckets[0]))
+    .order(d3.stackOrderInsideOut)
+    .offset(d3.stackOffsetSilhouette)
+  (chatted_buckets);
+
+area = d3.area()
+    .x((d, i) => x(ts_to_bin.invert(i)))
+    .y0(d => stream_y(d[0]))
+    .y1(d => stream_y(d[1]))
+
+color_scale = d3.scaleOrdinal()
+    .domain(friend_ranking.map(d => d[0]))
+    .range(d3.schemeCategory10.slice(exclude_ruthy));
+
+function color(name)
+{
+  const name_parts = name.split(' - ');
+  let ret = d3.hsl(color_scale(name_parts[0]));
+
+  if(name_parts[1] === "me")
+  {
+    ret.s -= 0.1;
+    ret.l -= 0.1;
+  }
+  else
+  {
+    ret.s += 0.1;
+    ret.l += 0.1;
+  }
+
+  return ret;
+}
+
+friend_ranking = {
+  const ranking = {};
+  for(const chat in all_data)
+  {
+    ranking[chat] = all_data[chat]['me'].length + all_data[chat]['them'].length;
+  }
+
+  return Object.entries(ranking).sort((a, b) => (b[1] - a[1]));
+}
+
+closest_friends = friend_ranking.slice(0, 10).map(d => d[0])
+
+height = 500
+
+legend_height = 50
+
+period = 1000 * 60 * 60 * 24 * 28;
+
+exclude_ruthy = false;
+
+all_data = {
+  const ret = JSON.parse(await FileAttachment("timestamps.json").text());
+
+  if(exclude_ruthy)
+  {
+    delete ret['Ruthy Tucker'];
+  }
+
+  return ret;
+}
+
+date_range = d3.extent(Object.entries(all_data).map((e) => (d3.extent(Object.entries(e[1]).map((e) => (d3.extent(e[1]))).flat()))).flat());
+
+n_bins = Math.ceil((date_range[1] - date_range[0]) / period);
+
+ts_to_bin = d3.scaleLinear()
+  .domain(date_range)
+  .range([0, n_bins])
+  .interpolate(d3.interpolateRound);
+
+x = d3.scaleTime()
+    .domain(date_range)
+    .range([margin.left, width - margin.right])
+
+y = d3.scaleLinear()
+    .domain([0, d3.max(series, d => d3.max(d, d => d[1]))])
+    .range([height - margin.bottom, margin.top])
+
+stream_y = d3.scaleLinear()
+    .domain([d3.min(stream_series, d => d3.min(d, d => d[0])), d3.max(stream_series, d => d3.max(d, d =>
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Can you label the rest of the program?
+
+```javascript
+y[1]))]).nice()
+    .range([height - margin.bottom, margin.top])
+
+xAxis = g => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+    .call(g => g.selectAll(".domain").remove())
+
+yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(null, "s"))
+    .call(g => g.selectAll(".domain").remove())
+
+yAxisStream =  g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(stream_y).ticks(null, "s"))
+    .call(g => g.selectAll(".domain").remove())
+
+margin = ({top: 20, left: 30, right: 20, bottom: 30})
+
+d3 = require("d3@5");
+```

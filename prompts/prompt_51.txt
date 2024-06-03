@@ -1,0 +1,359 @@
+Can you label this program entirely without changing its order?:
+
+form1 = html`<form>
+  <span style="font-size:smaller">Annnée(s) : </span> <select name=sel_year>
+  <option value=Tout selected>2005 à 2018
+  <option>2018
+  <option>2017
+  <option>2016
+  <option>2015
+  <option>2014
+  <option>2013
+  <option>2012
+  <option>2011
+  <option>2010
+  <option>2009
+  <option>2008
+  <option>2007
+  <option>2006
+  <option>2005
+</select>&nbsp;&nbsp;&nbsp;<span style="font-size:smaller">Type de route : </span> <select name=sel_type><option value=0 selected>Toutes les routes
+<option value=1>Autoroute</option>
+<option value=2>Route nationale</option>
+<option value=3>Route départementale</option>
+<option value=4>Voix communale</option>
+<option value=5>Hors réseau public</option>
+<option value=6>Parking public</option>
+<option value=9>Autre</option>
+</select>
+</form>`
+
+viewof radius = {
+  const form = html`<form>
+  <input name=i type=range min=6 max=30 step=1 value=20 style="width:180px;">
+  <output style="font-size:smaller;font-style:oblique;" name=o></output>
+</form>`;
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber}px radius`;
+  form.i.oninput();
+  return form;
+}
+
+legend({
+  color: d3.scaleSequential([0, d3.max(bins_all, d => d.length)], type_route == 0 ? d3.interpolateOrRd : d3.interpolateYlGnBu),
+  title: "Nombre de morts",
+  ticks: d3.max(bins_all, d => d.length) > 10 ? 10 : Math.round(d3.max(bins_all, d => d.length)),
+  tickFormat: ".0s"
+})
+
+
+chart = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+
+svg . append ( "g" )
+. append ( "clipPath" )
+. attr ( "id" , "cadre" )
+. append ( "rect" )
+. attr ( "x" , margin . left )
+. attr ( "y" , 0 )
+. attr ( "width" , width - margin . left - margin . right )
+. attr ( "height" , height - margin . bottom )
+//.style("fill", "#ff0000")
+;
+
+svg . append ( "g" )
+. attr ( "clip-path" , "url(#cadre)" )
+. attr ( "stroke" , "#000" )
+. attr ( "stroke-opacity" , 0.1 )
+. selectAll ( "path" )
+. data ( bins )
+. join ( "path" )
+. attr ( "d" , hexbin . hexagon ( ) )
+. attr ( "transform" , d => `translate(${ d . x },${ d . y })` )
+. attr ( "fill" , d =>
+{
+let rayon = hexbin . radius ( ) ;
+let valeur = d . length ;
+// correction de couleur pour les hexagones "incomplets" à gauche et à droite, qui représentent des plages de temps débordant avant ou après la plage des données réellement disponibles dans le CSV
+if ( d . x - rayon < margin . left )
+valeur = valeur / ( ( d . x + rayon - margin . left ) / ( rayon * 2 ) ) ;
+else if ( d . x + rayon > width - margin . right )
+valeur = valeur / ( ( width - margin . right - d . x + rayon ) / ( rayon * 2 ) ) ;
+return color ( valeur ) ;
+} )
+. append ( "title" ) . text ( function ( d )
+{
+let txt = d . length + " tué" + ( d . length > 1 ? "s" : "" ) ;
+let min_age = d3 . min ( d , item => item . y ) ;
+let max_age = d3 . max ( d , item => item . y ) ;
+txt += " de " + min_age + ( max_age != min_age ? " à " + max_age : "" ) + " ans" ;
+let min_date = d [ 0 ] . x . toLocaleDateString ( ) ;
+let max_date = d [ d . length - 1 ] . x . toLocaleDateString ( ) ;
+txt += min_date == max_date ? " le " + min_date : " entre le " + min_date + " et le " + max_date ;
+return txt ;
+} ) ;
+
+svg . append ( "g" )
+. call ( xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis ) ;
+
+return svg . node ( ) ;
+}
+
+annee = Generators.input(form1.sel_year)
+
+type_route = Generators.input(form1.sel_type)
+
+ height = Math . max ( 640 , width )
+
+margin = ({top: 20, right: 20, bottom: 40, left: 40})
+
+ x = d3 . scaleTime ( )
+. domain ( d3 . extent ( data_annee , d => d . x ) )
+. range ( [ margin . left , width - margin . right ] )
+
+ y = d3 . scaleLinear ( )
+. domain ( d3 . extent ( data , d => d . y ) )
+. rangeRound ( [ height - margin . bottom , margin . top ] )
+
+ color = d3 . scaleSequential ( type_route == 0 ? d3 . interpolateOrRd : d3 . interpolateYlGnBu )
+. domain ( [ 0 , d3 . max ( bins_all , d => d . length ) ] )
+
+ xAxis = g => g
+. attr ( "transform" , `translate(0,${ height - margin . bottom })` )
+. call ( d3 . axisBottom ( x ) . ticks ( annee != 'Tout' ? d3 . timeMonth . every ( 1 ) : d3 . timeYear . every ( 1 ) ) )
+//.call(g => g.select(".domain").remove())
+/*.call(g => g.append("text")
+        .attr("x", width )
+        .attr("y", 0)
+        .attr("fill", "currentColor")
+        .attr("font-weight", "bold")
+        .attr("text-anchor", "end")
+        .text("Mois"))*/
+
+ yAxis = g => g
+. attr ( "transform" , `translate(${ margin . left },0)` )
+. call ( d3 . axisLeft ( y ) . ticks ( null , ".1d" ) )
+//.call(g => g.select(".domain").remove())
+. call ( g => g . append ( "text" )
+. attr ( "x" , - 20 )
+. attr ( "y" , 0 )
+. attr ( "dy" , ".71em" )
+. attr ( "fill" , "currentColor" )
+. attr ( "font-weight" , "bold" )
+. attr ( "text-anchor" , "start" )
+. text ( "Âge" ) )
+
+ data = Object . assign ( await d3 . csv ( "https://gist.githubusercontent.com/hnr2jhr/e3f880d8d13175e9a8b4f8ab3455af74/raw/a88bef1ec5e653bf428638d64b7b07a299b548bc/gistfile1.txt" , ( { date , age , catr } ) => ( { x : new Date ( date ) , y : + age , t : + catr } ) ) , { x : "Date" , y : "Age" } )
+
+ age_max = d3 . max ( data , d => d . y )
+
+ data_annee = data . filter ( obj => ( obj . x . getFullYear ( ) == annee || annee == 'Tout' ) && ( obj . t == type_route || type_route == 0 ) )
+
+ data_type = data . filter ( obj => obj . t == type_route || type_route == 0 )
+
+ hexbin = d3 . hexbin ( )
+. x ( d => x ( d . x ) )
+. y ( d => y ( d . y ) )
+. radius ( radius * width / 964 )
+. extent ( [ [ margin . left , margin . top ] , [ width - margin . right , height - margin . bottom ] ] )
+
+ bins = hexbin ( data_annee )
+
+ bins_all = hexbin ( data_type )
+
+ d3 = require ( "d3@5" , "d3-hexbin@0.2" )
+
+ import { legend } from "@d3/color-legend"
+/////////////////////////////////////////////////////////////////////////////////
+Sure, here are the labels for the provided program without changing its order:
+
+```javascript
+// Form for selecting year and type of route
+form1 = html`<form>
+  <span style="font-size:smaller">Annnée(s) : </span> <select name=sel_year>
+  <option value=Tout selected>2005 à 2018
+  <option>2018
+  <option>2017
+  <option>2016
+  <option>2015
+  <option>2014
+  <option>2013
+  <option>2012
+  <option>2011
+  <option>2010
+  <option>2009
+  <option>2008
+  <option>2007
+  <option>2006
+  <option>2005
+</select>&nbsp;&nbsp;&nbsp;<span style="font-size:smaller">Type de route : </span> <select name=sel_type><option value=0 selected>Toutes les routes
+<option value=1>Autoroute</option>
+<option value=2>Route nationale</option>
+<option value=3>Route départementale</option>
+<option value=4>Voix communale</option>
+<option value=5>Hors réseau public</option>
+<option value=6>Parking public</option>
+<option value=9>Autre</option>
+</select>
+</form>`
+
+// Input for selecting radius
+viewof radius = {
+  const form = html`<form>
+  <input name=i type=range min=6 max=30 step=1 value=20 style="width:180px;">
+  <output style="font-size:smaller;font-style:oblique;" name=o></output>
+</form>`;
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber}px radius`;
+  form.i.oninput();
+  return form;
+}
+
+// Legend for the chart
+legend({
+  color: d3.scaleSequential([0, d3.max(bins_all, d => d.length)], type_route == 0 ? d3.interpolateOrRd : d3.interpolateYlGnBu),
+  title: "Nombre de morts",
+  ticks: d3.max(bins_all, d => d.length) > 10 ? 10 : Math.round(d3.max(bins_all, d => d.length)),
+  tickFormat: ".0s"
+})
+
+// Chart creation
+chart = {
+const svg = d3.create("svg")
+  .attr("viewBox", [0, 0, width, height]);
+
+svg.append("g")
+  .append("clipPath")
+  .attr("id", "cadre")
+  .append("rect")
+  .attr("x", margin.left)
+  .attr("y", 0)
+  .attr("width", width - margin.left - margin.right)
+  .attr("height", height - margin.bottom);
+
+svg.append("g")
+  .attr("clip-path", "url(#cadre)")
+  .attr("stroke", "#000")
+  .attr("stroke-opacity", 0.1)
+  .selectAll("path")
+  .data(bins)
+  .join("path")
+  .attr("d", hexbin.hexagon())
+  .attr("transform", d => `translate(${d.x},${d.y})`)
+  .attr("fill", d => {
+    let rayon = hexbin.radius();
+    let valeur = d.length;
+    if (d.x - rayon < margin.left)
+      valeur = valeur / ((d.x + rayon - margin.left) / (rayon * 2));
+    else if (d.x + rayon > width - margin.right)
+      valeur = valeur / ((width - margin.right - d.x + rayon) / (rayon * 2));
+    return color(valeur);
+  })
+  .append("title").text(function(d) {
+    let txt = d.length + " tué" + (d.length > 1 ? "s" : "");
+    let min_age = d3.min(d, item => item.y);
+    let max_age = d3.max(d, item => item.y);
+    txt += " de " + min_age + (max_age != min_age ? " à " + max_age : "") + " ans";
+    let min_date = d[0].x.toLocaleDateString();
+    let max_date = d[d.length - 1].x.toLocaleDateString();
+    txt += min_date == max_date ? " le " + min_date : " entre le " + min_date + " et le " + max_date;
+    return txt;
+  });
+
+svg.append("g")
+  .call(xAxis);
+
+svg.append("g")
+  .call(yAxis);
+
+return svg.node();
+}
+
+// Input for selecting year
+annee = Generators.input(form1.sel_year)
+
+// Input for selecting type of route
+type_route = Generators.input(form1.sel_type)
+
+// Calculation for height
+height = Math.max(640, width)
+
+// Margin object
+margin = ({ top: 20, right: 20, bottom: 40, left: 40 })
+
+// Scale for x-axis
+x = d3.scaleTime()
+  .domain(d3.extent(data_annee, d => d.x))
+  .range([margin.left, width - margin.right])
+
+// Scale for y-axis
+y = d3.scaleLinear()
+  .domain(d3.extent(data, d => d.y))
+  .rangeRound([height - margin.bottom, margin.top])
+
+// Scale for color
+color = d3.scaleSequential(type_route == 0 ? d3.interpolateOrRd : d3.interpolateYlGnBu)
+  .domain([0, d3.max(bins_all, d => d.length)])
+
+// x-axis generator
+xAxis = g => g
+  .attr("transform", `translate(0,${height - margin.bottom})`)
+  .call(d3.axisBottom(x).ticks(annee != 'Tout' ? d3.timeMonth.every(1) : d3.timeYear.every(1)))
+
+// y-axis generator
+yAxis = g => g
+  .attr("transform", `translate(${margin.left},0)`)
+  .call(d3.axisLeft(y).ticks(null, ".1d"))
+  .call(g => g.append("text")
+    .attr("x", -20)
+    .attr("y", 0)
+    .attr("dy", ".71em")
+    .attr("fill", "currentColor")
+    .attr("font-weight", "bold")
+    .attr("text-anchor", "start")
+    .text("Âge"))
+
+// Loading data from CSV
+data = Object.assign(await d3.csv("https://gist.githubusercontent.com/hnr2jhr/e3f880d8d13175e9a8b4f8ab3455af74/raw/a88bef1ec5e653bf428638d64b7b07a299b548bc/gistfile1.txt", ({ date, age, catr }) => ({ x: new Date(date), y: +age, t: +catr })), { x: "Date", y: "Age" })
+
+// Maximum age value
+age_max = d3.max(data, d => d.y)
+
+// Filtered data by year and type of route
+data
+///////////////////////////////////////////////////////////////////////
+Can you label the rest of the program?
+
+Sure, here are the labels for the remaining parts of the program:
+
+```javascript
+// Filtering data by year
+data_annee = data.filter(obj => (obj.x.getFullYear() == annee || annee == 'Tout') && (obj.t == type_route || type_route == 0))
+
+// Filtering data by type of route
+data_type = data.filter(obj => obj.t == type_route || type_route == 0)
+
+// Hexbin configuration
+hexbin = d3.hexbin()
+  .x(d => x(d.x))
+  .y(d => y(d.y))
+  .radius(radius * width / 964)
+  .extent([[margin.left, margin.top], [width - margin.right, height - margin.bottom]])
+
+// Binning data by hexagons
+bins = hexbin(data_annee)
+
+// Binning all data by hexagons
+bins_all = hexbin(data_type)
+
+// Importing required d3 modules
+d3 = require("d3@5", "d3-hexbin@0.2")
+
+// Importing legend from d3 package
+import { legend } from "@d3/color-legend"
+```
+
+With these labels, each part of the program is identified with its purpose or functionality.

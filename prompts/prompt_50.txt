@@ -1,0 +1,197 @@
+Can you label this program for me?:
+viewof radius = {
+  const form = html`<form>
+  <input name=i type=range min=2 max=50 step=1 value=10 style="width:480px;">
+  <output style="font-size:smaller;font-style:oblique;" name=o></output>
+</form>`;
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber}px radius`;
+  form.i.oninput();
+  return form;
+}
+
+viewof dataPoints = {
+  const form = html`<form>
+  <input name=i type=range min=50 max=5000 step=50 value=500 style="width:480px;">
+  <output style="font-size:smaller;font-style:oblique;" name=o></output>
+</form>`;
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber} data points`;
+  form.i.oninput();
+  return form;
+}
+
+{
+const svg = d3 . select ( ".the-view" )
+. attr ( "width" , dims . width )
+. attr ( "height" , dims . height ) ;
+
+const hexGroup = svg . select ( "g.hex-group" ) ;
+hexGroup
+. attr ( "stroke" , "#000" )
+. attr ( "stroke-width" , 0.5 )
+. attr ( "fill-opacity" , 0.6 )
+. selectAll ( "path" )
+. data ( bins )
+. join ( "path" )
+. attr ( "d" , hexbin . hexagon ( ) )
+. attr ( "transform" , d => `translate(${ d . x },${ d . y })` )
+. attr ( "fill" , d => color ( d . totalCount ) ) ;
+
+return svg . node ( )
+}
+
+ hexbin = d3 . hexbin ( )
+. x ( d => d . x )
+. y ( d => d . y )
+. radius ( radius * dims . width / ( dims . height - 1 ) )
+. extent ( [ [ dims . left , dims . top ] , [ dims . width - dims . right , dims . height - dims . bottom ] ] )
+
+ bins = {
+return hexbin ( data ) . map ( bin => {
+//expects an array with extra x,y attributes
+const { x , y } = bin ;
+const totalCount = bin . length ;
+
+//Replace with a single object holding relevant values. Not necessary, but easier to think about.
+return { x , y , totalCount } ;
+} ) ;
+}
+
+ data = {
+let n = dataPoints ; //number of data points
+const a = [ ] ;
+while ( n > 0 ) {
+n -= 1 ;
+const x = random ( dims . width ) ;
+const y = random ( dims . height ) ;
+a . push ( { x , y } ) ;
+}
+return a ;
+}
+
+random = function random(n) {
+  //Idea is to get the random points to cluster somewhat around the center of the screen
+  const center = n/2;
+  const v = Math.random() - Math.random(); //-1 to +1
+  const p = v> 0 ? 1 : -1;
+  return (center * v * v * p) + center;
+}
+
+color = d3.scaleSequential(d3.interpolateTurbo)
+    .domain([0, d3.max(bins, d => d.totalCount)])
+
+dims = ({top: 20, right: 20, bottom: 30, left: 40, height: 400, width: 800})
+
+d3 = require("d3@6", "d3-hexbin@0.2")
+////////////////////////////////////////////////////////////////////////////////////
+Here's your program labeled while preserving its order:
+
+```javascript
+// Create a form element with a range input for adjusting hexagon radius
+viewof radius = {
+  const form = html`<form>
+    <input name=i type=range min=2 max=50 step=1 value=10 style="width:480px;">
+    <output style="font-size:smaller;font-style:oblique;" name=o></output>
+  </form>`;
+
+  // Update the output value as the input changes
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber}px radius`;
+  form.i.oninput();
+  return form;
+};
+
+// Create a form element with a range input for adjusting the number of data points
+viewof dataPoints = {
+  const form = html`<form>
+    <input name=i type=range min=50 max=5000 step=50 value=500 style="width:480px;">
+    <output style="font-size:smaller;font-style:oblique;" name=o></output>
+  </form>`;
+
+  // Update the output value as the input changes
+  form.i.oninput = () => form.o.value = `${form.value = form.i.valueAsNumber} data points`;
+  form.i.oninput();
+  return form;
+};
+
+// Main program block
+{
+  // Select an SVG element and set its width and height based on the dimensions
+  const svg = d3.select(".the-view")
+    .attr("width", dims.width)
+    .attr("height", dims.height);
+
+  // Select the group element for hexagons
+  const hexGroup = svg.select("g.hex-group");
+
+  // Style and bind hexagon paths using hexbin data
+  hexGroup
+    .attr("stroke", "#000")
+    .attr("stroke-width", 0.5)
+    .attr("fill-opacity", 0.6)
+    .selectAll("path")
+    .data(bins)
+    .join("path")
+    .attr("d", hexbin.hexagon())
+    .attr("transform", d => `translate(${d.x},${d.y})`)
+    .attr("fill", d => color(d.totalCount));
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// Initialize hexbin function with specified properties
+hexbin = d3.hexbin()
+  .x(d => d.x)
+  .y(d => d.y)
+  .radius(radius * dims.width / (dims.height - 1))
+  .extent([
+    [dims.left, dims.top],
+    [dims.width - dims.right, dims.height - dims.bottom]
+  ]);
+
+// Map hexbin data to specific properties
+bins = hexbin(data).map(bin => {
+  // Extract x and y attributes
+  const {x, y} = bin;
+  // Calculate total count of points in the bin
+  const totalCount = bin.length;
+
+  // Return an object with x, y, and total count properties
+  return {x, y, totalCount};
+});
+
+// Generate data points
+data = {
+  let n = dataPoints; // Number of data points
+  const a = [];
+  while (n > 0) {
+    n -= 1;
+    // Generate random x and y coordinates
+    const x = random(dims.width);
+    const y = random(dims.height);
+    // Add the point to the array
+    a.push({x, y});
+  }
+  // Return the array of data points
+  return a;
+};
+
+// Generate random coordinates within a given range
+random = function random(n) {
+  // Center the points around the middle of the range
+  const center = n / 2;
+  const v = Math.random() - Math.random(); // -1 to +1
+  const p = v > 0 ? 1 : -1;
+  // Return the calculated random value
+  return (center * v * v * p) + center;
+};
+
+// Create a color scale based on the total count of points in bins
+color = d3.scaleSequential(d3.interpolateTurbo)
+  .domain([0, d3.max(bins, d => d.totalCount)]);
+
+// Define the dimensions of the SVG element
+dims = ({top: 20, right: 20, bottom: 30, left: 40, height: 400, width: 800});
+
+// Import necessary libraries
+d3 = require("d3@6", "d3-hexbin@0.2");
+```

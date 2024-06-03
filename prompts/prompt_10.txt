@@ -1,0 +1,155 @@
+chart = {
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] ) ;
+
+const pattern = svg . append ( 'pattern' )
+. attr ( 'id' , 'pattern' )
+. attr ( 'x' , 0 )
+. attr ( 'y' , 0 )
+. attr ( 'width' , 50 )
+. attr ( 'height' , height )
+. attr ( 'patternUnits' , 'userSpaceOnUse' ) ;
+
+const ticks = y . ticks ( ) ;
+
+const yTickHeight = y ( ticks [ 0 ] ) - y ( ticks [ 1 ] ) ;
+
+pattern . selectAll ( 'rect' ) . data ( y . ticks ( ) )
+. join ( 'rect' )
+. attr ( 'x' , 0 )
+. attr ( 'y' , d => y ( d ) )
+. attr ( 'width' , 50 )
+. attr ( 'height' , yTickHeight )
+. attr ( 'fill' , color ) ;
+
+svg . append ( "g" )
+. attr ( "fill" , `url(${ new URL ( "#pattern" , location ) })` )
+. selectAll ( "rect" )
+. data ( data )
+. join ( "rect" )
+. attr ( "x" , d => x ( d . name ) )
+. attr ( "y" , d => y ( d . value ) )
+. attr ( "height" , d => y ( 0 ) - y ( d . value ) )
+. attr ( "width" , x . bandwidth ( ) ) ;
+
+svg . append ( "g" )
+. call ( xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis ) ;
+
+return svg . node ( ) ;
+}
+
+ data = ( await d3 . csv ( "https://gist.githubusercontent.com/mbostock/81aa27912ad9b1ed577016797a780b2c/raw/3a807eb0cbb0f5904053ac2f9edf765e2f87a2f5/alphabet.csv" , ( { letter , frequency } ) => ( { name : letter , value : + frequency } ) ) ) . sort ( ( a , b ) => b . value - a . value )
+
+ x = d3 . scaleBand ( )
+. domain ( data . map ( d => d . name ) )
+. range ( [ margin . left , width - margin . right ] )
+. padding ( 0.1 )
+
+ y = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( data , d => d . value ) ] ) . nice ( )
+. range ( [ height - margin . bottom , margin . top ] )
+
+ color = d3 . scaleSequential ( d3 . interpolateRdPu )
+. domain ( y . domain ( ) )
+
+ xAxis = g => g
+. attr ( "transform" , `translate(0,${ height - margin . bottom })` )
+. call ( d3 . axisBottom ( x ) . tickSizeOuter ( 0 ) )
+
+ yAxis = g => g
+. attr ( "transform" , `translate(${ margin . left },0)` )
+. call ( d3 . axisLeft ( y ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+
+ height = 500
+
+ margin = ( { top : 20 , right : 0 , bottom : 30 , left : 40 } )
+
+ d3 = require ( "d3@5" )
+
+///////////////////////////////////////////////////////////////////////////////
+RESULT
+
+chart = {
+    // Label: createSvgComponent()
+    const svg = d3.create("svg")
+        .attr("viewBox", [0, 0, width, height]);
+
+    const pattern = svg.append('pattern')
+        .attr('id', 'pattern')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', 50)
+        .attr('height', height)
+        .attr('patternUnits', 'userSpaceOnUse');
+
+    const ticks = y.ticks();
+    const yTickHeight = y(ticks[0]) - y(ticks[1]);
+
+    pattern.selectAll('rect').data(y.ticks())
+        .join('rect')
+        .attr('x', 0)
+        .attr('y', d => y(d))
+        .attr('width', 50)
+        .attr('height', yTickHeight)
+        .attr('fill', color);
+
+    svg.append("g")
+        .attr("fill", `url(${new URL("#pattern", location)})`)
+        .selectAll("rect")
+        .data(data)
+        .join("rect")
+        .attr("x", d => x(d.name))
+        .attr("y", d => y(d.value))
+        .attr("height", d => y(0) - y(d.value))
+        .attr("width", x.bandwidth());
+
+    svg.append("g")
+        .call(xAxis);
+
+    svg.append("g")
+        .call(yAxis);
+
+    return svg.node();
+}
+
+// Label: dataComponent()
+data = (await d3.csv("https://gist.githubusercontent.com/mbostock/81aa27912ad9b1ed577016797a780b2c/raw/3a807eb0cbb0f5904053ac2f9edf765e2f87a2f5/alphabet.csv", ({ letter, frequency }) => ({ name: letter, value: +frequency }))).sort((a, b) => b.value - a.value)
+
+// Label: scaleComponent()
+x = d3.scaleBand()
+    .domain(data.map(d => d.name))
+    .range([margin.left, width - margin.right])
+    .padding(0.1)
+
+// Label: scaleComponent()
+y = d3.scaleLinear()
+    .domain([0, d3.max(data, d => d.value)]).nice()
+    .range([height - margin.bottom, margin.top])
+
+// Label: colorComponent()
+color = d3.scaleSequential(d3.interpolateRdPu)
+    .domain(y.domain())
+
+// Label: svgAppend()
+xAxis = g => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).tickSizeOuter(0))
+
+// Label: svgAppend()
+yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y))
+    .call(g => g.select(".domain").remove())
+
+// Label: setHeight()
+height = 500
+
+// Label: setMargin()
+margin = ({ top: 20, right: 0, bottom: 30, left: 40 })
+
+// Label: setD3Version()
+d3 = require("d3@5")

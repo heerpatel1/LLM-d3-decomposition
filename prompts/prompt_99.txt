@@ -1,0 +1,154 @@
+Can you label this program for me?:
+chart = {
+const root = partition ( data ) ;
+
+const svg = d3 . create ( "svg" ) ;
+
+svg . append ( "g" )
+. selectAll ( "path" )
+. data ( root . descendants ( ) . filter ( d => d . depth ) )
+. join ( "path" )
+. attr ( "fill" , d => { while ( d . depth > 7 ) d = d . parent ; return color ( d . data . name ) ; } )
+. attr ( "d" , arc )
+. attr ( "fill-opacity" , d => d . data . birthyear / 1500 )
+. append ( "title" )
+. text ( d => `Naam: ${ d . data . name }\nGeboren: ${ d . data . birthyear }` ) ;
+
+svg . append ( "g" )
+. attr ( "pointer-events" , "none" )
+. attr ( "text-anchor" , "middle" )
+. attr ( "font-size" , 2 )
+. attr ( "font-family" , "sans-serif" )
+. selectAll ( "text" )
+. data ( root . descendants ( ) )
+. join ( "text" )
+. attr ( "transform" , function ( d ) {
+const x = ( d . x0 + d . x1 ) / 2 * 180 / Math . PI ;
+const y = ( d . y0 + d . y1 ) / 2 ;
+return `rotate(${ x - 90 }) translate(${ y },0) rotate(${ x < 190 ? 0 : 180 })` ;
+} )
+. attr ( "dy" , "0.35em" )
+. text ( d => d . data . name ) ;
+
+return svg . attr ( "viewBox" , autoBox ) . node ( ) ;
+}
+
+ function autoBox ( ) {
+document . body . appendChild ( this ) ;
+const { x , y , width , height } = this . getBBox ( ) ;
+document . body . removeChild ( this ) ;
+return [ x , y , width , height ] ;
+}
+
+ data = FileAttachment ( "data@5.json" ) . json ( )
+
+ partition = data => d3 . partition ( )
+. size ( [ Math . PI , radius ] )
+( d3 . hierarchy ( data )
+. sum ( d => d . value ) )
+
+ color = d3 . scaleOrdinal ( d3 . schemeGreens [ 5 ] ) ;
+
+ format = d3 . format ( ",d" )
+
+ width = 1200
+
+ radius = width / 2
+
+ arc = d3 . arc ( )
+. startAngle ( d => d . x0 )
+. endAngle ( d => d . x1 )
+. padAngle ( d => Math . min ( ( d . x1 - d . x0 ) / 2 , 0.005 ) )
+. padRadius ( radius / 2 )
+. innerRadius ( d => d . y0 )
+. outerRadius ( d => d . y1 - 1 )
+
+ d3 = require ( "d3@5" )
+///////////////////////////////////////////////////////////////////////////////////
+Here's the program labeled while preserving its order:
+
+```javascript
+// Create the chart function
+chart = {
+  // Partition the data using the partition function
+  const root = partition(data);
+
+  // Create an SVG element for the chart
+  const svg = d3.create("svg");
+
+  // Create paths for the sunburst chart, set fill and title properties
+  svg.append("g")
+    .selectAll("path")
+    .data(root.descendants().filter(d => d.depth)) // Filter out the root node
+    .join("path")
+    .attr("fill", d => {
+      while (d.depth > 7) d = d.parent;
+      return color(d.data.name);
+    })
+    .attr("d", arc)
+    .attr("fill-opacity", d => d.data.birthyear / 1500) // Use birth year for fill opacity
+    .append("title")
+    .text(d => `Name: ${d.data.name}\nBirth Year: ${d.data.birthyear}`);
+
+  // Add text labels for each slice of the sunburst chart
+  svg.append("g")
+    .attr("pointer-events", "none")
+    .attr("text-anchor", "middle")
+    .attr("font-size", 2)
+    .attr("font-family", "sans-serif")
+    .selectAll("text")
+    .data(root.descendants())
+    .join("text")
+    .attr("transform", function(d) {
+      const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+      const y = (d.y0 + d.y1) / 2;
+      return `rotate(${x - 90}) translate(${y},0) rotate(${x < 190 ? 0 : 180})`;
+    })
+    .attr("dy", "0.35em")
+    .text(d => d.data.name);
+
+  // Return the SVG element with the view box set
+  return svg.attr("viewBox", autoBox).node();
+}
+
+// Calculate the view box for the SVG element
+function autoBox() {
+  document.body.appendChild(this);
+  const { x, y, width, height } = this.getBBox();
+  document.body.removeChild(this);
+  return [x, y, width, height];
+}
+
+// Load data from the JSON file
+data = FileAttachment("data@5.json").json();
+
+// Define the partition function for the data
+partition = data => d3.partition()
+  .size([Math.PI, radius])
+  (d3.hierarchy(data)
+    .sum(d => d.value));
+
+// Define the color scale using D3's schemeGreens
+color = d3.scaleOrdinal(d3.schemeGreens[5]);
+
+// Define the number format function
+format = d3.format(",d");
+
+// Define the chart width
+width = 1200;
+
+// Calculate the chart radius
+radius = width / 2;
+
+// Define the arc generator for the sunburst chart
+arc = d3.arc()
+  .startAngle(d => d.x0)
+  .endAngle(d => d.x1)
+  .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+  .padRadius(radius / 2)
+  .innerRadius(d => d.y0)
+  .outerRadius(d => d.y1 - 1);
+
+// Import the D3 library
+d3 = require("d3@5");
+```

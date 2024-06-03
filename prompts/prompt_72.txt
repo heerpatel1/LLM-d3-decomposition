@@ -1,0 +1,322 @@
+Can you label this program for me without changing its ordering?:
+
+data = d3.csvParse( await FileAttachment("sweden_temp.csv").text(), d3.autoType )
+    .map(d => {
+      const maxC = (d.TMAX - 32) * 5/9,
+            minC = (d.TMIN - 32) * 5/9
+
+      return {
+        date: d.DATE.toLocaleString(),
+        max: maxC,
+        min: minC,
+        avg: d3.mean([ maxC, minC ])
+      }
+    })
+
+width = 900
+
+height = 900
+
+innerRadius = 0.35 * width / 2
+
+ outerRadius = 0.9 * width / 2
+
+ colorDomain = {
+const extent = d3 . extent ( data , d => d . avg ) ,
+interpolated = d3 . interpolate ( ... extent )
+
+return d3 . quantize ( interpolated , 7 )
+}
+
+ color = d3 . scaleLinear (
+colorDomain ,
+d3 . quantize ( d3 . interpolateSpectral , 7 ) . reverse ( )
+)
+
+ xScale = d3 . scaleBand (
+data . map ( d => d . date ) ,
+[ 0 , 2 * Math . PI ]
+)
+
+ yDomain = {
+const min = d3 . min ( data , d => d . min ) ,
+max = d3 . max ( data , d => d . max )
+
+return [ min , max ]
+}
+
+ yScale = d3 . scaleLinear ( )
+. domain ( yDomain )
+. range ( [ innerRadius , outerRadius ] )
+
+ arc = d3 . arc ( )
+. innerRadius ( d => yScale ( d . min ) )
+. outerRadius ( d => yScale ( d . max ) )
+. startAngle ( d => xScale ( d . date ) )
+. endAngle ( d => xScale ( d . date ) + xScale . bandwidth ( ) )
+. padAngle ( 0.01 )
+. padRadius ( innerRadius )
+
+ chart = {
+
+const svg = d3 . create ( 'svg' )
+. attr ( 'width' , width )
+. attr ( 'height' , height )
+
+const container = svg . append ( 'g' )
+. attr ( 'class' , 'container' )
+. attr ( 'transform' , `translate(${  width / 2  },${  height / 2  })` )
+. style ( 'font-size' , 10 )
+. style ( 'font-family' , 'sans-serif' )
+
+container
+. selectAll ( 'path' )
+. data ( data )
+. join ( 'path' )
+. style ( 'fill' , d => color ( d . avg ) )
+. style ( 'stroke' , d => color ( d . avg ) )
+. attr ( 'd' , arc )
+
+container . append ( 'g' )
+. call ( xAxis )
+
+container . append ( 'g' )
+. call ( yAxis )
+
+return svg . node ( )
+
+}
+
+ xAxis = g => g
+. attr ( 'text-anchor' , 'middle' )
+. call ( g => g . selectAll ( 'g' )
+. data ( [ 'April' , 'May' , 'June' , 'July' , 'August' , 'September' , 'October' , 'November' , 'December' , 'January' , 'February' , 'March' ] )
+. join ( 'g' )
+. attr ( 'transform' , ( d , i , arr ) => `
+          rotate(${  i * 360 / arr . length  })
+          translate(${ innerRadius },0)
+        ` )
+. call ( g => g . append ( 'line' )
+. attr ( 'x1' , - 5 )
+. attr ( 'x2' , outerRadius - innerRadius + 10 )
+. style ( 'stroke' , '#aaa' ) )
+. call ( g => g . append ( 'text' )
+. attr ( 'transform' , ( d , i , arr ) => ( ( i * 360 / arr . length ) % 360 > 180
+? "rotate(90)translate(0,16)"
+: "rotate(-90)translate(0,-9)" ) )
+. style ( 'font-family' , 'sans-serif' )
+. style ( 'font-size' , 10 )
+. text ( d => d ) ) )
+
+ yAxis = g => g
+. attr ( 'text-anchor' , 'middle' )
+. call ( g => g . append ( 'text' )
+. attr ( 'text-anchor' , 'end' )
+. attr ( 'x' , '-0.5em' )
+. attr ( 'y' , d => - yScale ( yScale . ticks ( 5 ) . pop ( ) ) - 10 )
+. attr ( 'dy' , '-1em' )
+. style ( 'fill' , '#1a1a1a' )
+. text ( 'Temperature (°C)' )
+)
+. call ( g => g . selectAll ( 'g' )
+. data ( yScale . ticks ( 5 ) )
+. join ( 'g' )
+. attr ( 'fill' , 'none' )
+. call ( g => g . append ( 'circle' )
+. style ( 'stroke' , '#aaa' )
+. style ( 'stroke-opacity' , 0.5 )
+. attr ( 'r' , yScale ) )
+. call ( g => g . append ( 'text' )
+. attr ( 'y' , d => - yScale ( d ) )
+. attr ( 'dy' , '0.35em' )
+. style ( 'stroke' , '#fff' )
+. style ( 'stroke-width' , 5 )
+. style ( "fill" , '#1a1a1a' )
+. text ( yScale . tickFormat ( 6 , 's' ) )
+. clone ( true )
+. style ( 'stroke' , 'none' ) ) )
+
+d3 = require('d3@7')
+
+end = {
+  const script = document.createElement('script');
+  script.src = 'https://www.googletagmanager.com/gtag/js?id='+atob('Ry1ZSk5YRDNIUlAx');
+  script.type = 'text/javascript';
+  script.async = true;
+
+  script.onload = () => {
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      var dataLayer = window.dataLayer;
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+
+    gtag('config', atob('Ry1ZSk5YRDNIUlAx'));
+  };
+  document.body.appendChild(script);
+}
+//////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program you provided:
+
+```javascript
+// Load data from CSV file and convert Fahrenheit temperatures to Celsius
+data = d3.csvParse(await FileAttachment("sweden_temp.csv").text(), d3.autoType)
+  .map(d => {
+    // Convert temperatures from Fahrenheit to Celsius
+    const maxC = (d.TMAX - 32) * 5 / 9,
+          minC = (d.TMIN - 32) * 5 / 9;
+
+    // Return a new object with date and temperatures in Celsius
+    return {
+      date: d.DATE.toLocaleString(),
+      max: maxC,
+      min: minC,
+      avg: d3.mean([maxC, minC])
+    };
+  });
+
+// Define chart dimensions and scales
+width = 900;
+height = 900;
+innerRadius = 0.35 * width / 2;
+outerRadius = 0.9 * width / 2;
+
+// Define color domain and color scale for the chart
+colorDomain = {
+  const extent = d3.extent(data, d => d.avg),
+        interpolated = d3.interpolate(...extent);
+
+  return d3.quantize(interpolated, 7);
+};
+color = d3.scaleLinear(colorDomain, d3.quantize(d3.interpolateSpectral, 7).reverse());
+
+// Define scales for x and y axes
+xScale = d3.scaleBand(data.map(d => d.date), [0, 2 * Math.PI]);
+yDomain = {
+  const min = d3.min(data, d => d.min),
+        max = d3.max(data, d => d.max);
+
+  return [min, max];
+};
+yScale = d3.scaleLinear()
+  .domain(yDomain)
+  .range([innerRadius, outerRadius]);
+
+// Define arc generator for drawing arcs in the chart
+arc = d3.arc()
+  .innerRadius(d => yScale(d.min))
+  .outerRadius(d => yScale(d.max))
+  .startAngle(d => xScale(d.date))
+  .endAngle(d => xScale(d.date) + xScale.bandwidth())
+  .padAngle(0.01)
+  .padRadius(innerRadius);
+
+// Define chart function to create the visualization
+chart = {
+  // Create an SVG element
+  const svg = d3.create('svg')
+    .attr('width', width)
+    .attr('height', height);
+
+  // Create a container group element for the chart
+  const container = svg.append('g')
+    .attr('class', 'container')
+    .attr('transform', `translate(${width / 2},${height / 2})`)
+    .style('font-size', 10)
+    .style('font-family', 'sans-serif');
+
+  // Draw paths for each data point
+  container
+    .selectAll('path')
+    .data(data)
+    .join('path')
+    .style('fill', d => color(d.avg))
+    .style('stroke', d => color(d.avg))
+    .attr('d', arc);
+
+  // Add x-axis and y-axis to the chart
+  container.append('g').call(xAxis);
+  container.append('g').call(yAxis);
+
+  // Return the SVG element
+  return svg.node();
+};
+
+// Define x-axis function for the chart
+xAxis = g => g
+  .attr('text-anchor', 'middle')
+  .call(g => g.selectAll('g')
+    .data(['April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December', 'January', 'February', 'March'])
+    .join('g')
+    .attr('transform', (d, i, arr) => `
+      rotate(${i * 360 / arr.length})
+      translate(${innerRadius},0)
+    `)
+    // Add lines for the x-axis
+    .call(g => g.append('line')
+      .attr('x1', -5)
+      .attr('x2', outerRadius - innerRadius + 10)
+      .style('stroke', '#aaa'))
+    // Add text labels for the x-axis
+    .call(g => g.append('text')
+      .attr('transform', (d, i, arr) => (i * 360 / arr.length) % 360 > 180
+        ? "rotate(90)translate(0,16)"
+        : "rotate(-90)translate(0,-9)")
+      .style('font-family', 'sans-serif')
+      .style('font-size', 10)
+      .text(d => d))
+  );
+
+// Define y-axis function for the chart
+yAxis = g => g
+  .attr('text-anchor', 'middle')
+  .call(g => g.append('text')
+    .attr('text-anchor', 'end')
+    .attr('x', '-0.5em')
+    .attr('y', d => -yScale(yScale.ticks(5).pop()) - 10)
+    .attr('dy', '-1em')
+    .style('fill', '#1a1a1a')
+    .text('Temperature (°C)'))
+  // Add circles and text for the y-axis
+  .call(g => g.selectAll('g')
+    .data(yScale.ticks(5))
+    .join('g')
+    .attr('fill', 'none')
+    .call(g => g.append('circle')
+      .style('stroke', '#aaa')
+      .style('stroke-opacity', 0.5)
+      .attr('r', yScale))
+    .call(g => g.append('text')
+      .attr('y', d => -yScale(d))
+      .attr('dy', '0.35em')
+      .style('stroke', '#fff')
+      .style('stroke-width', 5)
+      .style('fill', '#1a1a1a')
+      .text(yScale.tickFormat(6, 's'))
+      .clone(true)
+      .style('stroke', 'none')));
+
+// Import d3 library version 7
+d3 = require('d3@7');
+
+// End of program
+end = {
+  // Load Google Tag Manager script
+  const script = document.createElement('script');
+  script.src = 'https://www.googletagmanager.com/gtag/js?id=' + atob('Ry1ZSk5YRDNIUlAx');
+  script.type = 'text/javascript';
+  script.async = true;
+
+  // Initialize Google Tag Manager
+  script.onload = () => {
+    window.dataLayer = window.dataLayer || [];
+    function gtag() {
+      window.dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+    gtag('config', atob('Ry1ZSk5YRDNIUlAx'));
+  };
+  document.body.appendChild(script);
+};
+```

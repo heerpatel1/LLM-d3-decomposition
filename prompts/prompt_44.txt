@@ -1,0 +1,737 @@
+Can you label this program for me without changing its order?:
+
+teaser = createHeatmap("teaser")
+
+data = d3 d3 . csv ( link link ) ;
+
+ data data [ 0 ]
+
+ parseColumnName = d3 d3 . timeParse ( "%Y-%m" ) ;
+
+ parseColumnName parseColumnName ( "1979-12" ) ;
+
+ convertRow = function(row, index) {
+  // this will be our converted output row
+  let out = {};
+
+  // this will be the values from each yyyy-mm column
+  out.values = [];
+
+  // now we will loop through all of the columns in our original item
+  // and depending on the column name we will perform some sort of conversion
+  for (let col in row) {
+    switch (col) {
+      // these are the text columns that do not need conversion
+      case "RegionName":
+      case "Index":
+        out[col] = row[col];
+        break;
+
+      // these are the columns that need to be converted to integer
+      case "RegionID":
+      case "SizeRank":
+        out[col] = parseInt(row[col]);
+        break;
+
+      // these are the columns that need to be converted to float
+      case "HistoricAverage_1985thru1999":
+        out[col] = parseFloat(row[col]);
+        break;
+
+      // these should be our time series values
+      default:
+        // convert column name into the date
+        var date = parseColumnName(col);
+
+        // convert the value to float
+        var value = parseFloat(row[col]);
+
+        // add them to our values
+        out.values.push({
+          "date": date,
+          "value": value
+        });
+
+        // note there really isnt any error checking here for unexpected columns!
+    }
+  }
+
+  return out;
+}
+
+ convertRow convertRow ( data data [ 0 ] , 0 )
+
+ convertRow convertRow ( data data [ 0 ] , 0 ) . values [ 0 ]
+
+ converted = d3 d3 . csv ( link link , convertRow convertRow ) ;
+
+ converted converted [ 0 ]
+
+ filtered = converted converted . filter ( function ( row ) {
+return row [ "Index" ] === "Rent Affordability" &&
+row [ "SizeRank" ] > 0 && // excludes United States
+row [ "SizeRank" ] <= keep keep ;
+} ) ;
+
+viewof sortColumn = select({
+  title: "Sort Column",
+  description: "Select the column to use for sorting rows.",
+  options: ["RegionName", "SizeRank", "HistoricAverage_1985thru1999"],
+  value: "HistoricAverage_1985thru1999"
+})
+
+ sorted = filtered filtered . sort ( function ( a , b ) {
+return a [ sortColumn sortColumn ] - b [ sortColumn sortColumn ] ;
+} ) ;
+
+ regions = sorted sorted . map ( function ( row ) { return row [ "RegionName" ] ; } ) ;
+
+ dates = {
+let values = sorted sorted [ 0 ] . values ;
+let mapped = values . map ( function ( value ) { return value . date ; } ) ;
+return mapped . sort ( d3 d3 . ascending ) ;
+} ;
+
+mutable params = {
+  let out = {};
+
+  out["svg"] = {
+    "width":  width, // use width variable to calculate our svg size
+    "height": width / 1.618 // golden ratio
+  };
+
+  out["margin"] = {
+    "top":    10,
+    "right":  10,
+    "bottom": 20,
+    "left":   left
+  };
+
+  out["plot"] = {
+    "x": out["margin"]["left"],
+    "y": out["margin"]["top"],
+    "width":  out["svg"]["width"]  - out["margin"]["left"] - out["margin"]["right"],
+    "height": out["svg"]["height"] - out["margin"]["top"]  - out["margin"]["bottom"]
+  };
+
+  return out;
+}
+
+ [ params params . svg . width , params params [ "svg" ] [ "width" ] , params params . svg [ "width" ] , params params [ "svg" ] . width ]
+
+ d3 d3 [ "max" ] ( [ 1 , 2 , 3 ] )
+
+ d3 d3 . max ( [ 1 , 2 , 3 ] )
+
+ createSVG = function ( id ) {
+let svg = d3 d3 . select ( DOM DOM . svg ( params params . svg . width , params params . svg . height ) ) ;
+svg . attr ( "id" , id ) ;
+
+let plot = svg . append ( "g" ) ;
+plot . attr ( "id" , "plot" ) ;
+plot . attr ( "transform" , translate translate ( params params . plot . x , params params . plot . y ) ) ;
+
+let rect = plot . append ( "rect" ) ;
+rect . attr ( "id" , "background" ) ;
+
+rect . attr ( "x" , 0 ) ;
+rect . attr ( "y" , 0 ) ;
+rect . attr ( "width" , params params . plot . width ) ;
+rect . attr ( "height" , params params . plot . height ) ;
+
+// this returns an SVG for the notebook cell
+return svg . node ( ) ;
+}
+
+createSVG("empty_svg");
+
+ mutable scale = {
+let x = d3 d3 . scaleBand ( ) ;
+x . domain ( dates dates ) ;
+x . range ( [ 0 , params params . plot . width ] ) ;
+
+let y = d3 d3 . scaleBand ( ) ;
+y . domain ( regions regions ) ;
+y . range ( [ params params . plot . height , 0 ] ) ;
+
+return { x : x , y : y }
+}
+
+ axis = {
+let x = d3 d3 . axisBottom ( scale scale . x ) ;
+x . tickPadding ( 0 ) ;
+
+let y = d3 d3 . axisLeft ( scale scale . y ) ;
+y . tickPadding ( 0 ) ;
+
+return { x : x , y : y } ;
+}
+
+ function dateFormatter ( d ) {
+if ( d . getMonth ( ) < 3 ) {
+return d . getFullYear ( ) ;
+}
+}
+
+ dateFormatter dateFormatter ( sorted sorted [ 0 ] . values [ 0 ] . date ) ;
+
+ axis axis . x . tickFormat ( function ( d ) {
+if ( d . getMonth ( ) < 3 ) {
+return d . getFullYear ( ) ;
+}
+} ) ;
+
+ function regionFormatter ( d ) {
+let text = d ;
+let parts = text . split ( /[,-]+/ ) ;
+
+if ( parts !== null ) {
+text = parts [ 0 ] ;
+
+if ( parts . length > 2 ) {
+text = text + "+" ;
+}
+}
+
+return text ;
+}
+
+ regionFormatter regionFormatter ( sorted sorted [ 0 ] . RegionName ) ;
+
+ regionFormatter("Los Angeles-Long Beach-Anaheim, CA");
+
+ axis axis . y . tickFormat ( regionFormatter regionFormatter ) ;
+
+ createPlot = function ( id ) {
+let node = createSVG createSVG ( id ) ;
+let svg = d3 d3 . select ( node ) ;
+
+let gx = svg . append ( "g" ) ;
+gx . attr ( "id" , "x-axis" ) ;
+gx . attr ( "class" , "axis" ) ;
+gx . attr ( "transform" , translate translate ( params params . plot . x , params params . plot . y + params params . plot . height ) ) ;
+gx . call ( axis axis . x ) ;
+
+let gy = svg . append ( "g" ) ;
+gy . attr ( "id" , "y-axis" ) ;
+gy . attr ( "class" , "axis" ) ;
+gy . attr ( "transform" , translate translate ( params params . plot . x , params params . plot . y ) ) ;
+gy . call ( axis axis . y ) ;
+
+return node ;
+}
+
+ createPlot createPlot ( "axis_svg" ) ;
+
+ viewof left = slider({
+  min: 0,
+  max: 500,
+  step: 1,
+  value: 80,
+  title: "Left Margin"
+})
+
+viewof keep = slider({
+  min: 0,
+  max: 100,
+  step: 1,
+  value: 30,
+  title: "Rows to Keep"
+})
+
+ {
+// get all of the value objects (with date and value) from the rows
+let values = sorted sorted . map ( function ( d ) { return d . values ; } ) ;
+
+// combine all of the individual object arrays into one
+let merged = d3 d3 . merge ( values ) ;
+
+// get only the value part of the objects
+let mapped = merged . map ( function ( d ) { return d . value ; } ) ;
+
+// calculate the min, max, and median
+let min = d3 d3 . min ( mapped ) ;
+let max = d3 d3 . max ( mapped ) ;
+let mid = d3 d3 . mean ( mapped ) ;
+
+scale scale . color = d3 d3 . scaleSequential ( d3 d3 . interpolateViridis ) ;
+scale scale . color . domain ( [ min , mid , max ] ) ;
+
+return scale scale ;
+}
+
+ createHeatmap = function ( id ) {
+let node = createPlot createPlot ( id ) ;
+let svg = d3 d3 . select ( node ) ;
+let plot = svg . select ( "g#plot" ) ;
+
+// create one group per row
+let rows = plot . selectAll ( "g.cell" )
+. data ( sorted sorted )
+. enter ( )
+. append ( "g" ) ;
+
+rows . attr ( "class" , "cell" ) ;
+rows . attr ( "id" , function ( d ) { return "Region-" + d . RegionID ; } ) ;
+
+// shift the entire group to the appropriate y-location
+rows . attr ( "transform" , function ( d ) {
+return translate translate ( 0 , scale scale . y ( d [ "RegionName" ] ) ) ;
+} ) ;
+
+// create one rect per cell within row group
+let cells = rows . selectAll ( "rect" )
+. data ( function ( d ) { return d . values ; } )
+. enter ( )
+. append ( "rect" ) ;
+
+cells . attr ( "x" , function ( d ) { return scale scale . x ( d . date ) ; } ) ;
+cells . attr ( "y" , 0 ) ; // handled by group transform
+cells . attr ( "width" , scale scale . x . bandwidth ( ) ) ;
+cells . attr ( "height" , scale scale . y . bandwidth ( ) ) ;
+
+// here is the color magic!
+cells . style ( "fill" , function ( d ) { return scale scale . color ( d . value ) ; } ) ;
+cells . style ( "stroke" , function ( d ) { return scale scale . color ( d . value ) ; } ) ;
+
+return node ;
+}
+
+createHeatmap("heatmap");
+
+// helper method to make translating easier
+translate = function(x, y) {
+  return "translate(" + x + "," + y + ")";
+};
+
+html`
+<h2>CSS Style</h2>
+
+<p><em>Click the cell to reveal.</em></p>
+<style>
+svg {
+  background-color: whitesmoke;
+  border: 1px solid lightgrey;
+}
+
+#background {
+  fill: white;
+}
+
+.cell {
+  stroke-width: 1px;
+}
+
+.axis path,
+.axis line {
+  stroke: none;
+  fill: none;
+}
+
+.axis text {
+  fill: dimgrey;
+  font-size: 9px;
+}
+</style>
+`
+
+d3 = require('d3@5')
+
+ d3 d3 . version
+
+ // see: https://beta.observablehq.com/@tmcw/tables
+import {table} from "@tmcw/tables@444"
+
+import {select} from "@jashkenas/inputs"
+
+import {slider} from "@jashkenas/inputs"
+
+import {ramp} from "@mbostock/color-ramp"
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+Here's the program with labels added without changing its order:
+
+```javascript
+// Create Heatmap Component
+teaser = createHeatmap("teaser")
+
+// Load Data
+data = d3.csv(link);
+
+// Parse Column Name
+data[0]
+
+parseColumnName = d3.timeParse("%Y-%m");
+
+parseColumnName("1979-12");
+
+// Convert Row
+convertRow = function(row, index) {
+  // this will be our converted output row
+  let out = {};
+
+  // this will be the values from each yyyy-mm column
+  out.values = [];
+
+  // now we will loop through all of the columns in our original item
+  // and depending on the column name we will perform some sort of conversion
+  for (let col in row) {
+    switch (col) {
+      // these are the text columns that do not need conversion
+      case "RegionName":
+      case "Index":
+        out[col] = row[col];
+        break;
+
+      // these are the columns that need to be converted to integer
+      case "RegionID":
+      case "SizeRank":
+        out[col] = parseInt(row[col]);
+        break;
+
+      // these are the columns that need to be converted to float
+      case "HistoricAverage_1985thru1999":
+        out[col] = parseFloat(row[col]);
+        break;
+
+      // these should be our time series values
+      default:
+        // convert column name into the date
+        var date = parseColumnName(col);
+
+        // convert the value to float
+        var value = parseFloat(row[col]);
+
+        // add them to our values
+        out.values.push({
+          "date": date,
+          "value": value
+        });
+
+        // note there really isn't any error checking here for unexpected columns!
+    }
+  }
+
+  return out;
+}
+
+convertRow(data[0], 0)
+
+convertRow(data[0], 0).values[0]
+
+converted = d3.csv(link, convertRow);
+
+converted[0]
+
+// Filter Data
+filtered = converted.filter(function(row) {
+  return row["Index"] === "Rent Affordability" &&
+    row["SizeRank"] > 0 && // excludes United States
+    row["SizeRank"] <= keep;
+});
+
+// Sort Column Selection
+viewof sortColumn = select({
+  title: "Sort Column",
+  description: "Select the column to use for sorting rows.",
+  options: ["RegionName", "SizeRank", "HistoricAverage_1985thru1999"],
+  value: "HistoricAverage_1985thru1999"
+})
+
+// Sort Data
+sorted = filtered.sort(function(a, b) {
+  return a[sortColumn] - b[sortColumn];
+});
+
+// Get Regions
+regions = sorted.map(function(row) { return row["RegionName"]; });
+
+// Get Dates
+dates = {
+  let values = sorted[0].values;
+  let mapped = values.map(function(value) { return value.date; });
+  return mapped.sort(d3.ascending);
+};
+
+// Mutable Parameters
+mutable params = {
+  let out = {};
+
+  out["svg"] = {
+    "width": width, // use width variable to calculate our svg size
+    "height": width / 1.618 // golden ratio
+  };
+
+  out["margin"] = {
+    "top": 10,
+    "right": 10,
+    "bottom": 20,
+    "left": left
+  };
+
+  out["plot"] = {
+    "x": out["margin"]["left"],
+    "y": out["margin"]["top"],
+    "width": out["svg"]["width"] - out["margin"]["left"] - out["margin"]["right"],
+    "height": out["svg"]["height"] - out["margin"]["top"] - out["margin"]["bottom"]
+  };
+
+  return out;
+}
+
+// Accessing Parameters
+[params.svg.width, params["svg"]["width"], params.svg["width"], params["svg"].width]
+
+// D3 Max Function
+d3["max"]([1, 2, 3])
+
+d3.max([1, 2, 3])
+
+// Create SVG Function
+createSVG = function(id) {
+  let svg = d3.select(DOM.svg(params.svg.width, params.svg.height));
+  svg.attr("id", id);
+
+  let plot = svg.append("g");
+  plot.attr("id", "plot");
+  plot.attr("transform", translate(params.plot.x, params.plot.y));
+
+  let rect = plot.append("rect");
+  rect.attr("id", "background");
+
+  rect.attr("x", 0);
+  rect.attr("y", 0);
+  rect.attr("width", params.plot.width);
+  rect.attr("height", params.plot.height);
+
+  // this returns an SVG for the notebook cell
+  return svg.node();
+}
+
+createSVG("empty_svg");
+
+// Create Scale
+mutable scale = {
+  let x = d3.scaleBand();
+  x.domain(dates);
+  x.range([0, params.plot.width]);
+
+  let y = d3.scaleBand();
+  y.domain(regions);
+  y.range([params.plot.height, 0]);
+
+  return { x: x, y: y }
+}
+
+// Axis Configuration
+axis = {
+  let x = d3.axisBottom(scale.x);
+  x.tickPadding(0);
+
+  let y = d3.axisLeft(scale.y);
+  y.tickPadding(0);
+
+  return { x: x, y: y };
+}
+
+// Date Formatter Function
+function dateFormatter(d) {
+  if (d.getMonth() < 3) {
+    return d.getFullYear();
+  }
+}
+
+dateFormatter(sorted[0].values[0].date);
+
+axis.x.tickFormat(function(d) {
+  if (d.getMonth() < 3) {
+    return d.getFullYear();
+  }
+});
+
+// Region Formatter Function
+function regionFormatter(d) {
+  let text = d;
+  let parts = text.split(/[,-]+/);
+
+  if (parts !== null) {
+    text = parts[0];
+
+    if (parts.length > 2) {
+      text = text + "+";
+    }
+  }
+
+  return text;
+}
+
+regionFormatter(sorted[0].RegionName);
+
+regionFormatter("Los Angeles-Long Beach-Anaheim, CA");
+
+axis.y.tickFormat(regionFormatter);
+
+// Create Plot Function
+createPlot = function(id) {
+  let node = createSVG(id);
+  let svg = d3.select(node);
+
+  let gx = svg.append("g");
+  gx.attr("id", "x-axis");
+  gx.attr("class", "axis");
+  gx.attr("transform", translate(params.plot.x, params.plot.y + params.plot.height));
+  gx.call(axis.x);
+
+  let gy = svg.append("g");
+  gy.attr("id", "y-axis");
+  gy.attr("class", "axis");
+  gy.attr("transform", translate(params.plot.x, params.plot.y));
+  gy.call(axis.y);
+
+  return node;
+}
+
+createPlot("axis_svg");
+
+// Slider Components
+viewof left = slider({
+  min: 0,
+  max: 500,
+  step: 1,
+  value: 80,
+  title: "Left Margin"
+})
+
+viewof keep = slider({
+  min: 0,
+  max: 100,
+  step: 1,
+  value: 30,
+  title: "Rows to Keep"
+})
+
+// Scale Configuration
+{
+  // get all of the value objects (with date and value)
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////
+
+  Can you generate the labels for the rest of the program?
+
+
+Sure, here are the labels for the rest of the program:
+
+```javascript
+// Scale for Color
+{
+  // get all of the value objects (with date and value) from the rows
+  let values = sorted.map(function(d) { return d.values; });
+
+  // combine all of the individual object arrays into one
+  let merged = d3.merge(values);
+
+  // get only the value part of the objects
+  let mapped = merged.map(function(d) { return d.value; });
+
+  // calculate the min, max, and median
+  let min = d3.min(mapped);
+  let max = d3.max(mapped);
+  let mid = d3.mean(mapped);
+
+  scale.color = d3.scaleSequential(d3.interpolateViridis);
+  scale.color.domain([min, mid, max]);
+
+  return scale;
+}
+
+// Create Heatmap Function
+createHeatmap = function(id) {
+  let node = createPlot(id);
+  let svg = d3.select(node);
+  let plot = svg.select("g#plot");
+
+  // create one group per row
+  let rows = plot.selectAll("g.cell")
+    .data(sorted)
+    .enter()
+    .append("g");
+
+  rows.attr("class", "cell");
+  rows.attr("id", function(d) { return "Region-" + d.RegionID; });
+
+  // shift the entire group to the appropriate y-location
+  rows.attr("transform", function(d) {
+    return translate(0, scale.y(d["RegionName"]));
+  });
+
+  // create one rect per cell within row group
+  let cells = rows.selectAll("rect")
+    .data(function(d) { return d.values; })
+    .enter()
+    .append("rect");
+
+  cells.attr("x", function(d) { return scale.x(d.date); });
+  cells.attr("y", 0); // handled by group transform
+  cells.attr("width", scale.x.bandwidth());
+  cells.attr("height", scale.y.bandwidth());
+
+  // color mapping
+  cells.style("fill", function(d) { return scale.color(d.value); });
+  cells.style("stroke", function(d) { return scale.color(d.value); });
+
+  return node;
+}
+
+createHeatmap("heatmap");
+
+// Translate Function
+translate = function(x, y) {
+  return "translate(" + x + "," + y + ")";
+};
+
+// HTML Styles
+html`
+<h2>CSS Style</h2>
+
+<p><em>Click the cell to reveal.</em></p>
+<style>
+svg {
+  background-color: whitesmoke;
+  border: 1px solid lightgrey;
+}
+
+#background {
+  fill: white;
+}
+
+.cell {
+  stroke-width: 1px;
+}
+
+.axis path,
+.axis line {
+  stroke: none;
+  fill: none;
+}
+
+.axis text {
+  fill: dimgrey;
+  font-size: 9px;
+}
+</style>
+`
+
+// D3 Version Check
+d3 = require('d3@5')
+
+d3.version
+
+// Importing Additional Modules
+import {table} from "@tmcw/tables@444"
+import {select} from "@jashkenas/inputs"
+import {slider} from "@jashkenas/inputs"
+import {ramp} from "@mbostock/color-ramp"
+```
+
+These labels should help organize and understand the different components of the program. Let me know if you need further assistance!

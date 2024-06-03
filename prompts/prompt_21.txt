@@ -1,0 +1,310 @@
+Can you label this program for me while preserving its order?:
+d3 = require("https://d3js.org/d3.v5.min.js") // Import the d3 library
+
+labels = ["BCH","BioSci","EEC","GN","HB","IPN","MB","MCD","NTR","PB","ZO","dummy","BA","BCH","Bio Sci","CALS","CHASS","CNR","COE","COM","COS","EDU","EEC","GN","HB","ICT","IPN","LSFY","MB","MCD","not enr","NTR","PB","TEX","ZO","dummy"]
+
+// csv matrix converted with https://shancarter.github.io/mr-data-converter/
+matrix = [
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,1,3,3,2,1,0,1,0,0,2,1,2,0,1,2,4,1,1,0,1,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,2,5,4,5,8,4,0,8,2,1,3,1,8,1,6,1,4,1,5,8,2,1,2,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,0,1,1,1,0,10,0,2,0,0,1,1,2,0,1,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,3,6,1,0,17,6,5,6,2,2,1,4,32,3,4,1,3,0,12,10,0,2,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,2,0,0,0,0,0,1,0,7,0,1,0,0,1,0,1,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,0,0,0,3,0,0,1,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,1,0,0,3,1,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,2,0,0,0,0,0,1,0,0,1,0,1,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1,4,1,2,0,0,0,0,0,0,1,0,0,0,2,2,0,0,23,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,150], //Dummy row
+  [0,2,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [17,5,0,0,6,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,4,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,5,0,0,0,1,0,0,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [3,8,0,2,17,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [3,4,0,1,6,0,1,0,1,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,0,0,0,5,2,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,8,0,1,6,0,1,0,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,2,0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,1,0,1,2,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,3,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,0,10,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,8,0,0,32,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,1,0,2,3,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,6,0,0,4,7,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,4,0,1,3,1,3,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,1,0,1,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [4,5,0,2,12,0,0,1,1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,8,0,0,10,1,1,2,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,0,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,2,0,0,0,0,0,0,0,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,150,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+]
+
+chord = d3.chord()
+	.padAngle(0.02)
+	.sortSubgroups(d3.descending)
+
+chord(matrix)
+
+chart = {
+  const svg = d3.select(DOM.svg(width, 800))
+
+  const height = +svg.attr('height')
+  const outerRadius = Math.min(width, height) * 0.5 - 60
+  const innerRadius = outerRadius - 10
+
+  d3.selection.prototype.moveToFront = function() {
+    return this.each(function(){
+      this.parentNode.appendChild(this);
+    });
+  }
+
+  const arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius)
+
+  const textArc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius + 40)
+
+  const ribbon = d3.ribbon()
+    .radius(innerRadius)
+
+  // Kind of hacky, but first 11 data values are what we are interested in
+  const color = d3.scaleOrdinal(d3.schemePaired)
+    .domain(d3.range(11))
+  	.unknown('#CCCCCC')
+
+  const g = svg.append('g')
+    .attr('transform', `translate(${width / 2}, ${height / 2})`)
+    .datum(chord(matrix))
+
+  const group = g.append('g')
+    .attr('class', 'groups')
+  	.selectAll('g')
+  	.data(chords => chords.groups)
+  	.enter().append('g')
+
+  group.append('path')
+    .style('fill', d => labels[d.index] === 'dummy' ? 'none' :  color(d.index))
+    .style('stroke', d => labels[d.index] === 'dummy' ?
+           'none' :  d3.rgb(color(d.index)).darker()
+          )
+    .attr('d', arc)
+  	.on('mouseover', function(d) {
+        d3.selectAll('.ribbons').classed('fade', true)
+        d3.selectAll(`.ribbon-${labels[d.index]}`)
+        	.classed('highlight', true).moveToFront()
+  		})
+  	.on('mouseout', function(d) {
+        d3.selectAll('.ribbons').classed('fade', false)
+        d3.selectAll(`.ribbon-${labels[d.index]}`)
+        	.classed('highlight', false)
+  		})
+
+  g.append('g')
+    .attr('class', 'ribbons')
+  .selectAll('path')
+  .data(chords => chords)
+  .enter().append('path')
+    .attr('d', ribbon)
+    .attr('class', d => `ribbon-${labels[d.source.index]}`)
+    .style('fill', d => labels[d.source.index] === 'dummy' ?
+           'none' : color(d.source.index)
+          )
+    .style('stroke', d => labels[d.source.index] === 'dummy' ?
+           'none' :  d3.rgb(color(d.source.index)).darker(0.5)
+          )
+
+  group.append('g').append('text')
+  	.text(d => labels[d.index] === 'dummy' ? '' : labels[d.index])
+  	.attr('transform', d => `translate(${textArc.centroid(d)})`)
+    .attr('text-anchor', d =>
+          Math.sin((d.endAngle + d.startAngle) / 2) > 0 ? 'start' : 'end'
+         )
+    .attr('dominant-baseline', d =>
+          Math.cos((d.endAngle + d.startAngle) / 2) > 0 ? 'initial' : 'hanging'
+         )
+
+  return svg.node()
+}
+
+html`
+<style>
+  .ribbons {
+    fill-opacity: 0.6;
+  }
+
+  .highlight {
+	fill-opacity: 1;
+  }
+
+  .fade {
+	fill-opacity: 0.06;
+	stroke-opacity: 0;
+  }
+</style>
+`
+//////////////////////////////////////////////////////////////////////////////////
+Here is your program labeled while preserving its order:
+
+```javascript
+// Importing the d3 library
+d3 = require("https://d3js.org/d3.v5.min.js")
+
+// Define labels
+labels = ["BCH","BioSci","EEC","GN","HB","IPN","MB","MCD","NTR","PB","ZO","dummy","BA","BCH","Bio Sci","CALS","CHASS","CNR","COE","COM","COS","EDU","EEC","GN","HB","ICT","IPN","LSFY","MB","MCD","not enr","NTR","PB","TEX","ZO","dummy"]
+
+// Define the matrix (CSV matrix converted)
+matrix = [
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,17,0,1,3,3,2,1,0,1,0,0,2,1,2,0,1,2,4,1,1,0,1,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,2,5,4,5,8,4,0,8,2,1,3,1,8,1,6,1,4,1,5,8,2,1,2,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,1,0,1,1,1,0,10,0,2,0,0,1,1,2,0,1,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,3,6,1,0,17,6,5,6,2,2,1,4,32,3,4,1,3,0,12,10,0,2,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,2,0,0,0,0,0,1,0,7,0,1,0,0,1,0,1,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,1,0,0,0,3,0,0,1,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,1,0,0,1,0,1,0,0,3,1,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,1,1,0,2,0,0,0,0,0,1,0,0,1,0,1,2,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,1,4,1,2,0,0,0,0,0,0,1,0,0,0,2,2,0,0,23,0],
+  [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,150], // Dummy row
+  [0,2,0,0,3,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [17,5,0,0,6,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,4,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,5,0,0,0,1,0,0,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [3,8,0,2,17,0,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [3,4,0,1,6,0,1,0,1,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,0,0,0,5,2,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,8,0,1,6,0,1,0,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,2,0,1,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,1,0,1,2,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,3,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,0,10,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,8,0,0,32,1,1,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,1,0,2,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+
+,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,6,0,0,4,7,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,4,0,1,3,1,3,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [2,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [4,5,0,2,12,0,0,1,1,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,8,0,0,10,1,1,2,2,0,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,2,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,1,0,0,2,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [1,2,0,0,0,0,0,0,0,0,23,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,0,0,0,0,0,0,0,150,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+]
+
+// Define chord layout
+chord = d3.chord()
+	.padAngle(0.02)
+	.sortSubgroups(d3.descending)
+
+// Compute chord layout with the provided matrix
+chord(matrix)
+
+// Chart setup and creation
+chart = {
+  const svg = d3.select(DOM.svg(width, 800))
+
+  const height = +svg.attr('height')
+  const outerRadius = Math.min(width, height) * 0.5 - 60
+  const innerRadius = outerRadius - 10
+
+  // Function to move elements to front in the SVG
+  d3.selection.prototype.moveToFront = function() {
+    return this.each(function() {
+      this.parentNode.appendChild(this);
+    });
+  }
+
+  // Define arc for the group
+  const arc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius)
+
+  // Define text arc for labels
+  const textArc = d3.arc()
+    .innerRadius(innerRadius)
+    .outerRadius(outerRadius + 40)
+
+  // Define ribbon for the connections
+  const ribbon = d3.ribbon()
+    .radius(innerRadius)
+
+  // Define color scale
+  const color = d3.scaleOrdinal(d3.schemePaired)
+    .domain(d3.range(11))
+  	.unknown('#CCCCCC')
+
+  // Append groups and ribbons to the SVG
+  const g = svg.append('g')
+    .attr('transform', `translate(${width / 2}, ${height / 2})`)
+    .datum(chord(matrix))
+
+  const group = g.append('g')
+    .attr('class', 'groups')
+  	.selectAll('g')
+  	.data(chords => chords.groups)
+  	.enter().append('g')
+
+  // Append paths and styles to each group
+  group.append('path')
+    .style('fill', d => labels[d.index] === 'dummy' ? 'none' : color(d.index))
+    .style('stroke', d => labels[d.index] === 'dummy' ? 'none' : d3.rgb(color(d.index)).darker())
+    .attr('d', arc)
+  	.on('mouseover', function(d) {
+        d3.selectAll('.ribbons').classed('fade', true)
+        d3.selectAll(`.ribbon-${labels[d.index]}`)
+        	.classed('highlight', true).moveToFront()
+  		})
+  	.on('mouseout', function(d) {
+        d3.selectAll('.ribbons').classed('fade', false)
+        d3.selectAll(`.ribbon-${labels[d.index]}`)
+        	.classed('highlight', false)
+  		})
+
+  // Append ribbons to the chart
+  g.append('g')
+    .attr('class', 'ribbons')
+  .selectAll('path')
+  .data(chords => chords)
+  .enter().append('path')
+    .attr('d', ribbon)
+    .attr('class', d => `ribbon-${labels[d.source.index]}`)
+    .style('fill', d => labels[d.source.index] === 'dummy' ? 'none' : color(d.source.index))
+    .style('stroke', d => labels[d.source.index] === 'dummy' ? 'none' : d3.rgb(color(d.source.index)).darker(0.5))
+
+  // Append group labels
+  group.append('g').append('text')
+  	.text(d => labels[d.index] === 'dummy' ? '' : labels[d.index])
+  	.attr('transform', d => `translate(${textArc.centroid(d)})`)
+    .attr('text-anchor', d => Math.sin((d.endAngle + d.startAngle) / 2) > 0 ? 'start' : 'end')
+    .attr('dominant-baseline', d => Math.cos((d.endAngle + d.startAngle) / 2) > 0 ? 'initial' : 'hanging')
+
+  return svg.node()
+}
+
+// Define CSS styles for ribbons, highlighting, and fade
+html`
+<style>
+  .ribbons {
+    fill-opacity: 0.6;
+  }
+
+  .highlight {
+    fill-opacity: 1;
+  }
+
+  .fade {
+    fill-opacity: 0.06;
+    stroke-opacity: 0;
+  }
+</style>
+`
+```

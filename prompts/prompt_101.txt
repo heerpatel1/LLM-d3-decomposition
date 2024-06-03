@@ -1,0 +1,201 @@
+Can you label this program for me?:
+{
+  const width = 800;
+  const height = 800;
+
+  const hierarchy = d3.hierarchy(data, data => data.children)
+    .sum(data => data.value)
+    .sort((a, b) => b.value - a.value)
+  const leaves = hierarchy.leaves();
+
+  const svg = d3.create("svg")
+      .attr("viewBox", [-20, -20, width, height])
+      .attr("width", width)
+      .attr("height", height)
+      .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10);
+
+   d3.treemap()
+        .tile(d3.treemapResquarify)
+        .size([width - 40, height - 40])
+        .paddingInner(3)
+        .paddingTop(3)
+        .paddingRight(3)
+        .paddingBottom(3)
+        .paddingLeft(3)
+        .round(true)
+      (hierarchy);
+
+  const node = svg.selectAll("a")
+    .data(leaves)
+    .join("a")
+      .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+  node.append("rect")
+      .attr("fill", d => {console.log(d);return color[d.data.category];})
+      .attr("width", d => d.x1 - d.x0)
+      .attr("height", d => d.y1 - d.y0);
+
+  node.append("title").text((d, i) => d.data.name);
+
+  const uid = `O-${Math.random().toString(16).slice(2)}`;
+  node.append("clipPath")
+       .attr("id", (d, i) => `${uid}-clip-${i}`)
+     .append("rect")
+       .attr("width", d => d.x1 - d.x0)
+       .attr("height", d => d.y1 - d.y0);
+
+    const L = leaves.map(d => d.data.name);
+   node.append("text")
+        .attr("clip-path", (d, i) => `url(${new URL(`#${uid}-clip-${i}`, location)})`)
+      .selectAll("tspan")
+      .data((d, i) => `${L[i]}`.split(/\n/g))
+      .join("tspan")
+        .attr("x", 3)
+        .attr("y", (d, i, D) => `${(i === D.length - 1) * 0.3 + 1.1 + i * 0.9}em`)
+        .attr("fill-opacity", (d, i, D) => i === D.length - 1 ? 0.7 : null)
+        .text(d => d);
+
+  return svg.node();
+}
+
+data = {
+  const gameUrl = 'https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json'
+  const gameJson = d3.json(gameUrl)
+  return gameJson;
+}
+
+color = {
+  const COLORS = {
+    'Wii': 'rgb(195, 146, 195)',
+    'X360': 'rgb(62, 153, 62)',
+    'NES': 'rgb(161, 229, 161)',
+    'PS2': 'rgb(83, 82, 83)',
+    'DS': 'rgb(237, 210, 237)',
+    'GB': 'rgb(147, 201, 147)',
+    '3DS': 'rgb(171, 173, 171)',
+    'PS4': 'rgb(202, 133, 202)',
+    'SNES': 'rgb(221, 192, 221)',
+    'PS3': 'rgb(86, 179, 86)',
+    'PS': 'rgb(111, 120, 111)',
+    'GBA': 'rgb(206, 146, 206)',
+    'XB': 'rgb(219, 197, 219)',
+    'N64': 'rgb(169, 176, 169)',
+    'PC': 'rgb(153, 153, 153)',
+    '2600': 'rgb(210, 210, 210)',
+    'PSP': 'rgb(78, 202, 78)',
+    'XOne': 'rgb(164, 226, 164)'
+  }
+  return COLORS;
+}
+////////////////////////////////////////////////////////////////////////////////////////////
+Here's the labeled program, preserving the original order:
+
+```javascript
+// Creating the treemap chart
+{
+  // Setting the width and height of the chart
+  const width = 800;
+  const height = 800;
+
+  // Building the hierarchy of the data
+  const hierarchy = d3.hierarchy(data, data => data.children)
+    .sum(data => data.value)
+    .sort((a, b) => b.value - a.value);
+  const leaves = hierarchy.leaves();
+
+  // Creating an SVG element
+  const svg = d3.create("svg")
+      .attr("viewBox", [-20, -20, width, height])
+      .attr("width", width)
+      .attr("height", height)
+      .attr("style", "max-width: 100%; height: auto; height: intrinsic;")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10);
+
+  // Applying the treemap layout
+  d3.treemap()
+    .tile(d3.treemapResquarify)
+    .size([width - 40, height - 40])
+    .paddingInner(3)
+    .paddingTop(3)
+    .paddingRight(3)
+    .paddingBottom(3)
+    .paddingLeft(3)
+    .round(true)
+    (hierarchy);
+
+  // Creating group elements for each leaf node in the hierarchy
+  const node = svg.selectAll("a")
+    .data(leaves)
+    .join("a")
+      .attr("transform", d => `translate(${d.x0},${d.y0})`);
+
+  // Appending rectangles for each leaf node
+  node.append("rect")
+      .attr("fill", d => color[d.data.category])
+      .attr("width", d => d.x1 - d.x0)
+      .attr("height", d => d.y1 - d.y0);
+
+  // Adding tooltips to each rectangle
+  node.append("title").text((d, i) => d.data.name);
+
+  // Generating a unique identifier for the clipPath
+  const uid = `O-${Math.random().toString(16).slice(2)}`;
+
+  // Adding a clipPath for each leaf node
+  node.append("clipPath")
+    .attr("id", (d, i) => `${uid}-clip-${i}`)
+    .append("rect")
+      .attr("width", d => d.x1 - d.x0)
+      .attr("height", d => d.y1 - d.y0);
+
+  // Creating text labels for each leaf node
+  const L = leaves.map(d => d.data.name);
+  node.append("text")
+    .attr("clip-path", (d, i) => `url(${new URL(`#${uid}-clip-${i}`, location)})`)
+    .selectAll("tspan")
+    .data((d, i) => `${L[i]}`.split(/\n/g))
+    .join("tspan")
+      .attr("x", 3)
+      .attr("y", (d, i, D) => `${(i === D.length - 1) * 0.3 + 1.1 + i * 0.9}em`)
+      .attr("fill-opacity", (d, i, D) => i === D.length - 1 ? 0.7 : null)
+      .text(d => d);
+
+  // Returning the SVG node
+  return svg.node();
+}
+
+// Loading data from an external JSON file
+data = {
+  const gameUrl = 'https://cdn.freecodecamp.org/testable-projects-fcc/data/tree_map/video-game-sales-data.json'
+  const gameJson = d3.json(gameUrl);
+  return gameJson;
+}
+
+// Defining color for each game category
+color = {
+  const COLORS = {
+    'Wii': 'rgb(195, 146, 195)',
+    'X360': 'rgb(62, 153, 62)',
+    'NES': 'rgb(161, 229, 161)',
+    'PS2': 'rgb(83, 82, 83)',
+    'DS': 'rgb(237, 210, 237)',
+    'GB': 'rgb(147, 201, 147)',
+    '3DS': 'rgb(171, 173, 171)',
+    'PS4': 'rgb(202, 133, 202)',
+    'SNES': 'rgb(221, 192, 221)',
+    'PS3': 'rgb(86, 179, 86)',
+    'PS': 'rgb(111, 120, 111)',
+    'GBA': 'rgb(206, 146, 206)',
+    'XB': 'rgb(219, 197, 219)',
+    'N64': 'rgb(169, 176, 169)',
+    'PC': 'rgb(153, 153, 153)',
+    '2600': 'rgb(210, 210, 210)',
+    'PSP': 'rgb(78, 202, 78)',
+    'XOne': 'rgb(164, 226, 164)'
+  }
+  return COLORS;
+}
+```

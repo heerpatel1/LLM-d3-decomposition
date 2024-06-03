@@ -1,0 +1,237 @@
+Can you label this program. Note that bins are for "createBins()":
+viewof width = html `<input type=range min=300 max=900>`
+
+ chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) ) ;
+
+const g = svg . append ( "g" )
+. selectAll ( "g" )
+. data ( bins )
+. join ( "g" ) ;
+
+g . append ( "path" )
+. attr ( "stroke" , "currentColor" )
+. attr ( "d" , d => `
+        M${ x ( d . range [ 0 ] ) },${ y ( ( d . x0 + d . x1 ) / 2 ) }
+        H${ x ( d . range [ 1 ] ) }
+      ` ) ;
+
+g . append ( "path" )
+. attr ( "fill" , "#ddd" )
+. attr ( "d" , d => `
+        M${ x ( d . quartiles [ 2 ] ) },${ y ( d . x0 ) - 1 }
+        V${ y ( d . x1 ) }
+        H${ x ( d . quartiles [ 0 ] ) }
+        V${ y ( d . x0 ) - 1 }
+        Z
+      ` ) ;
+
+g . append ( "path" )
+. attr ( "stroke" , "currentColor" )
+. attr ( "stroke-width" , 2 )
+. attr ( "d" , d => `
+        M${ x ( d . quartiles [ 1 ] ) },${ y ( d . x0 ) - 1 }
+        V${ y ( d . x1 ) }
+      ` ) ;
+
+g . append ( "g" )
+. attr ( "fill" , "currentColor" )
+. attr ( "fill-opacity" , 0.2 )
+. attr ( "stroke" , "none" )
+. attr ( "transform" , d => `translate(0,${ y ( ( d . x0 + d . x1 ) / 2 ) })` )
+. selectAll ( "circle" )
+. data ( d => d . outliers )
+. join ( "circle" )
+. attr ( "r" , 2 )
+. attr ( "cy" , ( ) => ( Math . random ( ) - 0.5 ) * 4 )
+. attr ( "cx" , d => x ( d . x ) ) ;
+
+svg . append ( "g" )
+. call ( xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis ) ;
+
+return svg . node ( ) ;
+}
+
+ bins = d3 . histogram ( )
+. thresholds ( n )
+. value ( d => d . y )
+( data )
+. map ( bin => {
+bin . sort ( ( a , b ) => a . x - b . x ) ;
+const values = bin . map ( d => d . x ) ;
+const min = values [ 0 ] ;
+const max = values [ values . length - 1 ] ;
+const q1 = d3 . quantile ( values , 0.25 ) ;
+const q2 = d3 . quantile ( values , 0.50 ) ;
+const q3 = d3 . quantile ( values , 0.75 ) ;
+const iqr = q3 - q1 ; // interquartile range
+const r0 = Math . max ( min , q1 - iqr * 1.5 ) ;
+const r1 = Math . min ( max , q3 + iqr * 1.5 ) ;
+bin . quartiles = [ q1 , q2 , q3 ] ;
+bin . range = [ r0 , r1 ] ;
+bin . outliers = bin . filter ( v => v . x < r0 || v . x > r1 ) ; // TODO
+return bin ;
+} )
+
+ data = d3 . csvParse ( await FileAttachment ( "diamonds.csv" ) . text ( ) , ( { carat , price } ) => ( {
+y : + carat , x : + price
+} ) )
+
+ x = d3 . scaleLinear ( )
+. domain ( [ d3 . min ( bins , d => d . range [ 0 ] ) , d3 . max ( bins , d => d . range [ 1 ] ) ] ) . nice ( )
+. range ( [ margin . left , width - margin . right ] )
+
+ xAxis = g => g
+. attr ( "transform" , `translate(0,${ height - margin . bottom })` )
+. call ( d3 . axisBottom ( x ) . ticks ( null , "s" ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) )
+
+ y = d3 . scaleLinear ( )
+. domain ( [ d3 . min ( bins , d => d . x0 ) , d3 . max ( bins , d => d . x1 ) ] )
+. rangeRound ( [ height - margin . bottom , margin . top ] )
+
+ yAxis = g => g
+. attr ( "transform" , `translate(${ margin . left },0)` )
+. call ( d3 . axisLeft ( y ) . ticks ( n ) . tickSizeOuter ( 0 ) )
+
+ n = width / 40
+
+ height = 600
+
+ margin = ( { top : 20 , right : 20 , bottom : 30 , left : 40 } )
+
+ d3 = require ( "d3@5" )
+
+
+///////////////RESULT////////////////////////////////////////////////////////////////
+// Label: viewof
+viewof width = html`<input type=range min=300 max=900>`
+
+// Label: createSvgComponent()
+chart = {
+    const svg = d3.select(DOM.svg(width, height));
+
+    const boxWidth = 50; // Width Component
+    const jitterWidth = 50; // Width Component
+
+    // Label: svgAppend()
+    const g = svg.append("g")
+        .selectAll("g")
+        .data(bins)
+        .join("g");
+
+    // Label: svgAppend()
+    g.append("path")
+        .attr("stroke", "currentColor")
+        .attr("d", d => `
+            M${x(d.range[0])},${y((d.x0 + d.x1) / 2)}
+            H${x(d.range[1])}
+        `);
+
+    // Label: svgAppend()
+    g.append("path")
+        .attr("fill", "#ddd")
+        .attr("d", d => `
+            M${x(d.quartiles[2])},${y(d.x0) - 1}
+            V${y(d.x1)}
+            H${x(d.quartiles[0])}
+            V${y(d.x0) - 1}
+            Z
+        `);
+
+    // Label: svgAppend()
+    g.append("path")
+        .attr("stroke", "currentColor")
+        .attr("stroke-width", 2)
+        .attr("d", d => `
+            M${x(d.quartiles[1])},${y(d.x0) - 1}
+            V${y(d.x1)}
+        `);
+
+    // Label: svgAppend()
+    g.append("g")
+        .attr("fill", "currentColor")
+        .attr("fill-opacity", 0.2)
+        .attr("stroke", "none")
+        .attr("transform", d => `translate(0,${y((d.x0 + d.x1) / 2)})`)
+        .selectAll("circle")
+        .data(d => d.outliers)
+        .join("circle")
+        .attr("r", 2)
+        .attr("cy", () => (Math.random() - 0.5) * 4)
+        .attr("cx", d => x(d.x));
+
+    // Label: svgAppend()
+    svg.append("g")
+        .call(xAxis);
+
+    // Label: svgAppend()
+    svg.append("g")
+        .call(yAxis);
+
+    return svg.node();
+}
+
+// Label: createBins()
+bins = d3.histogram()
+    .thresholds(n)
+    .value(d => d.y)(data)
+    .map(bin => {
+        bin.sort((a, b) => a.x - b.x);
+        const values = bin.map(d => d.x);
+        const min = values[0];
+        const max = values[values.length - 1];
+        const q1 = d3.quantile(values, 0.25);
+        const q2 = d3.quantile(values, 0.50);
+        const q3 = d3.quantile(values, 0.75);
+        const iqr = q3 - q1; // interquartile range
+        const r0 = Math.max(min, q1 - iqr * 1.5);
+        const r1 = Math.min(max, q3 + iqr * 1.5);
+        bin.quartiles = [q1, q2, q3];
+        bin.range = [r0, r1];
+        bin.outliers = bin.filter(v => v.x < r0 || v.x > r1);
+        return bin;
+    });
+
+// Label: data()
+data = d3.csvParse(await FileAttachment("diamonds.csv").text(), ({ carat, price }) => ({
+    y: +carat,
+    x: +price
+}));
+
+// Label: scaleComponent()
+x = d3.scaleLinear()
+    .domain([d3.min(bins, d => d.range[0]), d3.max(bins, d => d.range[1])])
+    .nice()
+    .range([margin.left, width - margin.right]);
+
+// Label: xAxis
+xAxis = g => g
+    .attr("transform", `translate(0,${height - margin.bottom})`)
+    .call(d3.axisBottom(x).ticks(null, "s"))
+    .call(g => g.select(".domain").remove());
+
+// Label: scaleComponent()
+y = d3.scaleLinear()
+    .domain([d3.min(bins, d => d.x0), d3.max(bins, d => d.x1)])
+    .rangeRound([height - margin.bottom, margin.top]);
+
+// Label: yAxis
+yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).ticks(n).tickSizeOuter(0));
+
+// Label: setBinCount()
+n = width / 40;
+
+// Label: setHeight()
+height = 600;
+
+// Label: setMargin()
+margin = ({ top: 20, right: 20, bottom: 30, left: 40 });
+
+// Label: setD3Version()
+d3 = require("d3@5");

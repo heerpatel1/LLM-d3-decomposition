@@ -1,0 +1,156 @@
+Can you label this program for me?:
+chart = {
+const root = partition ( data ) ;
+
+const svg = d3 . create ( "svg" ) ;
+
+svg . append ( "g" )
+. attr ( "fill-opacity" , 0.6 )
+. selectAll ( "path" )
+. data ( root . descendants ( ) . filter ( d => d . depth ) )
+. join ( "path" )
+. attr ( "fill" , d => { while ( d . depth > 1 ) d = d . parent ; return color ( d . data . name ) ; } )
+. attr ( "d" , arc )
+. append ( "title" )
+. text ( d => `${ d . ancestors ( ) . map ( d => d . data . name ) . reverse ( ) . join ( "/" ) }\n${ format ( d . value ) }` ) ;
+
+svg . append ( "g" )
+. attr ( "pointer-events" , "none" )
+. attr ( "text-anchor" , "middle" )
+. attr ( "font-size" , 10 )
+. attr ( "font-family" , "sans-serif" )
+. selectAll ( "text" )
+. data ( root . descendants ( ) . filter ( d => d . depth && ( d . y0 + d . y1 ) / 2 * ( d . x1 - d . x0 ) > 10 ) )
+. join ( "text" )
+. attr ( "transform" , function ( d ) {
+const x = ( d . x0 + d . x1 ) / 2 * 180 / Math . PI ;
+const y = ( d . y0 + d . y1 ) / 2 ;
+return `rotate(${ x - 90 }) translate(${ y },0) rotate(${ x < 180 ? 0 : 180 })` ;
+} )
+. attr ( "dy" , "0.35em" )
+. text ( d => d . data . name ) ;
+
+return svg . attr ( "viewBox" , autoBox ) . node ( ) ;
+}
+
+ function autoBox ( ) {
+document . body . appendChild ( this ) ;
+const { x , y , width , height } = this . getBBox ( ) ;
+document . body . removeChild ( this ) ;
+return [ x , y , width , height ] ;
+}
+
+ data = FileAttachment ( "MANIFEST@5.JSON" ) . json ( )
+
+ partition = data => d3 . partition ( )
+. size ( [ 2 * Math . PI , radius ] )
+( d3 . hierarchy ( data )
+. sum ( d => d . value )
+. sort ( ( a , b ) => b . value - a . value ) )
+
+ color = d3 . scaleOrdinal ( d3 . quantize ( d3 . interpolateRainbow , data . children . length + 1 ) )
+
+ format = d3 . format ( ",d" )
+
+ width = 975
+
+ radius = width / 2
+
+ arc = d3 . arc ( )
+. startAngle ( d => d . x0 )
+. endAngle ( d => d . x1 )
+. padAngle ( d => Math . min ( ( d . x1 - d . x0 ) / 2 , 0.005 ) )
+. padRadius ( radius / 2 )
+. innerRadius ( d => d . y0 )
+. outerRadius ( d => d . y1 - 1 )
+
+ d3 = require ( "d3@6" )
+////////////////////////////////////////////////////////////////////////////////////
+Here is the program labeled while preserving its order:
+
+```javascript
+// Create the main chart function
+chart = {
+  // Partition the data using the partition function
+  const root = partition(data);
+
+  // Create an SVG element for the chart
+  const svg = d3.create("svg");
+
+  // Create paths for the sunburst chart, set fill and title properties
+  svg.append("g")
+    .attr("fill-opacity", 0.6)
+    .selectAll("path")
+    .data(root.descendants().filter(d => d.depth)) // Filter out the root node
+    .join("path")
+    .attr("fill", d => {
+      while (d.depth > 1) d = d.parent;
+      return color(d.data.name);
+    })
+    .attr("d", arc)
+    .append("title")
+    .text(d => `${d.ancestors().map(d => d.data.name).reverse().join("/")}\n${format(d.value)}`);
+
+  // Create text labels for each slice of the sunburst chart
+  svg.append("g")
+    .attr("pointer-events", "none")
+    .attr("text-anchor", "middle")
+    .attr("font-size", 10)
+    .attr("font-family", "sans-serif")
+    .selectAll("text")
+    .data(root.descendants().filter(d => d.depth && (d.y0 + d.y1) / 2 * (d.x1 - d.x0) > 10)) // Filter based on slice size
+    .join("text")
+    .attr("transform", function (d) {
+      const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+      const y = (d.y0 + d.y1) / 2;
+      return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
+    })
+    .attr("dy", "0.35em")
+    .text(d => d.data.name);
+
+  // Return the SVG element with the view box set
+  return svg.attr("viewBox", autoBox).node();
+}
+
+// Calculate the view box for the SVG element
+function autoBox() {
+  document.body.appendChild(this);
+  const { x, y, width, height } = this.getBBox();
+  document.body.removeChild(this);
+  return [x, y, width, height];
+}
+
+// Load data from the JSON file
+data = FileAttachment("MANIFEST@5.JSON").json();
+
+// Define the partition function for the data
+partition = data => d3.partition()
+  .size([2 * Math.PI, radius])
+  (d3.hierarchy(data)
+    .sum(d => d.value)
+    .sort((a, b) => b.value - a.value));
+
+// Define the color scale using D3's quantize function
+color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, data.children.length + 1));
+
+// Define the number format function
+format = d3.format(",d");
+
+// Define the chart width
+width = 975;
+
+// Calculate the chart radius
+radius = width / 2;
+
+// Define the arc generator for the sunburst chart
+arc = d3.arc()
+  .startAngle(d => d.x0)
+  .endAngle(d => d.x1)
+  .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+  .padRadius(radius / 2)
+  .innerRadius(d => d.y0)
+  .outerRadius(d => d.y1 - 1);
+
+// Import the D3 library
+d3 = require("d3@6");
+```

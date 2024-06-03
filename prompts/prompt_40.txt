@@ -1,0 +1,860 @@
+Can you label this program for me without changing its order?:
+
+viewof regionFilter = select([...new Set(rawData.map(d => d.region_ccp))])
+
+chart = {
+  // div overall parent container
+  const parent = d3.create("div");
+
+  // svg for y-axis with semi-transparent background
+  const yaxis = parent.append("svg")
+      .attr("height", innerHeight + margin.top + margin.bottom)
+      .style("position", "absolute")
+      .style("pointer-events", "none")
+      .style("z-index", 1)
+      .call(svg => svg.append("g")
+        .append("rect")
+          .attr("x", 0)
+          .attr("y", margin.top)
+          .attr("width", margin.left)
+          .attr("height", innerHeight)
+          .attr("fill", "#f6f6f6")
+          .attr("opacity", 0.85))
+      .call(svg => svg.append("g")
+        .call(yAxis));
+
+  // div container for scrolling area
+  const body = parent.append("div")
+      .style("overflow-x", "scroll")
+      .style("-webkit-overflow-scrolling", "touch");
+
+  // svg for main chart
+  const svg = body.append("svg")
+      .attr("width", overwidth)
+      .attr("height", innerHeight + margin.top + margin.bottom)
+      .style("display", "block")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10);
+
+  // Define a gradient for our constitute lifespans inside the SVG 'defs'
+  const gradient = svg.append("defs").append("linearGradient")
+    .attr("id", "constitutionStartToEndGradient")
+    .attr("x1", "0%")
+    .attr("x2", "100%")
+    .attr("y1", "0%")
+    .attr("y2", "0%");
+
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .style("stop-color", "#e3eafe")
+    .style("stop-opacity", 1);
+
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .style("stop-color", "#f4f6fe")
+    .style("stop-opacity", 1);
+
+  // x-axis
+  svg.append("g")
+      .call(xAxis);
+
+  // Rows, one for each country
+  const rows = svg.append("g")
+    .selectAll("g")
+    .data(data.values)
+    .join("g")
+      .attr("transform", (d, i) => `translate(0,${y(data.countryNames[i])})`);
+
+  // Gradients within country, one for each constitution lifespan.
+  // In a separate 'g' to ensure they are behind all nodes.
+  const gradients = rows.append("g")
+    .selectAll(".rect")
+    .data(d => d)
+    .join("g")
+    .classed('rect', true);
+
+  // Rectangles for constitution lifespans
+  gradients.filter((d) => plotHasGradation(d))
+      .append("rect")
+      .attr("x", (d) => getPlotGradationX(d))
+      .attr("y", (d) => y.bandwidth() - 1 - getPlotGradiationHeight(d))
+      .attr("width", (d) => getPlotGradationWidth(d))
+      .attr("height", (d) => getPlotGradiationHeight(d))
+      .style("fill", "url(#constitutionStartToEndGradient)");
+
+  // Nodes within country, one for each constitution
+  const nodes = rows.append("g")
+    .selectAll(".rect")
+    .data(d => d)
+    .join("g")
+    .classed('rect', true);
+
+  // Rectangles representing the data nodes
+  nodes.append("rect")
+      .attr("x", (d) => getPlotX(d))
+      .attr("y", (d) => y.bandwidth() - 1 - getPlotHeight(d))
+      .attr("width", (d) => pixelsPerYear)
+      .attr("height", (d) => getPlotHeight(d))
+      .attr("fill", (d) => getPlotFill(d))
+      .attr("stroke", (d) => getPlotStroke(d))
+      .attr("stroke-width", (d) => getPlotStrokeWidth(d))
+      .attr("cursor", (d) => getCursor(d))
+      .on("click", (d) => nodeClicked(d))
+      .on("mouseover", (d) => nodeMouseOver(d))
+      .on("mouseout", (d) => nodeMouseOut(d));
+
+  // Title when hovering over node
+  nodes.append("title")
+      .text((d, i) => getPlotTitle(d, i));
+
+  yield parent.node();
+
+  body.node().scrollBy(overwidth, 0);
+}
+
+nodeClicked = (d) => {
+  if (!d || d.pdf == "") return;
+  window.open(
+      'https://www.constituteproject.org/constitution/' + d.pdf,
+      '_blank'
+    );
+}
+
+nodeMouseOver = (d) => {
+  d3.select(d3.event.currentTarget).style("fill", "black");
+}
+
+nodeMouseOut = (d) => {
+ d3.select(d3.event.currentTarget).style("fill", getPlotFill(d));
+}
+
+plotHasGradation = (d) => {
+  // We draw the gradiation backwards from when a constitution ends
+  if (!d) return false;
+
+  switch (d.eventtype) {
+    case 'ended':
+    case 'suspension':
+      // In these cases, always draw a gradient
+      return true;
+
+    case 'new':
+    case 'reinstated':
+    case 'final':
+      // In these cases, only draw a gradient if a constitution is already active
+      return d.constitutionActive;
+
+    default: return false;
+  }
+}
+
+getPlotGradationX = (d) => {
+  // Start of gradiation is the x position of the constitution start year + 1,
+  // converted to an index by subtracting the graph start year
+  if (!d) return null;
+  return x(data.years[d.constitutionStart + 1 - data.minYear]) + pixelGutter;
+}
+
+getPlotGradationWidth = (d) => {
+  // Width of gradiation is the difference between the constitution start year and this year
+  if (!d) return null;
+  return getPlotX(d) - getPlotGradationX(d);
+}
+
+getPlotGradiationHeight = (d) => {
+  if (!d) return 0;
+  return rowHeight - 12;
+}
+
+getPlotX = (d) => {
+  if (!d) return null;
+  return x(d.year) + pixelGutter;
+}
+
+getPlotFill = (d) => {
+  if (!d) return "none";
+  switch (d.eventtype) {
+    case 'amendment': return "#b2cbfd";
+    case 'ended': return "#444444";
+    case 'interim': return "#cccccc";
+    case 'new': return "#6195fc";
+    case 'reinstated': return "#6195fc";
+    case 'suspension': return "#e26666";
+    default: return "none";
+  }
+}
+
+getPlotHeight = (d) => {
+  if (!d) return 0;
+  switch (d.eventtype) {
+    case 'ended':
+    case 'interim':
+    case 'new':
+    case 'suspension':
+    case 'reinstated':
+        return rowHeight - 5;
+    default: return rowHeight - 12;
+  }
+}
+
+getPlotTitle = (d) => {
+  if (!d) return "";
+  switch (d.eventtype) {
+    case 'amendment': return `Amendment ${d.year}`;
+    case 'ended': return `No longer in force ${d.year}`;
+    case 'interim': return `Interim constitution ${d.year}`;
+    case 'new': return `New constitution ${d.year}`;
+    case 'reinstated': return `Reinstated constitution ${d.year}`;
+    case 'suspension': return `Constitution suspended ${d.year}`;
+    default: return "";
+  }
+}
+
+getPlotStroke = (d) => {
+  if (!d || d.pdf == "") return "none";
+  return "#000";
+}
+
+getPlotStrokeWidth = (d) => {
+  if (!d || d.pdf == "") return 0;
+  return "1px";
+}
+
+getCursor = (d) => {
+  if (!d || d.pdf == "") return "default";
+  else return "pointer";
+}
+
+rawData = d3.csv(await FileAttachment("ccp_texts - Sheet 1.csv").url());
+
+filteredData = rawData.filter(d => d.region_ccp == regionFilter)
+
+data = {
+  // countryNames contains the Country names
+  const countryNames = [];
+
+  // values contains a 2-dimensional array of events for a country,
+  // outer array is one entry per country,
+  // inner array is one entry per year
+  const values = [];
+
+  // year0 is the minimum year, year1 is the maximum year,
+  // years is an array containing all years from min to max
+  const year0 = d3.min(filteredData, d => +d.year);
+  const year1 = d3.max(filteredData, d => +d.year);
+  const years = d3.range(year0, year1 + 1);
+
+  var constitutionStart = null;
+  var constitutionActive = false;
+  var previousCountryIndex = -1;
+
+  // Rip across the data building our arrays
+  filteredData.forEach((d, index) => {
+    var countryIndex = countryNames.indexOf(d.country);
+    if (countryIndex == -1) {
+      // Start of new country, if we had a previous country and a constitution was active, add a final
+      // placeholder entry for that country to allow us to draw the gradient fill.
+      if (previousCountryIndex !== -1 && constitutionActive) {
+        (values[previousCountryIndex] || (values[previousCountryIndex] = []))[year1 - year0] =
+          {year: year1, eventtype: 'final', pdf: '', constitutionStart: constitutionStart, constitutionActive: constitutionActive};
+      }
+      // Then clear the constitutionStart date and store the country
+      constitutionStart = null;
+      constitutionActive = false;
+      countryNames.push(d.country);
+      countryIndex = countryNames.length - 1;
+    }
+
+    // Build an object containing the data we need to plot each item on the chart
+    (values[countryIndex] || (values[countryIndex] = []))[d.year - year0] =
+      {year: +d.year, eventtype: d.eventtype, pdf: d.pdf, constitutionStart: constitutionStart, constitutionActive: constitutionActive};
+
+    // Store the start date whenever we encounter a new constitution and clear it when a constitution ends
+    if (d.eventtype == 'new' || d.eventtype == 'reinstated') {
+      constitutionStart = +d.year;
+      constitutionActive = true;
+    } else if (d.eventtype == 'interim' && constitutionActive == false) {
+      // Some countries have an interim rather than a new constitution as their very first
+      constitutionStart = +d.year;
+      constitutionActive = true;
+    } else if (d.eventtype == 'ended' || d.eventtype == 'suspension') {
+      constitutionActive = false;
+    }
+
+    previousCountryIndex = countryIndex;
+  });
+
+  return {
+    values,
+    countryNames,
+    years,
+    year: 1945,
+    minYear: year0,
+    maxYear: year1
+  };
+}
+
+getDataIndex = (d) => {
+  // Normally we would just use i as the index, but when using a filter in D3, i
+  // is reset to 0 in the inner selection and there is no way in D4 to get at it.
+  return d.year - data.minYear;
+}
+
+x = d3.scaleLinear()
+    .domain([data.minYear, data.maxYear + 1])
+    .range([margin.left, margin.left + yearCount * (pixelsPerYear + pixelGutter)])
+
+y = d3.scaleBand()
+    .domain(data.countryNames)
+    .rangeRound([margin.top, margin.top + innerHeight])
+
+xAxis = g => g
+    .call(g => g.append("g")
+      .attr("transform", `translate(0,${margin.top})`)
+      .call(d3.axisTop(x).ticks(null, "d"))
+      .call(g => g.select(".domain").remove()))
+    .call(g => g.append("g")
+      .attr("transform", `translate(0,${innerHeight + margin.top + 4})`)
+      .call(d3.axisBottom(x)
+          .tickValues([1945])
+          .tickFormat(x => x)
+          .tickSize(-innerHeight - 10))
+      .call(g => g.select(".tick text")
+          .clone()
+          .attr("dy", "2em")
+          .style("font-weight", "bold")
+          .text("World War II ends"))
+      .call(g => g.select(".domain").remove()));
+
+yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).tickSize(0))
+    .call(g => g.select(".domain").remove())
+
+pixelsPerYear = 3
+
+pixelGutter = 1
+
+rowHeight = 24
+
+innerHeight = rowHeight * data.countryNames.length
+
+overwidth = (x(data.maxYear) - x(data.minYear)) + margin.left + margin.right
+
+yearCount = data.years.length
+
+margin = ({top: 20, right: 20, bottom: 40, left: 150})
+
+d3 = require("d3@5")
+
+import {legend} from "@d3/color-legend"
+
+import {select} from "@jashkenas/inputs"
+
+////////////////////////////////////////////////////////////////////////////
+```javascript
+// Libraries
+d3 = require("d3@5")
+import {legend} from "@d3/color-legend"
+import {select} from "@jashkenas/inputs"
+
+// Data
+rawData = d3.csv(await FileAttachment("ccp_texts - Sheet 1.csv").url())
+filteredData = rawData.filter(d => d.region_ccp == regionFilter)
+data = { ... }
+
+// Constants
+pixelsPerYear = 3
+pixelGutter = 1
+rowHeight = 24
+innerHeight = rowHeight * data.countryNames.length
+overwidth = (x(data.maxYear) - x(data.minYear)) + margin.left + margin.right
+yearCount = data.years.length
+margin = { top: 20, right: 20, bottom: 40, left: 150 }
+
+// Functions
+plotHasGradation = (d) => { ... }
+getPlotGradationX = (d) => { ... }
+getPlotGradationWidth = (d) => { ... }
+getPlotGradiationHeight = (d) => { ... }
+getPlotX = (d) => { ... }
+getPlotFill = (d) => { ... }
+getPlotHeight = (d) => { ... }
+getPlotTitle = (d) => { ... }
+getPlotStroke = (d) => { ... }
+getPlotStrokeWidth = (d) => { ... }
+getCursor = (d) => { ... }
+nodeClicked = (d) => { ... }
+nodeMouseOver = (d) => { ... }
+nodeMouseOut = (d) => { ... }
+getDataIndex = (d) => { ... }
+
+// Chart
+viewof regionFilter = select([...new Set(rawData.map(d => d.region_ccp))])
+chart = { ... }
+```
+//////////////////////////////////////////////////////////////////
+For things like height, width, margins, scales, etc. can you apply individual labels even if they are listed together? We want to treat them as distinct components.
+
+
+```javascript
+// Libraries
+d3 = require("d3@5")
+import {legend} from "@d3/color-legend"
+import {select} from "@jashkenas/inputs"
+
+// Data
+rawData = d3.csv(await FileAttachment("ccp_texts - Sheet 1.csv").url())
+filteredData = rawData.filter(d => d.region_ccp == regionFilter)
+data = { ... }
+
+// Constants
+pixelsPerYear = 3
+pixelGutter = 1
+rowHeight = 24
+innerHeight = rowHeight * data.countryNames.length
+overwidth = (x(data.maxYear) - x(data.minYear)) + margin.left + margin.right
+yearCount = data.years.length
+margin = {
+  top: 20,
+  right: 20,
+  bottom: 40,
+  left: 150
+}
+
+// Scales
+x = d3.scaleLinear()
+    .domain([data.minYear, data.maxYear + 1])
+    .range([margin.left, margin.left + yearCount * (pixelsPerYear + pixelGutter)])
+
+y = d3.scaleBand()
+    .domain(data.countryNames)
+    .rangeRound([margin.top, margin.top + innerHeight])
+
+// Axes
+xAxis = g => g
+    .call(g => g.append("g")
+      .attr("transform", `translate(0,${margin.top})`)
+      .call(d3.axisTop(x).ticks(null, "d"))
+      .call(g => g.select(".domain").remove()))
+    .call(g => g.append("g")
+      .attr("transform", `translate(0,${innerHeight + margin.top + 4})`)
+      .call(d3.axisBottom(x)
+          .tickValues([1945])
+          .tickFormat(x => x)
+          .tickSize(-innerHeight - 10))
+      .call(g => g.select(".tick text")
+          .clone()
+          .attr("dy", "2em")
+          .style("font-weight", "bold")
+          .text("World War II ends"))
+      .call(g => g.select(".domain").remove()));
+
+yAxis = g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(y).tickSize(0))
+    .call(g => g.select(".domain").remove())
+
+// Functions
+plotHasGradation = (d) => { ... }
+getPlotGradationX = (d) => { ... }
+getPlotGradationWidth = (d) => { ... }
+getPlotGradiationHeight = (d) => { ... }
+getPlotX = (d) => { ... }
+getPlotFill = (d) => { ... }
+getPlotHeight = (d) => { ... }
+getPlotTitle = (d) => { ... }
+getPlotStroke = (d) => { ... }
+getPlotStrokeWidth = (d) => { ... }
+getCursor = (d) => { ... }
+nodeClicked = (d) => { ... }
+nodeMouseOver = (d) => { ... }
+nodeMouseOut = (d) => { ... }
+getDataIndex = (d) => { ... }
+
+// Chart
+viewof regionFilter = select([...new Set(rawData.map(d => d.region_ccp))])
+chart = { ... }
+```
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+Can you label this program for me without changing its order? Also, do not hide the code. I would like to see all parts of the program labeled.:
+
+```javascript
+// Data Input
+viewof regionFilter = select([...new Set(rawData.map(d => d.region_ccp))])
+
+// Chart
+chart = {
+  // Overall Parent Container
+  const parent = d3.create("div");
+
+  // Y-axis SVG with Semi-transparent Background
+  const yaxis = parent.append("svg")
+      .attr("height", innerHeight + margin.top + margin.bottom)
+      .style("position", "absolute")
+      .style("pointer-events", "none")
+      .style("z-index", 1)
+      .call(svg => svg.append("g")
+        .append("rect")
+          .attr("x", 0)
+          .attr("y", margin.top)
+          .attr("width", margin.left)
+          .attr("height", innerHeight)
+          .attr("fill", "#f6f6f6")
+          .attr("opacity", 0.85))
+      .call(svg => svg.append("g")
+        .call(yAxis));
+
+  // Container for Scrolling Area
+  const body = parent.append("div")
+      .style("overflow-x", "scroll")
+      .style("-webkit-overflow-scrolling", "touch");
+
+  // Main Chart SVG
+  const svg = body.append("svg")
+      .attr("width", overwidth)
+      .attr("height", innerHeight + margin.top + margin.bottom)
+      .style("display", "block")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10);
+
+  // Gradient for Constitution Lifespans
+  const gradient = svg.append("defs").append("linearGradient")
+    .attr("id", "constitutionStartToEndGradient")
+    .attr("x1", "0%")
+    .attr("x2", "100%")
+    .attr("y1", "0%")
+    .attr("y2", "0%");
+
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .style("stop-color", "#e3eafe")
+    .style("stop-opacity", 1);
+
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .style("stop-color", "#f4f6fe")
+    .style("stop-opacity", 1);
+
+  // X-axis
+  svg.append("g")
+      .call(xAxis);
+
+  // Rows
+  const rows = svg.append("g")
+    .selectAll("g")
+    .data(data.values)
+    .join("g")
+      .attr("transform", (d, i) => `translate(0,${y(data.countryNames[i])})`);
+
+  // Gradients within Country
+  const gradients = rows.append("g")
+    .selectAll(".rect")
+    .data(d => d)
+    .join("g")
+    .classed('rect', true);
+
+  // Rectangles for Constitution Lifespans
+  gradients.filter((d) => plotHasGradation(d))
+      .append("rect")
+      .attr("x", (d) => getPlotGradationX(d))
+      .attr("y", (d) => y.bandwidth() - 1 - getPlotGradiationHeight(d))
+      .attr("width", (d) => getPlotGradationWidth(d))
+      .attr("height", (d) => getPlotGradiationHeight(d))
+      .style("fill", "url(#constitutionStartToEndGradient)");
+
+  // Nodes within Country
+  const nodes = rows.append("g")
+    .selectAll(".rect")
+    .data(d => d)
+    .join("g")
+    .classed('rect', true);
+
+  // Rectangles representing the data nodes
+  nodes.append("rect")
+      .attr("x", (d) => getPlotX(d))
+      .attr("y", (d) => y.bandwidth() - 1 - getPlotHeight(d))
+      .attr("width", (d) => pixelsPerYear)
+      .attr("height", (d) => getPlotHeight(d))
+      .attr("fill", (d) => getPlotFill(d))
+      .attr("stroke", (d) => getPlotStroke(d))
+      .attr("stroke-width", (d) => getPlotStrokeWidth(d))
+      .attr("cursor", (d) => getCursor(d))
+      .on("click", (d) => nodeClicked(d))
+      .on("mouseover", (d) => nodeMouseOver(d))
+      .on("mouseout", (d) => nodeMouseOut(d));
+
+  // Title when hovering over node
+  nodes.append("title")
+      .text((d, i) => getPlotTitle(d, i));
+
+  yield parent.node();
+
+  body.node().scrollBy(overwidth, 0);
+}
+
+// Node Click Event
+nodeClicked = (d) => {
+  if (!d || d.pdf == "") return;
+  window.open(
+      'https://www.constituteproject.org/constitution/' + d.pdf,
+      '_blank'
+    );
+}
+
+// Node Mouseover Event
+nodeMouseOver = (d) => {
+  d3.select(d3.event.currentTarget).style("fill", "black");
+}
+
+// Node Mouseout Event
+nodeMouseOut = (d) => {
+ d3.select(d3.event.currentTarget).style("fill", getPlotFill(d));
+}
+
+// Function: Check if Plot Has Gradation
+plotHasGradation = (d) => { ... }
+
+// Function: Get Plot Gradation X
+getPlotGradationX = (d) => { ... }
+
+// Function: Get Plot Gradation Width
+getPlotGradationWidth = (d) => { ... }
+
+// Function: Get Plot Gradation Height
+getPlotGradiationHeight = (d) => { ... }
+
+// Function: Get Plot X
+getPlotX = (d) => { ... }
+
+// Function: Get Plot Fill
+getPlotFill = (d) => { ... }
+
+// Function: Get Plot Height
+getPlotHeight = (d) => { ... }
+
+// Function: Get Plot Title
+getPlotTitle = (d) => { ... }
+
+// Function: Get Plot Stroke
+getPlotStroke = (d) => { ... }
+
+// Function: Get Plot Stroke Width
+getPlotStrokeWidth = (d) => { ... }
+
+// Function: Get Cursor
+getCursor = (d) => { ... }
+
+// Data Processing
+rawData = d3.csv(await FileAttachment("ccp_texts - Sheet 1.csv").url());
+
+filteredData = rawData.filter(d => d.region_ccp == regionFilter)
+
+data = {
+  // Country Names
+  const countryNames = [];
+
+  // Values
+  const values = [];
+
+  // Year Information
+  const year0 = d3.min(filteredData
+
+///////////////////////////////////////////////////////////////////////////////////////
+Can you please generate the entire program?
+
+Sure, here's the entire labeled program:
+
+```javascript
+// Data Input
+viewof regionFilter = select([...new Set(rawData.map(d => d.region_ccp))])
+
+// Chart
+chart = {
+  // Overall Parent Container
+  const parent = d3.create("div");
+
+  // Y-axis SVG with Semi-transparent Background
+  const yaxis = parent.append("svg")
+      .attr("height", innerHeight + margin.top + margin.bottom)
+      .style("position", "absolute")
+      .style("pointer-events", "none")
+      .style("z-index", 1)
+      .call(svg => svg.append("g")
+        .append("rect")
+          .attr("x", 0)
+          .attr("y", margin.top)
+          .attr("width", margin.left)
+          .attr("height", innerHeight)
+          .attr("fill", "#f6f6f6")
+          .attr("opacity", 0.85))
+      .call(svg => svg.append("g")
+        .call(yAxis));
+
+  // Container for Scrolling Area
+  const body = parent.append("div")
+      .style("overflow-x", "scroll")
+      .style("-webkit-overflow-scrolling", "touch");
+
+  // Main Chart SVG
+  const svg = body.append("svg")
+      .attr("width", overwidth)
+      .attr("height", innerHeight + margin.top + margin.bottom)
+      .style("display", "block")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10);
+
+  // Gradient for Constitution Lifespans
+  const gradient = svg.append("defs").append("linearGradient")
+    .attr("id", "constitutionStartToEndGradient")
+    .attr("x1", "0%")
+    .attr("x2", "100%")
+    .attr("y1", "0%")
+    .attr("y2", "0%");
+
+  gradient.append("stop")
+    .attr("offset", "0%")
+    .style("stop-color", "#e3eafe")
+    .style("stop-opacity", 1);
+
+  gradient.append("stop")
+    .attr("offset", "100%")
+    .style("stop-color", "#f4f6fe")
+    .style("stop-opacity", 1);
+
+  // X-axis
+  svg.append("g")
+      .call(xAxis);
+
+  // Rows
+  const rows = svg.append("g")
+    .selectAll("g")
+    .data(data.values)
+    .join("g")
+      .attr("transform", (d, i) => `translate(0,${y(data.countryNames[i])})`);
+
+  // Gradients within Country
+  const gradients = rows.append("g")
+    .selectAll(".rect")
+    .data(d => d)
+    .join("g")
+    .classed('rect', true);
+
+  // Rectangles for Constitution Lifespans
+  gradients.filter((d) => plotHasGradation(d))
+      .append("rect")
+      .attr("x", (d) => getPlotGradationX(d))
+      .attr("y", (d) => y.bandwidth() - 1 - getPlotGradiationHeight(d))
+      .attr("width", (d) => getPlotGradationWidth(d))
+      .attr("height", (d) => getPlotGradiationHeight(d))
+      .style("fill", "url(#constitutionStartToEndGradient)");
+
+  // Nodes within Country
+  const nodes = rows.append("g")
+    .selectAll(".rect")
+    .data(d => d)
+    .join("g")
+    .classed('rect', true);
+
+  // Rectangles representing the data nodes
+  nodes.append("rect")
+      .attr("x", (d) => getPlotX(d))
+      .attr("y", (d) => y.bandwidth() - 1 - getPlotHeight(d))
+      .attr("width", (d) => pixelsPerYear)
+      .attr("height", (d) => getPlotHeight(d))
+      .attr("fill", (d) => getPlotFill(d))
+      .attr("stroke", (d) => getPlotStroke(d))
+      .attr("stroke-width", (d) => getPlotStrokeWidth(d))
+      .attr("cursor", (d) => getCursor(d))
+      .on("click", (d) => nodeClicked(d))
+      .on("mouseover", (d) => nodeMouseOver(d))
+      .on("mouseout", (d) => nodeMouseOut(d));
+
+  // Title when hovering over node
+  nodes.append("title")
+      .text((d, i) => getPlotTitle(d, i));
+
+  yield parent.node();
+
+  body.node().scrollBy(overwidth, 0);
+}
+
+// Node Click Event
+nodeClicked = (d) => {
+  if (!d || d.pdf == "") return;
+  window.open(
+      'https://www.constituteproject.org/constitution/' + d.pdf,
+      '_blank'
+    );
+}
+
+// Node Mouseover Event
+nodeMouseOver = (d) => {
+  d3.select(d3.event.currentTarget).style("fill", "black");
+}
+
+// Node Mouseout Event
+nodeMouseOut = (d) => {
+ d3.select(d3.event.currentTarget).style("fill", getPlotFill(d));
+}
+
+// Function: Check if Plot Has Gradation
+plotHasGradation = (d) => { ... }
+
+// Function: Get Plot Gradation X
+getPlotGradationX = (d) => { ... }
+
+// Function: Get Plot Gradation Width
+getPlotGradationWidth = (d) => { ... }
+
+// Function: Get Plot Gradation Height
+getPlotGradiationHeight = (d) => { ... }
+
+// Function: Get Plot X
+getPlotX = (d) => { ... }
+
+// Function: Get Plot Fill
+getPlotFill = (d) => { ... }
+
+// Function: Get Plot Height
+getPlotHeight = (d) => { ... }
+
+// Function: Get Plot Title
+getPlotTitle = (d) => { ... }
+
+// Function: Get Plot Stroke
+getPlotStroke = (d) => { ... }
+
+// Function: Get Plot Stroke Width
+getPlotStrokeWidth = (d) => { ... }
+
+// Function: Get Cursor
+getCursor = (d) => { ... }
+
+// Data Processing
+rawData = d3.csv(await FileAttachment("ccp_texts - Sheet 1.csv").url());
+
+filteredData = rawData.filter(d => d.region_ccp == regionFilter)
+
+data = {
+  // Country Names
+  const countryNames = [];
+
+  // Values
+  const values = [];
+
+  // Year Information
+  const year0 = d3.min(filteredData, d => +d.year);
+  const year1 = d3.max(filteredData, d => +d.year);
+  const years = d3.range(year0, year1 + 1);
+
+  var constitutionStart = null;
+  var constitutionActive = false;
+  var previousCountryIndex = -1;
+
+  // Rip across the data building our arrays
+  filteredData.forEach((d, index) => {
+    var countryIndex = countryNames.indexOf(d.country);
+    if (countryIndex == -1) {
+      // Start of new country, if we had a previous country and a constitution was active, add

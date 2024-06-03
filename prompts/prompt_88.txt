@@ -1,0 +1,304 @@
+Can you label this ENTIRE program for me without changing its order?:
+
+chart = {
+var margin = { top : 20 , right : 40 , bottom : 50 , left : 30 } ;
+const width = 500 - margin . left - margin . right ;
+const height = 180 - margin . top - margin . bottom ;
+const svg = d3
+. create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] )
+. attr ( "id" , "gfx" )
+. attr ( "style" , "background-color:#eee; border: 20px solid #e3e3e3" ) ;
+const x = d3 . scaleLinear ( [ 0 , dataFiltered . length - 1 ] , [ 0 , width ] ) ;
+const y = d3 . scaleLinear ( [ - 7 , 7 ] , [ height - 0 , 0 ] ) ;
+const colorKey = [
+[ 'shirts-black' , "#333" ] ,
+[ 'shirts-blue' , "#4355db" ] ,
+[ 'shirts-grey' , "#898989" ] ,
+[ 'shirts-green' , "#a3e048" ] ,
+[ 'shirts-red' , "#e6261f" ] ,
+[ 'shirts-yellow' , "#f7d038" ] ,
+[ 'shirts-white' , '#FCF6FF' ]
+] ;
+var randColorKey = colorKey
+. map ( a => ( { sort : Math . random ( ) , value : a } ) )
+. sort ( ( a , b ) => a . sort - b . sort )
+. map ( a => a . value ) ;
+
+// Make sure the white band isn't the first or last item
+if (
+randColorKey [ 0 ] [ 0 ] === 'shirts-white' ||
+randColorKey [ randColorKey . length - 1 ] [ 0 ] === 'shirts-white'
+) {
+while (
+randColorKey [ 0 ] [ 0 ] === 'shirts-white' ||
+randColorKey [ randColorKey . length - 1 ] [ 0 ] === 'shirts-white'
+) {
+randColorKey = colorKey
+. map ( a => ( { sort : Math . random ( ) , value : a } ) )
+. sort ( ( a , b ) => a . sort - b . sort )
+. map ( a => a . value ) ;
+}
+}
+var items = randColorKey . map ( a => a [ 0 ] ) ;
+var colors = randColorKey . map ( a => a [ 1 ] ) ;
+
+var data = d3
+. stack ( )
+. keys ( items )
+. offset ( d3 . stackOffsetSilhouette ) ( dataFiltered ) ;
+
+var xAxis = d3
+. axisTop ( )
+. scale ( x )
+. ticks ( 4 ) ;
+//.ticks(d3.timeDays);
+
+var yAxis = d3
+. axisLeft ( )
+. scale ( y )
+. tickValues ( [ - 4 , 0 , 4 ] ) ;
+
+const area = d3
+. area ( )
+. x ( ( d , i ) => x ( i ) )
+. y0 ( d => y ( d [ 0 ] ) )
+. y1 ( d => y ( d [ 1 ] ) )
+. curve ( d3 . curveBasis ) ;
+// MORE CURVES
+/*
+    "d3.curveBasis",
+    "d3.curveMonotoneX",
+    "d3.curveCardinal",
+    "d3.curveCatmullRomClosed",
+    "d3.curveLinear",
+    "d3.curveMonotoneY",
+    "d3.curveNatural",
+    "d3.curveStepAfter",
+    "d3.curveStepBefore",
+    "d3.curveStep
+*/
+
+const path = svg
+. selectAll ( "path" )
+. data ( data )
+. join ( "path" )
+. attr ( "d" , area )
+. attr ( "fill" , ( d , i ) => colors [ i ] )
+. attr ( "id" , ( d , i ) => {
+return colorKey [ i ] [ 0 ] ;
+} ) ;
+
+svg
+. append ( "g" )
+. attr ( "class" , "x axis" )
+. attr ( "transform" , "translate(0," + height + ")" )
+. call ( xAxis ) ;
+svg
+. append ( "g" )
+. attr ( "class" , "y axis" )
+. attr ( "transform" , "translate(" + width + ", 0)" )
+. call ( yAxis ) ;
+
+yield svg . node ( ) ;
+
+//const el = document.getElementById('gfx');
+// el.addEventListener('click', () => {
+/*
+  data.pop(3);
+  data.pop(3);
+  data.pop(3);
+  */
+//});
+}
+
+dataFiltered = dataRaw
+  .map(d => {
+    if (d['shirts-blue'] !== '') return d;
+  })
+  .filter(d => {
+    return d !== undefined;
+  })
+
+
+ html `
+<p>Adjust the value of the curveType var (this doesn't work): ${ viewof curveType . bind (
+select ( [
+"d3.curveBasis" ,
+"d3.curveMonotoneX" ,
+"d3.curveCardinal" ,
+"d3.curveCatmullRomClosed" ,
+"d3.curveLinear" ,
+"d3.curveMonotoneY" ,
+"d3.curveNatural" ,
+"d3.curveStepAfter" ,
+"d3.curveStepBefore" ,
+"d3.curveStep"
+] )
+) }</p>
+<style>
+body { font-family: Courier, Arial-black, Georgia, Garamond; letter-spacing: -1; }
+g { font-family: Courier, Helvetica, Arial } </style>`
+
+ dataRaw = d3 . csv ( "https://joemurph.com/app/ss/csv/shirts.csv" )
+
+ d3 = require ( "d3@6" )
+
+viewof curveType = new View()
+
+import { View } from "@mbostock/synchronized-views"
+
+import { select } from "@jashkenas/inputs"
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Define chart function
+chart = {
+  // Define margins and dimensions
+  var margin = { top : 20 , right : 40 , bottom : 50 , left : 30 } ;
+  const width = 500 - margin . left - margin . right ;
+  const height = 180 - margin . top - margin . bottom ;
+
+  // Create SVG element
+  const svg = d3
+    .create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .attr("id", "gfx")
+    .attr("style", "background-color:#eee; border: 20px solid #e3e3e3");
+
+  // Define scales
+  const x = d3 . scaleLinear ( [ 0 , dataFiltered . length - 1 ] , [ 0 , width ] ) ;
+  const y = d3 . scaleLinear ( [ - 7 , 7 ] , [ height - 0 , 0 ] ) ;
+
+  // Define color key
+  const colorKey = [
+    ['shirts-black', "#333"],
+    ['shirts-blue', "#4355db"],
+    ['shirts-grey', "#898989"],
+    ['shirts-green', "#a3e048"],
+    ['shirts-red', "#e6261f"],
+    ['shirts-yellow', "#f7d038"],
+    ['shirts-white', '#FCF6FF']
+  ];
+
+  // Generate random color key
+  var randColorKey = colorKey
+    .map(a => ({ sort: Math.random(), value: a }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(a => a.value);
+
+  // Ensure white band isn't first or last item
+  if (
+    randColorKey[0][0] === 'shirts-white' ||
+    randColorKey[randColorKey.length - 1][0] === 'shirts-white'
+  ) {
+    while (
+      randColorKey[0][0] === 'shirts-white' ||
+      randColorKey[randColorKey.length - 1][0] === 'shirts-white'
+    ) {
+      randColorKey = colorKey
+        .map(a => ({ sort: Math.random(), value: a }))
+        .sort((a, b) => a.sort - b.sort)
+        .map(a => a.value);
+    }
+  }
+
+  // Extract items and colors from random color key
+  var items = randColorKey.map(a => a[0]);
+  var colors = randColorKey.map(a => a[1]);
+
+  // Stack data
+  var data = d3
+    .stack()
+    .keys(items)
+    .offset(d3.stackOffsetSilhouette)(dataFiltered);
+
+  // Define axes
+  var xAxis = d3
+    .axisTop()
+    .scale(x)
+    .ticks(4);
+  var yAxis = d3
+    .axisLeft()
+    .scale(y)
+    .tickValues([-4, 0, 4]);
+
+  // Define area generator
+  const area = d3
+    .area()
+    .x((d, i) => x(i))
+    .y0(d => y(d[0]))
+    .y1(d => y(d[1]))
+    .curve(d3.curveBasis);
+
+  // Append paths for areas
+  const path = svg
+    .selectAll("path")
+    .data(data)
+    .join("path")
+    .attr("d", area)
+    .attr("fill", (d, i) => colors[i])
+    .attr("id", (d, i) => {
+      return colorKey[i][0];
+    });
+
+  // Append x-axis
+  svg
+    .append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
+    .call(xAxis);
+
+  // Append y-axis
+  svg
+    .append("g")
+    .attr("class", "y axis")
+    .attr("transform", "translate(" + width + ", 0)")
+    .call(yAxis);
+
+  // Return SVG node
+  yield svg.node();
+}
+
+// Filtered data
+dataFiltered = dataRaw
+  .map(d => {
+    if (d['shirts-blue'] !== '') return d;
+  })
+  .filter(d => {
+    return d !== undefined;
+  });
+
+// HTML content
+html `
+<p>Adjust the value of the curveType var (this doesn't work): ${ viewof curveType . bind (
+select ( [
+"d3.curveBasis" ,
+"d3.curveMonotoneX" ,
+"d3.curveCardinal" ,
+"d3.curveCatmullRomClosed" ,
+"d3.curveLinear" ,
+"d3.curveMonotoneY" ,
+"d3.curveNatural" ,
+"d3.curveStepAfter" ,
+"d3.curveStepBefore" ,
+"d3.curveStep"
+] )
+) }</p>
+<style>
+body { font-family: Courier, Arial-black, Georgia, Garamond; letter-spacing: -1; }
+g { font-family: Courier, Helvetica, Arial } </style>`
+
+// Raw data
+dataRaw = d3 . csv ( "https://joemurph.com/app/ss/csv/shirts.csv" )
+
+// Import d3 library
+d3 = require ( "d3@6" )
+
+// Define curveType view
+viewof curveType = new View()
+
+// Import necessary modules
+import { View } from "@mbostock/synchronized-views"
+import { select } from "@jashkenas/inputs"
+```

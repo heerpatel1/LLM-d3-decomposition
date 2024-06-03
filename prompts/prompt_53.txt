@@ -1,0 +1,258 @@
+Can you label this program for me?:
+chart = {
+
+const svg = d3 . select ( DOM . svg ( width , height ) ) ;
+
+svg . append ( "path" )
+. datum ( means_clean )
+. attr ( "fill" , "none" )
+. attr ( "stroke" , "orange" )
+. attr ( "stroke-width" , 2 )
+. attr ( "stroke-linejoin" , "round" )
+. attr ( "stroke-linecap" , "round" )
+. attr ( "d" , line ) ;
+
+svg . append ( "g" )
+. call ( xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis ) ;
+
+return svg . node ( ) ;
+
+
+
+}
+
+ height = 500
+
+ width = 800
+
+ margin = ( { top : 100 , right : 20 , bottom : 70 , left : 50 } )
+
+ xAxis = g => g
+. attr ( "transform" , `translate(0, ${ height - margin . bottom })` )
+. call ( d3 . axisBottom ( xScale ) . ticks ( width / 80 ) . tickSizeOuter ( 0 ) ) ;
+
+ yAxis = g => g
+. attr ( "transform" , `translate(${ margin . left }, 0)` )
+. call ( d3 . axisLeft ( yScale ) . tickSizeOuter ( 0 ) )
+. call ( g => g . select ( ".domain" ) . remove ( ) ) ;
+
+ yScale = d3 . scaleLinear ( )
+. domain ( [ 0 , d3 . max ( means_clean , d => d . value ) ] ) . nice ( )
+. range ( [ height - margin . bottom , margin . top ] ) ;
+
+ xScale = d3 . scaleTime ( )
+. domain ( d3 . extent ( means_clean , d => d . key ) )
+. range ( [ margin . left , width - margin . right ] ) ;
+
+ line = d3 . line ( )
+. x ( d => xScale ( d . key ) )
+. y ( d => yScale ( d . value ) )
+. curve ( d3 . curveLinear )
+
+ freedom = d3 . csv ( "https://gist.githubusercontent.com/will-r-chase/3f4503ccfe9d7a559023ce62cfafbe6c/raw/b45c9cc5b512a36f7a4ae2755b03a6acb39be489/human_freedom_index_2018.csv" , d3 . autoType )
+
+ ////this is a total dumpster fire, I have no idea what I'm doing
+////I find js logic for array manipulation completely awful compared to R
+////why can't I just say freedom.year = timeParse(freedom.year)??? would be so much easier
+////this works, but I know it's bad, should study this more later
+
+ dat2 = year_means . map ( d => { return + d . key } ) ;
+
+ dat3 = dat2 . map ( d => timeParse ( d ) ) ;
+
+ means_clean = year_means . map ( ( d , i ) => ( { ... d , key : dat3 [ i ] } ) ) ;
+
+ year_means = d3 . nest ( )
+. key ( d => d . year )
+. rollup ( function ( v ) { return d3 . mean ( v , d => d . pf_score ) ; } )
+. entries ( freedom )
+. reverse ( ) ;
+
+ timeParse = d3 . timeParse ( "%Y" )
+////////////////////////////////////////////////////////////////////////////////////////
+// Label: function call
+chart = {
+    // Label: createSvgComponent()
+    const svg = d3.select(DOM.svg(width, height));
+
+    // Label: svgAppend()
+    svg.append("path")
+        .datum(means_clean)
+        .attr("fill", "none")
+        .attr("stroke", "orange")
+        .attr("stroke-width", 2)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("d", line);
+
+    // Label: svgAppend()
+    svg.append("g")
+        .call(xAxis);
+
+    // Label: svgAppend()
+    svg.append("g")
+        .call(yAxis);
+
+    // Return the completed SVG node
+    return svg.node();
+}
+
+// Label: setHeight()
+height = 500;
+
+// Label: setWidth()
+width = 800;
+
+// Label: setMargin()
+margin = ({ top: 100, right: 20, bottom: 70, left: 50 });
+
+// Label: xAxis
+xAxis = g => g
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
+    .call(d3.axisBottom(xScale).ticks(width / 80).tickSizeOuter(0));
+
+// Label: yAxis
+yAxis = g => g
+    .attr("transform", `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(yScale).tickSizeOuter(0))
+    .call(g => g.select(".domain").remove());
+
+// Label: scaleComponent()
+yScale = d3.scaleLinear()
+    .domain([0, d3.max(means_clean, d => d.value)]).nice()
+    .range([height - margin.bottom, margin.top]);
+
+// Label: scaleComponent()
+xScale = d3.scaleTime()
+    .domain(d3.extent(means_clean, d => d.key))
+    .range([margin.left, width - margin.right]);
+
+// Label: lineComponent()
+line = d3.line()
+    .x(d => xScale(d.key))
+    .y(d => yScale(d.value))
+    .curve(d3.curveLinear);
+
+// Label: data()
+freedom = d3.csv("https://gist.githubusercontent.com/will-r-chase/3f4503ccfe9d7a559023ce62cfafbe6c/raw/b45c9cc5b512a36f7a4ae2755b03a6acb39be489/human_freedom_index_2018.csv", d3.autoType);
+
+// Comment: Commentary on data transformation
+//// This is a total dumpster fire, I have no idea what I'm doing
+//// I find js logic for array manipulation completely awful compared to R
+//// Why can't I just say freedom.year = timeParse(freedom.year)??? would be so much easier
+//// This works, but I know it's bad, should study this more later
+
+// Label: data transformation
+dat2 = year_means.map(d => +d.key);
+
+// Label: data transformation
+dat3 = dat2.map(d => timeParse(d));
+
+// Label: data transformation
+means_clean = year_means.map((d, i) => ({ ...d, key: dat3[i] }));
+
+// Label: data transformation
+year_means = d3.nest()
+    .key(d => d.year)
+    .rollup(v => d3.mean(v, d => d.pf_score))
+    .entries(freedom)
+    .reverse();
+
+// Label: time parsing function
+timeParse = d3.timeParse("%Y");
+
+/////////////////////////////////////////////////////////////////////////////////////
+The first "function call" label is incorrect. Please remove it as a function is not being called by the first line.
+
+chart = {
+    // Label: createSvgComponent()
+    const svg = d3.select(DOM.svg(width, height));
+
+    // Label: svgAppend()
+    svg.append("path")
+        .datum(means_clean)
+        .attr("fill", "none")
+        .attr("stroke", "orange")
+        .attr("stroke-width", 2)
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-linecap", "round")
+        .attr("d", line);
+
+    // Label: svgAppend()
+    svg.append("g")
+        .call(xAxis);
+
+    // Label: svgAppend()
+    svg.append("g")
+        .call(yAxis);
+
+    // Return the completed SVG node
+    return svg.node();
+}
+
+// Label: setHeight()
+height = 500;
+
+// Label: setWidth()
+width = 800;
+
+// Label: setMargin()
+margin = ({ top: 100, right: 20, bottom: 70, left: 50 });
+
+// Label: xAxis
+xAxis = g => g
+    .attr("transform", `translate(0, ${height - margin.bottom})`)
+    .call(d3.axisBottom(xScale).ticks(width / 80).tickSizeOuter(0));
+
+// Label: yAxis
+yAxis = g => g
+    .attr("transform", `translate(${margin.left}, 0)`)
+    .call(d3.axisLeft(yScale).tickSizeOuter(0))
+    .call(g => g.select(".domain").remove());
+
+// Label: scaleComponent()
+yScale = d3.scaleLinear()
+    .domain([0, d3.max(means_clean, d => d.value)]).nice()
+    .range([height - margin.bottom, margin.top]);
+
+// Label: scaleComponent()
+xScale = d3.scaleTime()
+    .domain(d3.extent(means_clean, d => d.key))
+    .range([margin.left, width - margin.right]);
+
+// Label: lineComponent()
+line = d3.line()
+    .x(d => xScale(d.key))
+    .y(d => yScale(d.value))
+    .curve(d3.curveLinear);
+
+// Label: data()
+freedom = d3.csv("https://gist.githubusercontent.com/will-r-chase/3f4503ccfe9d7a559023ce62cfafbe6c/raw/b45c9cc5b512a36f7a4ae2755b03a6acb39be489/human_freedom_index_2018.csv", d3.autoType);
+
+// Comment: Commentary on data transformation
+//// This is a total dumpster fire, I have no idea what I'm doing
+//// I find js logic for array manipulation completely awful compared to R
+//// Why can't I just say freedom.year = timeParse(freedom.year)??? would be so much easier
+//// This works, but I know it's bad, should study this more later
+
+// Label: data transformation
+dat2 = year_means.map(d => +d.key);
+
+// Label: data transformation
+dat3 = dat2.map(d => timeParse(d));
+
+// Label: data transformation
+means_clean = year_means.map((d, i) => ({ ...d, key: dat3[i] }));
+
+// Label: data transformation
+year_means = d3.nest()
+    .key(d => d.year)
+    .rollup(v => d3.mean(v, d => d.pf_score))
+    .entries(freedom)
+    .reverse();
+
+// Label: time parsing function
+timeParse = d3.timeParse("%Y");

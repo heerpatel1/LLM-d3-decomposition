@@ -1,0 +1,342 @@
+Can you label this program for me without changing its order?:
+
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) )
+. attr ( "viewBox" , `${ - width / 2 } ${ - height / 2 } ${ width } ${ height }` )
+. style ( "width" , "100%" )
+. style ( "height" , "auto" )
+. style ( "font" , "10px sans-serif" ) ;
+
+let chartNum = 0 ;
+
+svg . append ( "g" )
+. selectAll ( "g" )
+. data ( d3 . stack ( ) . keys ( data . columns . slice ( 2 ) ) ( data ) )
+. join ( "g" )
+. selectAll ( "path" )
+. data ( d => d )
+. join ( "path" )
+. attr ( "fill" , ( d , i ) => {
+if ( 0 <= i && i < 4 ) {
+return [ "#c89c55" , "#e1af60" , "#fac36b" ] [ chartNum ]
+} else if ( 4 <= i && i < 8 ) {
+return [ "#309022" , "#36a226" , "#3cb52b" , "#4fbc40" ] [ chartNum ]
+} else if ( 8 <= i && i < 13 ) {
+return [ "#981c31" , "#ab2037" , "#be243e" , "#c43951" ] [ chartNum ]
+} else {
+return [ "#0a5478" , "#0b5f87" , "#0d6a96" , "#2578a0" ] [ i === 16 ? chartNum ++ : chartNum ]
+}
+
+} )
+. attr ( "d" , arc )
+. on ( "click" , function ( d ) { return tooltip . style ( "visibility" , "visible" ) } )
+. append ( 'title' )
+. text ( function ( d ) {
+return d ;
+} )
+
+
+
+svg . append ( "g" )
+. call ( xAxis ) ;
+
+svg . append ( "g" )
+. call ( yAxis ) ;
+
+let tooltip = svg . append ( "g" ) . style ( "visibility" , "hidden" )
+
+tooltip . append ( "rect" )
+. attr ( "width" , 300 )
+. attr ( "height" , 400 )
+. attr ( "stroke" , "#000" )
+. attr ( 'stroke' , 'black' )
+. attr ( 'fill' , '#69a3b2' )
+. attr ( "x" , - 150 )
+. attr ( "y" , - 100 )
+. on ( "click" , ( d ) => tooltip . style ( "visibility" , "hidden" ) )
+
+tooltip . append ( "text" ) . attr ( "y" , - 90 ) . attr ( "x" , - 140 ) . text ( "demo text" )
+
+return svg . node ( ) ;
+}
+
+ data = d3 . csvParse ( await FileAttachment ( "data-2@12.csv" ) . text ( ) , ( d , _ , columns ) => {
+let total = 0 ;
+let reals = 0 ;
+for ( let i = 2 ; i < columns . length ; ++ i ) {
+reals += d [ columns [ i ] ] == 0 ? 0 : 1
+total += d [ columns [ i ] ] = + d [ columns [ i ] ]
+}
+d . average = ( total / reals ) . toFixed ( 2 )
+d . total = total
+for ( let i = 1 ; i < columns . length ; ++ i ) {
+d [ columns [ i ] ] = ( d [ columns [ i ] ] / reals )
+}
+return d ;
+} )
+
+ arc = d3 . arc ( )
+. innerRadius ( d => y ( d [ 0 ] ) )
+. outerRadius ( d => y ( d [ 1 ] ) )
+. startAngle ( d => x ( d . data [ "Competency Group" ] ) )
+. endAngle ( d => x ( d . data [ "Competency Group" ] ) + x . bandwidth ( ) )
+. padAngle ( 0.1 )
+. padRadius ( innerRadius )
+
+
+ x = d3 . scaleBand ( )
+. domain ( data . map ( d => {
+return d [ "Competency Group" ]
+} ) )
+. range ( [ 0 , 2 * Math . PI ] )
+. align ( 0 )
+
+ // This scale maintains area proportionality of radial bars
+y = d3 . scaleRadial ( )
+. domain ( [ 0 , 5 ] )
+. range ( [ innerRadius , outerRadius ] )
+
+ xAxis = g => g
+. attr ( "text-anchor" , "middle" )
+. call ( g => g . selectAll ( "g" )
+. data ( data )
+. join ( "g" )
+. attr ( "transform" , d => `
+          rotate(${ ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) })
+          translate(${ innerRadius },0)
+        ` )
+. call ( g => g . append ( "text" )
+. attr ( "transform" , d => ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) < 0
+? "translate(" + ( 325 - ( y ( d [ 'average' ] ) + 10 ) + 10 ) + ")rotate(" + Math . abs ( ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) ) + ")"
+: "translate(" + ( 325 - ( y ( d [ 'average' ] ) + 10 ) + 10 ) + ")rotate(-" + ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) + ")" )
+. text ( d => d [ "Competency Group" ] ) )
+. call ( g => g . attr ( "text-anchor" , function ( d ) { return ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 + Math . PI ) % ( 2 * Math . PI ) < Math . PI ? "end" : "start" ; } )
+. attr ( "transform" , function ( d ) { return "rotate(" + ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) + ")" + "translate(" + ( y ( d [ 'average' ] ) + 10 ) + ",0)" ; } ) . append ( "text" )
+. attr ( "transform" , d => ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) > 0
+? "rotate(-" + ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) + ")"
+: "rotate(" + Math . abs ( ( ( x ( d [ "Competency Group" ] ) + x . bandwidth ( ) / 2 ) * 180 / Math . PI - 90 ) ) + ")" )
+. text ( d => d . average ) )
+
+)
+
+ yAxis = g => g
+. attr ( "text-anchor" , "middle" )
+. call ( g => g . append ( "text" )
+. attr ( "y" , d => - y ( y . ticks ( 5 ) . pop ( ) ) )
+. attr ( "dy" , "-1em" )
+. text ( "Competency Level" ) )
+. call ( g => g . selectAll ( "g" )
+. data ( y . ticks ( 5 ) )
+. join ( "g" )
+. attr ( "fill" , "none" )
+. call ( g => g . append ( "circle" )
+. attr ( "stroke" , "#000" )
+. attr ( "stroke-opacity" , 0.5 )
+. attr ( "r" , y ) )
+. call ( g => g . append ( "text" )
+. attr ( "y" , d => - y ( d ) )
+. attr ( "dy" , "0.35em" )
+. attr ( "stroke" , "#fff" )
+. attr ( "stroke-width" , 5 )
+. text ( y . tickFormat ( 5 , "s" ) )
+. clone ( true )
+. attr ( "fill" , "#000" )
+. attr ( "stroke" , "none" ) ) )
+
+ width = 975
+
+ height = width
+
+ innerRadius = 70
+
+ outerRadius = Math . min ( width , height ) / 3
+
+ d3 = require ( "d3@6" )
+///////////////////////////////////////////////////////////////////////////////////
+Here's the program you provided, labeled for easier readability:
+
+```javascript
+// Define the chart function
+chart = {
+  // Create an SVG element and set its view box and styles
+  const svg = d3.select(DOM.svg(width, height))
+    .attr("viewBox", `${-width / 2} ${-height / 2} ${width} ${height}`)
+    .style("width", "100%")
+    .style("height", "auto")
+    .style("font", "10px sans-serif");
+
+  // Initialize the chart number counter
+  let chartNum = 0;
+
+  // Create a group and append paths for each series in the stacked data
+  svg.append("g")
+    .selectAll("g")
+    .data(d3.stack().keys(data.columns.slice(2))(data))
+    .join("g")
+    .selectAll("path")
+    .data(d => d)
+    .join("path")
+    .attr("fill", (d, i) => {
+      // Define colors based on the index
+      if (0 <= i && i < 4) {
+        return ["#c89c55", "#e1af60", "#fac36b"][chartNum];
+      } else if (4 <= i && i < 8) {
+        return ["#309022", "#36a226", "#3cb52b", "#4fbc40"][chartNum];
+      } else if (8 <= i && i < 13) {
+        return ["#981c31", "#ab2037", "#be243e", "#c43951"][chartNum];
+      } else {
+        return ["#0a5478", "#0b5f87", "#0d6a96", "#2578a0"][i === 16 ? chartNum++ : chartNum];
+      }
+    })
+    .attr("d", arc)
+    .on("click", function(d) {
+      // Show the tooltip on click
+      return tooltip.style("visibility", "visible");
+    })
+    .append('title')
+    .text(function(d) {
+      // Set the title for each path
+      return d;
+    });
+
+  // Append the x and y axes to the SVG element
+  svg.append("g").call(xAxis);
+  svg.append("g").call(yAxis);
+
+  // Create a tooltip element and set its initial visibility to hidden
+  let tooltip = svg.append("g").style("visibility", "hidden");
+
+  // Append a rectangle to the tooltip
+  tooltip.append("rect")
+    .attr("width", 300)
+    .attr("height", 400)
+    .attr("stroke", "#000")
+    .attr('stroke', 'black')
+    .attr('fill', '#69a3b2')
+    .attr("x", -150)
+    .attr("y", -100)
+    .on("click", (d) => tooltip.style("visibility", "hidden"));
+
+  // Append a text element to the tooltip
+  tooltip.append("text")
+    .attr("y", -90)
+    .attr("x", -140)
+    .text("demo text");
+
+  // Return the SVG element
+  return svg.node();
+}
+
+// Load data from a CSV file
+data = d3.csvParse(await FileAttachment("data-2@12.csv").text(), (d, _, columns) => {
+  // Calculate total and real values for each data point
+  let total = 0;
+  let reals = 0;
+  for (let i = 2; i < columns.length; i++) {
+    reals += d[columns[i]] == 0 ? 0 : 1;
+    total += d[columns[i]] = +d[columns[i]];
+  }
+  // Calculate average and total for each data point
+  d.average = (total / reals).toFixed(2);
+  d.total = total;
+  for (let i = 1; i < columns.length; i++) {
+    d[columns[i]] = d[columns[i]] / reals;
+  }
+  return d;
+});
+
+// Define an arc generator for drawing arcs in the chart
+arc = d3.arc()
+  .innerRadius(d => y(d[0]))
+  .outerRadius(d => y(d[1]))
+  .startAngle(d => x(d.data["Competency Group"]))
+  .endAngle(d => x(d.data["Competency Group"]) + x.bandwidth())
+  .padAngle(0.1)
+  .padRadius(innerRadius);
+
+// Define a scale for the x-axis
+x = d3.scaleBand()
+  .domain(data.map(d => d["Competency Group"]))
+  .range([0, 2 * Math.PI])
+  .align(0);
+
+// Define a radial scale for the y-axis
+y = d3.scaleRadial()
+  .domain([0, 5])
+  .range([innerRadius, outerRadius]);
+
+// Define the x-axis
+xAxis = g => g
+  .attr("text-anchor", "middle")
+  .call(g => g.selectAll("g")
+    .data(data)
+    .join("g")
+    .attr("transform", d => `
+      rotate(${((x(d["Competency Group"]) + x.bandwidth() / 2) * 180 / Math.PI - 90)})
+      translate(${innerRadius},0)
+    `)
+    .call(g => g.append("text")
+      .attr("transform", d => {
+        const rotation = (x(d["Competency Group"]) + x.bandwidth() / 2) * 180 / Math.PI - 90;
+        const translation = `translate(${325 - (y(d['average']) + 10) + 10})`;
+        const rotate = rotation < 0 ? `rotate(${Math.abs(rotation)})` : `rotate(-${rotation})`;
+        return `${translation}${rotate}`;
+      })
+      .text(d => d["Competency Group"])
+    )
+    .call(g => g.attr("text-anchor", function(d) {
+      return ((x(d["Competency Group"]) + x.bandwidth() / 2 + Math.PI) % (2 * Math.PI)) < Math.PI ? "end" : "start";
+    })
+      .attr("transform", function(d) {
+        const rotation = (x(d["Competency Group"]) + x.bandwidth() / 2) * 180 / Math.PI - 90;
+        const rotationAbs = Math.abs(rotation);
+        const translate = rotation > 0 ? `rotate(-${rotation})` : `rotate(${rotationAbs})`;
+        return `${translate}translate(${y(d['average']) + 10},0)`;
+      })
+      .append("text")
+      .attr("transform", d => {
+        const rotation = (x(d["Competency Group"]) + x.bandwidth() / 2) * 180 / Math.PI - 90;
+        return rotation > 0 ? `rotate(-${rotation})` : `rotate(${rotationAbs})`;
+      })
+      .text(d => d.average)
+    )
+  );
+
+// Define the y-axis
+yAxis = g => g
+  .attr("text-anchor", "middle")
+  .call(g => g.append("text")
+    .attr("y", d => -y(y.ticks(5).pop()))
+    .attr("dy", "-1em")
+    .text("Competency Level")
+  )
+  .call(g => g.selectAll("g")
+    .data(y.ticks(5))
+    .join("g")
+    .attr("fill", "none")
+    .call(g => g.append("circle")
+      .attr("stroke", "#000")
+      .attr("stroke-opacity", 0.5)
+      .attr("r", y)
+    )
+    .call(g => g.append("text")
+      .attr("y", d => -y(d))
+      .attr("dy", "0.35em")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 5)
+      .text(y.tickFormat(5, "s"))
+      .clone(true)
+      .attr("fill", "#000")
+      .attr("stroke", "none")
+    )
+  );
+
+// Define chart dimensions and inner and outer radius for the radial chart
+width = 975;
+height = width;
+innerRadius = 70;
+outerRadius = Math.min(width, height) / 3;
+
+// Import d3 library
+d3 = require("d3@6");
+```

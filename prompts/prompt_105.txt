@@ -1,0 +1,185 @@
+Can you label this program for me?:
+
+viewof tile = {
+  const options = [
+    {name: "d3.treemapBinary", value: d3.treemapBinary},
+    {name: "d3.treemapDice", value: d3.treemapDice},
+    {name: "d3.treemapSlice", value: d3.treemapSlice},
+    {name: "d3.treemapSliceDice", value: d3.treemapSliceDice},
+    {name: "d3.treemapSquarify", value: d3.treemapSquarify, selected: true}
+  ];
+  const form = html`<form><select name=i>${options.map(o => Object.assign(html`<option>`, {textContent: o.name, selected: o.selected}))}`;
+  form.i.onchange = () => form.dispatchEvent(new CustomEvent("input"));
+  form.oninput = () => form.value = options[form.i.selectedIndex].value;
+  form.oninput();
+  return form;
+}
+
+chart = {
+const root = treemap ( data ) ;
+
+const svg = d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , width , height ] )
+. style ( "font" , "10px sans-serif" ) ;
+
+const leaf = svg . selectAll ( "g" )
+. data ( root . leaves ( ) )
+. join ( "g" )
+. attr ( "transform" , d => `translate(${ d . x0 },${ d . y0 })` ) ;
+
+leaf . append ( "title" )
+. text ( d => `${ d . ancestors ( ) . reverse ( ) . map ( d => d . data . name ) . join ( "/" ) }\n${ format ( d . value ) }` ) ;
+
+leaf . append ( "rect" )
+. attr ( "id" , d => ( d . leafUid = DOM . uid ( "leaf" ) ) . id )
+. attr ( "fill" , d => { return color ( d . parent . data . name ) } )
+. attr ( "fill-opacity" , d => {
+let min = d3 . min ( root . leaves ( ) . map ( leaf => leaf . data . count ) )
+let max = d3 . max ( root . leaves ( ) . map ( leaf => leaf . data . count ) )
+return ( d . data . count - min ) / ( max - min )
+} )
+. attr ( "width" , d => d . x1 - d . x0 )
+. attr ( "height" , d => d . y1 - d . y0 ) ;
+
+leaf . append ( "clipPath" )
+. attr ( "id" , d => ( d . clipUid = DOM . uid ( "clip" ) ) . id )
+. append ( "use" )
+. attr ( "xlink:href" , d => d . leafUid . href ) ;
+
+leaf . append ( "text" )
+. attr ( "clip-path" , d => d . clipUid )
+. selectAll ( "tspan" )
+. data ( d => d . data . name . split ( /(?=[A-Z][^A-Z])/g ) . concat ( format ( d . value ) ) )
+. join ( "tspan" )
+. attr ( "x" , 3 )
+. attr ( "y" , ( d , i , nodes ) => `${ ( i === nodes . length - 1 ) * 0.3 + 1.1 + i * 0.9 }em` )
+. attr ( "fill-opacity" , ( d , i , nodes ) => i === nodes . length - 1 ? 0.7 : null )
+. text ( d => d ) ;
+
+return svg . node ( ) ;
+}
+
+ data = FileAttachment ( "viz@2.json" ) . json ( )
+
+ treemap = data => d3 . treemap ( )
+. tile ( tile )
+. size ( [ width , height ] )
+. padding ( 1 )
+. round ( true )
+( d3 . hierarchy ( data )
+. sum ( d => d . value )
+. sort ( ( a , b ) => b . value - a . value ) )
+
+ width = 954
+
+ height = 954
+
+ format = d3 . format ( ",d" )
+
+ color = d3 . scaleOrdinal ( )
+. domain ( treemap ( data ) . leaves ( ) . map ( d => { return d . parent . data . name } ) )
+. range ( d3 . schemeCategory10 )
+
+
+ d3 = require ( "d3@5" )
+////////////////////////////////////////////////////////////////////////////
+Here is the labeled program for you:
+
+```javascript
+// Dropdown menu for selecting a treemap tiling method
+viewof tile = {
+  const options = [
+    {name: "d3.treemapBinary", value: d3.treemapBinary},
+    {name: "d3.treemapDice", value: d3.treemapDice},
+    {name: "d3.treemapSlice", value: d3.treemapSlice},
+    {name: "d3.treemapSliceDice", value: d3.treemapSliceDice},
+    {name: "d3.treemapSquarify", value: d3.treemapSquarify, selected: true}
+  ];
+  const form = html`<form><select name=i>${options.map(o => Object.assign(html`<option>`, {textContent: o.name, selected: o.selected}))}`;
+  form.i.onchange = () => form.dispatchEvent(new CustomEvent("input"));
+  form.oninput = () => form.value = options[form.i.selectedIndex].value;
+  form.oninput();
+  return form;
+};
+
+// Function to create the treemap chart
+chart = {
+  // Create an SVG element for the chart
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, width, height])
+    .style("font", "10px sans-serif");
+
+  // Create the root of the treemap and its layout
+  const root = treemap(data);
+
+  // Create groups for each leaf node (data element) in the treemap
+  const leaf = svg.selectAll("g")
+    .data(root.leaves())  // Use the leaf nodes from the treemap
+    .join("g")
+    .attr("transform", d => `translate(${d.x0},${d.y0})`);  // Position each group
+
+  // Add tooltips to the leaf nodes
+  leaf.append("title")
+    .text(d => `${d.ancestors().reverse().map(d => d.data.name).join("/")}\n${format(d.value)}`);
+
+  // Add rectangles for each leaf node
+  leaf.append("rect")
+    .attr("id", d => (d.leafUid = DOM.uid("leaf")).id)
+    .attr("fill", d => color(d.parent.data.name))
+    .attr("fill-opacity", d => {
+      let min = d3.min(root.leaves().map(leaf => leaf.data.count));
+      let max = d3.max(root.leaves().map(leaf => leaf.data.count));
+      return (d.data.count - min) / (max - min);
+    })
+    .attr("width", d => d.x1 - d.x0)
+    .attr("height", d => d.y1 - d.y0);
+
+  // Add clip paths to the leaf nodes
+  leaf.append("clipPath")
+    .attr("id", d => (d.clipUid = DOM.uid("clip")).id)
+    .append("use")
+    .attr("xlink:href", d => d.leafUid.href);
+
+  // Add text labels to each leaf node
+  leaf.append("text")
+    .attr("clip-path", d => d.clipUid)
+    .selectAll("tspan")
+    .data(d => d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(format(d.value)))
+    .join("tspan")
+    .attr("x", 3)
+    .attr("y", (d, i, nodes) => `${(i === nodes.length - 1) * 0.3 + 1.1 + i * 0.9}em`)
+    .attr("fill-opacity", (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
+    .text(d => d);
+
+  // Return the SVG node
+  return svg.node();
+};
+
+// Load the data from the JSON file
+data = FileAttachment("viz@2.json").json();
+
+// Function to create a treemap layout for the data
+treemap = data => d3.treemap()
+  .tile(tile)
+  .size([width, height])
+  .padding(1)
+  .round(true)
+  (d3.hierarchy(data)
+    .sum(d => d.value)
+    .sort((a, b) => b.value - a.value));
+
+// Define the dimensions of the chart
+width = 954;
+height = 954;
+
+// Define the number formatting function
+format = d3.format(",d");
+
+// Define the color scale for the treemap
+color = d3.scaleOrdinal()
+  .domain(treemap(data).leaves().map(d => d.parent.data.name))
+  .range(d3.schemeCategory10);
+
+// Import the D3 library (version 5)
+d3 = require("d3@5");
+```

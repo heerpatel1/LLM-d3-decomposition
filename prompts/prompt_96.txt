@@ -1,0 +1,280 @@
+Can you label this program for me?:
+chart = {
+  const root = partition(data);
+
+  root.each(d => d.current = d);
+
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, width])
+      .style("font", "10px sans-serif");
+
+  const g = svg.append("g")
+      .attr("transform", `translate(${width / 2},${width / 2})`);
+
+  const path = g.append("g")
+    .selectAll("path")
+    .data(root.descendants().slice(1))
+    .join("path")
+      .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
+      .attr("fill-opacity", d => arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0)
+      .attr("pointer-events", d => arcVisible(d.current) ? "auto" : "none")
+
+      .attr("d", d => arc(d.current));
+
+  path.filter(d => d.children)
+      .style("cursor", "pointer")
+      .on("click", clicked);
+
+  path.append("title")
+      .text(d => `${d.ancestors().map(d => d.data.name).reverse().join("/")}\n${format(d.value)}`);
+
+  const label = g.append("g")
+      .attr("pointer-events", "none")
+      .attr("text-anchor", "middle")
+      .style("user-select", "none")
+    .selectAll("text")
+    .data(root.descendants().slice(1))
+    .join("text")
+      .attr("dy", "0.35em")
+      .attr("fill-opacity", d => +labelVisible(d.current))
+      .attr("transform", d => labelTransform(d.current))
+      .text(d => d.data.name);
+
+  const parent = g.append("circle")
+      .datum(root)
+      .attr("r", radius)
+      .attr("fill", "none")
+      .attr("pointer-events", "all")
+      .on("click", clicked);
+
+  function clicked(event, p) {
+    parent.datum(p.parent || root);
+
+    root.each(d => d.target = {
+      x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+      x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+      y0: Math.max(0, d.y0 - p.depth),
+      y1: Math.max(0, d.y1 - p.depth)
+    });
+
+    const t = g.transition().duration(750);
+
+    // Transition the data on all arcs, even the ones that aren’t visible,
+    // so that if this transition is interrupted, entering arcs will start
+    // the next transition from the desired position.
+    path.transition(t)
+        .tween("data", d => {
+          const i = d3.interpolate(d.current, d.target);
+          return t => d.current = i(t);
+        })
+      .filter(function(d) {
+        return +this.getAttribute("fill-opacity") || arcVisible(d.target);
+      })
+        .attr("fill-opacity", d => arcVisible(d.target) ? (d.children ? 0.6 : 0.4) : 0)
+        .attr("pointer-events", d => arcVisible(d.target) ? "auto" : "none")
+
+        .attrTween("d", d => () => arc(d.current));
+
+    label.filter(function(d) {
+        return +this.getAttribute("fill-opacity") || labelVisible(d.target);
+      }).transition(t)
+        .attr("fill-opacity", d => +labelVisible(d.target))
+        .attrTween("transform", d => () => labelTransform(d.current));
+  }
+
+  function arcVisible(d) {
+    return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
+  }
+
+  function labelVisible(d) {
+    return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03;
+  }
+
+  function labelTransform(d) {
+    const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+    const y = (d.y0 + d.y1) / 2 * radius;
+    return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
+  }
+
+  return svg.node();
+}
+
+ data = FileAttachment ( "data.json" ) . json ( )
+
+ data1 = FileAttachment ( "flare-2.json" ) . json ( )
+
+ partition = data => {
+const root = d3 . hierarchy ( data )
+. sum ( d => d . value )
+. sort ( ( a , b ) => b . value - a . value ) ;
+return d3 . partition ( )
+. size ( [ 2 * Math . PI , root . height + 1 ] )
+( root ) ;
+}
+
+ color = d3 . scaleOrdinal ( d3 . quantize ( d3 . interpolateRainbow , data . children . length + 1 ) )
+
+ format = d3 . format ( ",d" )
+
+ width = 932
+
+ radius = width / 6
+
+ arc = d3 . arc ( )
+. startAngle ( d => d . x0 )
+. endAngle ( d => d . x1 )
+. padAngle ( d => Math . min ( ( d . x1 - d . x0 ) / 2 , 0.005 ) )
+. padRadius ( radius * 1.5 )
+. innerRadius ( d => d . y0 * radius )
+. outerRadius ( d => Math . max ( d . y0 * radius , d . y1 * radius - 1 ) )
+
+///////////////////////////////////////////////////////////////////////////////////
+Here's your program labeled while preserving its order:
+
+```javascript
+// Main chart rendering function
+chart = {
+  // Load data and calculate the partition layout
+  const root = partition(data);
+  root.each(d => d.current = d);
+
+  // Create SVG element with specified viewBox and font style
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, width])
+      .style("font", "10px sans-serif");
+
+  // Group element to center the chart
+  const g = svg.append("g")
+      .attr("transform", `translate(${width / 2},${width / 2})`);
+
+  // Append paths for sunburst chart segments
+  const path = g.append("g")
+    .selectAll("path")
+    .data(root.descendants().slice(1)) // Skip the root node
+    .join("path")
+      .attr("fill", d => { while (d.depth > 1) d = d.parent; return color(d.data.name); })
+      .attr("fill-opacity", d => arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0)
+      .attr("pointer-events", d => arcVisible(d.current) ? "auto" : "none")
+      .attr("d", d => arc(d.current));
+
+  // Add click event to paths for zoom functionality
+  path.filter(d => d.children)
+      .style("cursor", "pointer")
+      .on("click", clicked);
+
+  // Append title tooltips for segments
+  path.append("title")
+      .text(d => `${d.ancestors().map(d => d.data.name).reverse().join("/")}\n${format(d.value)}`);
+
+  // Append labels for segments
+  const label = g.append("g")
+      .attr("pointer-events", "none")
+      .attr("text-anchor", "middle")
+      .style("user-select", "none")
+    .selectAll("text")
+    .data(root.descendants().slice(1))
+    .join("text")
+      .attr("dy", "0.35em")
+      .attr("fill-opacity", d => +labelVisible(d.current))
+      .attr("transform", d => labelTransform(d.current))
+      .text(d => d.data.name);
+
+  // Create parent circle for root node and click event
+  const parent = g.append("circle")
+      .datum(root)
+      .attr("r", radius)
+      .attr("fill", "none")
+      .attr("pointer-events", "all")
+      .on("click", clicked);
+
+  // Click event function for zooming in/out
+  function clicked(event, p) {
+    parent.datum(p.parent || root);
+
+    root.each(d => d.target = {
+      x0: Math.max(0, Math.min(1, (d.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+      x1: Math.max(0, Math.min(1, (d.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
+      y0: Math.max(0, d.y0 - p.depth),
+      y1: Math.max(0, d.y1 - p.depth)
+    });
+
+    const t = g.transition().duration(750);
+
+    // Transition the data on all arcs
+    path.transition(t)
+        .tween("data", d => {
+          const i = d3.interpolate(d.current, d.target);
+          return t => d.current = i(t);
+        })
+      .filter(function(d) {
+        return +this.getAttribute("fill-opacity") || arcVisible(d.target);
+      })
+        .attr("fill-opacity", d => arcVisible(d.target) ? (d.children ? 0.6 : 0.4) : 0)
+        .attr("pointer-events", d => arcVisible(d.target) ? "auto" : "none")
+        .attrTween("d", d => () => arc(d.current));
+
+    label.filter(function(d) {
+        return +this.getAttribute("fill-opacity") || labelVisible(d.target);
+      }).transition(t)
+        .attr("fill-opacity", d => +labelVisible(d.target))
+        .attrTween("transform", d => () => labelTransform(d.current));
+  }
+
+  // Function to check if arc is visible
+  function arcVisible(d) {
+    return d.y1 <= 3 && d.y0 >= 1 && d.x1 > d.x0;
+  }
+
+  // Function to check if label is visible
+  function labelVisible(d) {
+    return d.y1 <= 3 && d.y0 >= 1 && (d.y1 - d.y0) * (d.x1 - d.x0) > 0.03;
+  }
+
+  // Function to transform label based on segment position
+  function labelTransform(d) {
+    const x = (d.x0 + d.x1) / 2 * 180 / Math.PI;
+    const y = (d.y0 + d.y1) / 2 * radius;
+    return `rotate(${x - 90}) translate(${y},0) rotate(${x < 180 ? 0 : 180})`;
+  }
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Load data from JSON file
+data = FileAttachment("data.json").json();
+
+// Load another data file from JSON file
+data1 = FileAttachment("flare-2.json").json();
+
+// Function to create a partition layout
+partition = data => {
+  const root = d3.hierarchy(data)
+    .sum(d => d.value)
+    .sort((a, b) => b.value - a.value);
+
+  return d3.partition()
+    .size([2 * Math.PI, root.height + 1])(root);
+}
+
+// Color scale for the chart
+color = d3.scaleOrdinal(d3.quantize(d3.interpolateRainbow, data.children.length + 1));
+
+// Format function for values
+format = d3.format(",d");
+
+// Set chart width
+width = 932;
+
+// Calculate radius for the chart
+radius = width / 6;
+
+// Create arc generator with specified properties
+arc = d3.arc()
+  .startAngle(d => d.x0)
+  .endAngle(d => d.x1)
+  .padAngle(d => Math.min((d.x1 - d.x0) / 2, 0.005))
+  .padRadius(radius * 1.5)
+  .innerRadius(d => d.y0 * radius)
+  .outerRadius(d => Math.max(d.y0 * radius, d.y1 * radius - 1));
+```

@@ -1,0 +1,109 @@
+Can you label this program for me?:
+chart = {
+const svg = d3 . select ( DOM . svg ( width , height ) )
+const g = svg . attr ( 'width' , width + margin . left )
+. attr ( 'height' , height + margin . top + margin . bottom )
+. append ( 'g' )
+. attr ( 'transform' , 'translate(' + margin . left + ',0)' )
+
+g . append ( 'g' )
+. attr ( 'transform' , 'translate(0,' + height + ')' )
+. call ( d3 . axisBottom ( x_scale ) )
+g . append ( 'g' )
+. call ( d3 . axisLeft ( y_scale ) )
+
+dataset . map ( ( item ) => {
+svg . append ( 'path' )
+. datum ( item . data )
+. attr ( 'fill' , 'transparent' )
+. attr ( 'stroke' , item . color )
+. attr ( 'stroke-width' , '2px' )
+. attr ( 'd' , line )
+} )
+
+return svg . node ( )
+}
+
+ dataset = [ { data : gd ( ) , color : '#fa983a' } , { data : gd ( ) , color : '#0077c0' } , { data : gd ( ) , color : '#7e349d' } ]
+
+ gd = ( ) => d3 . range ( 7 ) . map ( ( d ) => ( { y : d3 . randomUniform ( ) ( ) } ) )
+
+ line = d3 . line ( )
+. x ( ( d , i ) => ( x_scale ( i ) + margin . left ) )
+. y ( ( d ) => y_scale ( d . y ) )
+
+ y_scale = d3 . scaleLinear ( )
+. domain ( [ 0 , 1 ] )
+. range ( [ height , 0 ] )
+
+ x_scale = d3 . scaleLinear ( )
+. domain ( [ 0 , 6 ] )
+. range ( [ 0 , width - margin . left - margin . right ] )
+
+ height = 300
+
+ margin = ( { top : 50 , right : 50 , bottom : 50 , left : 50 } )
+
+ d3 = require ( "d3@5" )
+/////////////////////////////////////////////////////////////////////////////
+chart = {
+    // Label: createSvgComponent()
+    const svg = d3.select(DOM.svg(width, height));
+    const g = svg.attr('width', width + margin.left)
+        .attr('height', height + margin.top + margin.bottom)
+        .append('g')
+        .attr('transform', `translate(${margin.left},0)`);
+
+    // Label: svgAppend()
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(x_scale));
+
+    // Label: svgAppend()
+    g.append('g')
+        .call(d3.axisLeft(y_scale));
+
+    // Label: dataset loop
+    dataset.map((item) => {
+        // Label: svgAppend()
+        svg.append('path')
+            .datum(item.data)
+            .attr('fill', 'transparent')
+            .attr('stroke', item.color)
+            .attr('stroke-width', '2px')
+            .attr('d', line);
+    });
+
+    // Return the completed SVG node
+    return svg.node();
+}
+
+// Label: dataset
+dataset = [{ data: gd(), color: '#fa983a' }, { data: gd(), color: '#0077c0' }, { data: gd(), color: '#7e349d' }];
+
+// Label: data generator
+gd = () => d3.range(7).map((d) => ({ y: d3.randomUniform()() }));
+
+// Label: line generator
+line = d3.line()
+    .x((d, i) => (x_scale(i) + margin.left))
+    .y((d) => y_scale(d.y));
+
+// Label: scaleComponent()
+y_scale = d3.scaleLinear()
+    .domain([0, 1])
+    .range([height, 0]);
+
+// Label: scaleComponent()
+x_scale = d3.scaleLinear()
+    .domain([0, 6])
+    .range([0, width - margin.left - margin.right]);
+
+// Label: setHeight()
+height = 300;
+
+// Label: setMargin()
+margin = ({ top: 50, right: 50, bottom: 50, left: 50 });
+
+// Label: setD3Version()
+d3 = require("d3@5");

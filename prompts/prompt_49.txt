@@ -1,0 +1,240 @@
+Can you label this program for me?:
+hex_opacity = {
+  let div = d3.create('div');
+  div
+    .append('div')
+    .text('Hex Opacity')
+    .style('font-weight', 'bold');
+  let slider_container = div.append('div');
+  let o = slider_container
+    .append('input')
+    .style('width', '300px')
+    .attr('type', 'range')
+    .attr('min', 0)
+    .attr('max', 1)
+    .attr('step', 0.01)
+    .attr('value', 0.7)
+    .on('input', function() {
+      d3.select(map)
+        .selectAll('path.hex')
+        .style('opacity', o.property('value'));
+    });
+
+  return div.node();
+}
+
+hexbin = d3
+. hexbin ( )
+. extent ( [ [ 0 , 0 ] , [ map_width , height ] ] )
+. x ( x => x . x )
+. y ( y => y . y )
+. radius ( map_width / 80 )
+
+ // Need the max to shade the hexes
+hex_max = d3 . max ( city_info_hex . map ( o => d3 . sum ( o . map ( d => d . cnt ) ) ) )
+
+ // Best to do this just once
+city_info_hex = hexbin ( city_info )
+
+ // Tooltip titles for the hexes
+function title_table ( ci ) {
+let html = `<table>
+  <thead>
+    <tr>
+      <th>City</th><th>State</th><th style='text-align: right'>Hits</th>
+    </tr>
+  </thead>
+` ;
+ci . slice ( 0 , 10 ) . forEach ( function ( o ) {
+let this_html = `  <tr>
+    <td style='text-align: left'>${ o . city }</td><td>${ o . state }</td><td style='text-align: right'>${ o . cnt }</td>
+  </tr>
+` ;
+html = html + this_html ;
+} ) ;
+html = html + '</table>' ;
+return html ;
+}
+
+ // Cities and count data file
+city_info = d3
+. csvParse ( await FileAttachment ( "city_counts@4.csv" ) . text ( ) , d3 . autoType )
+. sort ( ( a , b ) => d3 . descending ( a . cnt , b . cnt ) )
+. slice ( 0 , N )
+. map ( function ( o ) {
+let [ x , y ] = proj ( [ o . x , o . y ] ) ;
+o . x = x ;
+o . y = y ;
+return o ;
+} )
+
+ // Map and city data are pre-projected to Albers USA.
+// Just need to scale to fit the extent.
+proj = d3
+. geoIdentity ( )
+. reflectY ( true )
+. fitSize ( [ map_width , height ] , states )
+
+ // State totals for shading
+state_total_map = {
+let state_total_map = new Map ( ) ;
+city_info . forEach ( function ( c ) {
+let key = c . state ;
+if ( typeof state_total_map . get ( key ) == 'undefined' ) {
+state_total_map . set ( key , c . cnt ) ;
+} else {
+state_total_map . set ( key , state_total_map . get ( key ) + c . cnt ) ;
+}
+} ) ;
+state_total_map . max = d3 . max ( Array . from ( state_total_map . values ( ) ) ) ;
+return state_total_map ;
+}
+
+ // The states
+states = {
+let map_file = await FileAttachment ( "states.json" ) . json ( ) ;
+let states = topojson . feature ( map_file , map_file . objects . states ) ;
+return states ;
+}
+
+ // Number of cities
+// (there's almost 6000 but the map is awfully busy with all of them)
+N = 2500
+
+ map_width = 0.9 * width
+
+ height = 0.625 * map_width
+
+ topojson = require ( "topojson-client@3" )
+
+ d3 = require ( "d3@5" , "d3-hexbin@0.2" )
+
+ tippy = require ( "https://unpkg.com/tippy.js@2.5.4/dist/tippy.all.min.js" )
+/////////////////////////////////////////////////////////////////////////////////////
+Here's your program labeled while preserving its order:
+
+```javascript
+// Slider for hex opacity
+hex_opacity = {
+  // Create a div container
+  let div = d3.create('div');
+  div
+    .append('div')
+    .text('Hex Opacity')
+    .style('font-weight', 'bold');
+  // Create a slider container
+  let slider_container = div.append('div');
+  // Create an input slider
+  let o = slider_container
+    .append('input')
+    .style('width', '300px')
+    .attr('type', 'range')
+    .attr('min', 0)
+    .attr('max', 1)
+    .attr('step', 0.01)
+    .attr('value', 0.7)
+    .on('input', function() {
+      d3.select(map)
+        .selectAll('path.hex')
+        .style('opacity', o.property('value'));
+    });
+
+  // Return the div node
+  return div.node();
+}
+
+// Define the hexbin layout
+hexbin = d3
+  .hexbin()
+  .extent([[0, 0], [map_width, height]])
+  .x(x => x.x)
+  .y(y => y.y)
+  .radius(map_width / 80);
+
+// Find the maximum hex value for shading
+hex_max = d3.max(city_info_hex.map(o => d3.sum(o.map(d => d.cnt))));
+
+// Define city info hex data
+city_info_hex = hexbin(city_info);
+
+// Tooltip titles for the hexagons
+function title_table(ci) {
+  // Initialize HTML for tooltip
+  let html = `<table>
+    <thead>
+      <tr>
+        <th>City</th><th>State</th><th style='text-align: right'>Hits</th>
+      </tr>
+    </thead>
+  `;
+  // Iterate over city info and add rows
+  ci.slice(0, 10).forEach(function(o) {
+    let this_html = `  <tr>
+      <td style='text-align: left'>${o.city}</td><td>${o.state}</td><td style='text-align: right'>${o.cnt}</td>
+    </tr>
+  `;
+    html = html + this_html;
+  });
+  html = html + '</table>';
+  return html;
+}
+
+// Parse CSV data and process city information
+city_info = d3
+  .csvParse(await FileAttachment("city_counts@4.csv").text(), d3.autoType)
+  .sort((a, b) => d3.descending(a.cnt, b.cnt))
+  .slice(0, N)
+  .map(function(o) {
+    let [x, y] = proj([o.x, o.y]);
+    o.x = x;
+    o.y = y;
+    return o;
+  });
+
+// Define the projection and fit the size to the map
+proj = d3
+  .geoIdentity()
+  .reflectY(true)
+  .fitSize([map_width, height], states);
+
+// Map state totals for shading
+state_total_map = {
+  // Create a map to store state totals
+  let state_total_map = new Map();
+  // Iterate over city info and accumulate counts
+  city_info.forEach(function(c) {
+    let key = c.state;
+    if (typeof state_total_map.get(key) == 'undefined') {
+      state_total_map.set(key, c.cnt);
+    } else {
+      state_total_map.set(key, state_total_map.get(key) + c.cnt);
+    }
+  });
+  // Find the maximum state total
+  state_total_map.max = d3.max(Array.from(state_total_map.values()));
+  // Return the state total map
+  return state_total_map;
+}
+
+// Load states data and create a topojson feature
+states = {
+  // Fetch and parse the JSON file for states
+  let map_file = await FileAttachment("states.json").json();
+  // Create a topojson feature for states
+  let states = topojson.feature(map_file, map_file.objects.states);
+  // Return the states data
+  return states;
+}
+
+// Define the number of cities to display
+N = 2500;
+
+// Define map width and height
+map_width = 0.9 * width;
+height = 0.625 * map_width;
+
+// Import required libraries
+topojson = require("topojson-client@3");
+d3 = require("d3@5", "d3-hexbin@0.2");
+tippy = require("https://unpkg.com/tippy.js@2.5.4/dist/tippy.all.min.js");
+```

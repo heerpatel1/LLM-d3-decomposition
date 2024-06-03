@@ -1,0 +1,231 @@
+Can you label this program for me?:
+chart = {
+const svg = d3 d3 . create ( "svg" )
+. attr ( "viewBox" , [ 0 , 0 , 960 , 600 ] ) ;
+
+svg . append ( "g" )
+. attr ( "transform" , "translate(600,40)" )
+. call ( legend legend ) ;
+
+svg . append ( "path" )
+. datum ( topojson topojson . mesh ( us us , us us . objects . states ) )
+. attr ( "fill" , "none" )
+. attr ( "stroke" , "#777" )
+. attr ( "stroke-width" , 0.5 )
+. attr ( "stroke-linejoin" , "round" )
+. attr ( "d" , d3 d3 . geoPath ( ) ) ;
+
+svg . append ( "g" )
+. selectAll ( "path" )
+. data ( data data )
+. join ( "path" )
+. attr ( "transform" , d => `translate(${ d . x },${ d . y })` )
+. attr ( "d" , d => hexbin hexbin . hexagon ( radius radius ( d . length ) ) )
+. attr ( "fill" , d => color color ( d . date ) )
+. attr ( "stroke" , d => d3 d3 . lab ( color color ( d . date ) ) . darker ( ) )
+. append ( "title" )
+. text ( d => `${ d . length . toLocaleString ( ) } stores
+${ d . date . getFullYear ( ) } median opening` ) ;
+
+return svg . node ( ) ;
+}
+
+ legend = g => {
+const width = 240 ;
+
+g . append ( "image" )
+. attr ( "width" , width )
+. attr ( "height" , 8 )
+. attr ( "preserveAspectRatio" , "none" )
+. attr ( "xlink:href" , ramp ramp ( color color . interpolator ( ) ) . toDataURL ( ) ) ;
+
+g . append ( "text" )
+. attr ( "class" , "caption" )
+. attr ( "y" , - 6 )
+. attr ( "fill" , "#000" )
+. attr ( "text-anchor" , "start" )
+. attr ( "font-weight" , "bold" )
+. text ( data data . title ) ;
+
+g . call ( d3 d3 . axisBottom ( d3 d3 . scaleTime ( color color . domain ( ) , [ 0 , width ] ) )
+. ticks ( 6 )
+. tickSize ( 13 ) )
+. select ( ".domain" )
+. remove ( ) ;
+}
+
+ data = {
+const parseDate = d3 d3 . timeParse ( "%m/%d/%Y" ) ;
+const projection = d3 d3 . geoAlbersUsa ( ) . scale ( 1280 ) . translate ( [ 480 , 300 ] ) ;
+const data = d3 d3 . tsvParse ( await FileAttachment FileAttachment ( "FBMBranchMap.txt" ) . text ( ) , d => {
+const p = projection ( d ) ;
+p . date = parseDate ( d . date ) ;
+return p ;
+} ) ;
+return Object . assign (
+hexbin hexbin ( data )
+. map ( d => ( d . date = new Date ( d3 d3 . median ( d , d => d . date ) ) , d ) )
+. sort ( ( a , b ) => b . length - a . length ) ,
+{ title : "Median opening year" }
+) ;
+}
+
+ color = d3 d3 . scaleSequential ( d3 d3 . extent ( data data , d => d . date ) , d3 d3 . interpolateSpectral )
+
+ radius = d3 d3 . scaleSqrt ( [ 0 , d3 d3 . max ( data data , d => d . length ) ] , [ 0 , hexbin hexbin . radius ( ) * Math . SQRT2 ] )
+
+ hexbin = d3 d3 . hexbin ( ) . extent ( [ [ 0 , 0 ] , [ width width , height height ] ] ) . radius ( 10 )
+
+ function ramp ( color , n = 512 ) {
+const canvas = DOM DOM . canvas ( n , 1 ) ;
+const context = canvas . getContext ( "2d" ) ;
+canvas . style . margin = "0 -14px" ;
+canvas . style . width = "calc(100% + 28px)" ;
+canvas . style . height = "40px" ;
+canvas . style . imageRendering = "pixelated" ;
+for ( let i = 0 ; i < n ; ++ i ) {
+context . fillStyle = color ( i / ( n - 1 ) ) ;
+context . fillRect ( i , 0 , 1 , 1 ) ;
+}
+return canvas ;
+}
+
+ width = 975
+
+ height = 600
+
+ us = FileAttachment FileAttachment ( "10m.json" ) . json ( )
+
+ topojson = require require ( "topojson-client@3" )
+
+ d3 = require require ( "d3@5" , "d3-hexbin@0.2" )
+
+///////////////////////////////////////////////////////////////////////////
+Here's your program labeled while preserving its order:
+
+```javascript
+// Define the main chart
+chart = {
+  // Create the main SVG element
+  const svg = d3.create("svg")
+    .attr("viewBox", [0, 0, 960, 600]);
+
+  // Append a group element for the legend and position it
+  svg.append("g")
+    .attr("transform", "translate(600,40)")
+    .call(legend);
+
+  // Append a path element for the map mesh using topojson
+  svg.append("path")
+    .datum(topojson.mesh(us, us.objects.states))
+    .attr("fill", "none")
+    .attr("stroke", "#777")
+    .attr("stroke-width", 0.5)
+    .attr("stroke-linejoin", "round")
+    .attr("d", d3.geoPath());
+
+  // Append a group of paths for the hexagonal bins
+  svg.append("g")
+    .selectAll("path")
+    .data(data)
+    .join("path")
+    .attr("transform", d => `translate(${d.x},${d.y})`)
+    .attr("d", d => hexbin.hexagon(radius(d.length)))
+    .attr("fill", d => color(d.date))
+    .attr("stroke", d => d3.lab(color(d.date)).darker())
+    .append("title")
+    .text(d => `${d.length.toLocaleString()} stores\n${d.date.getFullYear()} median opening`);
+
+  // Return the SVG node
+  return svg.node();
+}
+
+// Define the legend
+legend = g => {
+  const width = 240;
+
+  // Append an image element for the color ramp
+  g.append("image")
+    .attr("width", width)
+    .attr("height", 8)
+    .attr("preserveAspectRatio", "none")
+    .attr("xlink:href", ramp(color.interpolator()).toDataURL());
+
+  // Append text for the legend caption
+  g.append("text")
+    .attr("class", "caption")
+    .attr("y", -6)
+    .attr("fill", "#000")
+    .attr("text-anchor", "start")
+    .attr("font-weight", "bold")
+    .text(data.title);
+
+  // Create the bottom axis for the legend
+  g.call(d3.axisBottom(d3.scaleTime(color.domain(), [0, width]))
+      .ticks(6)
+      .tickSize(13))
+    .select(".domain")
+    .remove();
+}
+
+// Define the data
+data = {
+  // Parse the date
+  const parseDate = d3.timeParse("%m/%d/%Y");
+
+  // Define the map projection
+  const projection = d3.geoAlbersUsa().scale(1280).translate([480, 300]);
+
+  // Parse the TSV data
+  const data = d3.tsvParse(await FileAttachment("FBMBranchMap.txt").text(), d => {
+    const p = projection(d);
+    p.date = parseDate(d.date);
+    return p;
+  });
+
+  // Return the hexbin data sorted by the median date
+  return Object.assign(
+    hexbin(data)
+      .map(d => (d.date = new Date(d3.median(d, d => d.date)), d))
+      .sort((a, b) => b.length - a.length),
+    { title: "Median opening year" }
+  );
+}
+
+// Define color scale based on sequential interpolation
+color = d3.scaleSequential(d3.extent(data, d => d.date), d3.interpolateSpectral);
+
+// Define radius scale based on square root transformation
+radius = d3.scaleSqrt([0, d3.max(data, d => d.length)], [0, hexbin.radius() * Math.SQRT2]);
+
+// Define the hexbin layout
+hexbin = d3.hexbin()
+  .extent([[0, 0], [width, height]])
+  .radius(10);
+
+// Function to generate a color ramp
+function ramp(color, n = 512) {
+  const canvas = DOM.canvas(n, 1);
+  const context = canvas.getContext("2d");
+  canvas.style.margin = "0 -14px";
+  canvas.style.width = "calc(100% + 28px)";
+  canvas.style.height = "40px";
+  canvas.style.imageRendering = "pixelated";
+  for (let i = 0; i < n; ++i) {
+    context.fillStyle = color(i / (n - 1));
+    context.fillRect(i, 0, 1, 1);
+  }
+  return canvas;
+}
+
+// Define width and height
+width = 975;
+height = 600;
+
+// Load the GeoJSON data
+us = FileAttachment("10m.json").json();
+
+// Import the topojson and d3 libraries
+topojson = require("topojson-client@3");
+d3 = require("d3@5", "d3-hexbin@0.2");
+```

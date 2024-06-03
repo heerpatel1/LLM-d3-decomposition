@@ -1,0 +1,476 @@
+Can you label this program for me?:
+
+// example dataset
+data = [
+  {
+    Plants: 450,
+    Bacteria: 70,
+    Fungi: 12,
+    Archaea: 7,
+    Protists: 4,
+    "Animals (including humans)": 2,
+    "All the cars in the US": 0.5
+  }
+]
+
+//
+
+axes = Object({
+  axisLeft:{
+    show:false,
+  },
+  axisBottom:{
+    show:false,
+  },
+  axisRight:{show:false}, // for now, this does nothing
+  axisTop:{show:false} // samesies
+});
+
+{
+  const waffleDimensions = { height: 15, width: 45 };
+
+  const xDomain = d3.range(0, waffleDimensions.width);
+  const yDomain = d3.range(0, waffleDimensions.height);
+
+  const dataEntries = Object.entries(data[0]);
+
+  let totalValue = 0;
+  let cumulativeValues = [];
+  dataEntries.map((e) => {
+    totalValue += e[1];
+    cumulativeValues.push({ [e[0]]: totalValue });
+  });
+  const valueRange = d3.range(0, totalValue);
+  const cumulativeEntries = cumulativeValues.map((v) => Object.entries(v));
+
+  const cells = valueRange.map((v, vNdx) => ({
+    category: cumulativeEntries.find((e) => e[0][1] >= v)[0][0],
+    x: Math.floor(vNdx / waffleDimensions.height),
+    y: vNdx % waffleDimensions.height
+  }));
+
+  const xScale = d3.scaleBand(xDomain, [
+    dimensions.margin,
+    dimensions.width - dimensions.margin
+  ]);
+  const yScale = d3.scaleBand(yDomain, [
+    dimensions.height - dimensions.margin,
+    dimensions.margin
+  ]);
+
+  const svg = d3
+    .create("svg")
+    .attr("width", dimensions.width)
+    .attr("height", dimensions.height);
+
+  if (axes.axisLeft.show) {
+    svg
+      .append("g")
+      .attr("transform", `translate(${dimensions.margin}, 0)`)
+      .attr("class", "axis")
+      .call(
+        d3
+          .axisLeft(yScale)
+          .tickArguments([axes.axisLeft.tickCount, axes.axisLeft.tickFormat])
+      );
+    svg
+      .append("text")
+      .attr("class", "axisLabel left")
+      .attr("text-anchor", "end")
+      .attr("dy", ".75em")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -dimensions.margin)
+      .text(axes.axisLeft.label);
+  }
+  if (axes.axisBottom.show) {
+    svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(0, ${dimensions.height - dimensions.margin})`
+      )
+      .attr("class", "axis")
+      .call(
+        d3
+          .axisBottom(xScale)
+          .tickArguments([
+            axes.axisBottom.tickCount,
+            axes.axisBottom.tickFormat
+          ])
+      );
+    svg
+      .append("text")
+      .attr("class", "axisLabel bottom")
+      .attr("text-anchor", "beginning")
+      .attr("x", dimensions.margin)
+      .attr("y", dimensions.height - dimensions.margin / 3)
+      .text(axes.axisBottom.label);
+  }
+
+  const axisPath = svg.selectAll(".axis .domain");
+  const axisTickLine = svg.selectAll(".axis .tick").selectAll("line");
+  const axisTickText = svg.selectAll(".axis .tick").selectAll("text");
+  const axisLabel = svg.selectAll(".axisLabel");
+
+  const axisLineStyleArray = Object.entries(axisStyle.lines);
+  const axisFontStyleArray = Object.entries(axisStyle.font);
+  const axisLabelStyleArray = Object.entries(axisLabelStyle);
+
+  axisLineStyleArray.map((s) => {
+    axisPath.style(s[0], s[1]);
+    axisTickLine.style(s[0], s[1]);
+  });
+  axisFontStyleArray.map((s) => {
+    axisTickText.style(s[0], s[1]);
+  });
+  axisLabelStyleArray.map((s) => {
+    axisLabel.style(s[0], s[1]);
+  });
+
+  svg
+    .append("text")
+    .text(title)
+    .attr("fontSize", titleStyle["font-size"])
+    .attr("class", "title")
+    .attr("y", dimensions.margin * (2 / 3));
+
+  const titleStyleArray = Object.entries(titleStyle);
+  const titleText = svg.selectAll(".title");
+  titleStyleArray.map((t) => {
+    titleText.style(t[0], t[1]);
+  });
+
+  svg
+    .selectAll("rect")
+    .data(cells)
+    .join("rect")
+    .attr("x", (d) => xScale(d.x))
+    .attr("y", (d) => yScale(d.y))
+    .attr("height", yScale.bandwidth())
+    .attr("width", xScale.bandwidth())
+    .attr("fill", (d) => {
+      return d3.interpolateRainbow(
+        dataEntries.indexOf(dataEntries.find((e) => e[0] === d.category)) /
+          dataEntries.length
+      );
+    })
+    .attr("stroke", "white")
+    .attr("stroke-width", "2px");
+
+  return svg.node();
+}
+
+function thresholdChecker(dValue, showThreshold, thresholdValue, criteria,) {
+    const multiValues = Array.isArray(thresholdValue)
+    const value = dValue
+    const threshold = thresholdValue
+      let sortedThreshold = []
+      if (multiValues) {
+        sortedThreshold[0] = Math.min( threshold[0],threshold[1] )
+        sortedThreshold[1] = Math.max( threshold[0],threshold[1] )
+      }
+      if (showThreshold) {
+        switch(criteria) {
+          case ">": { if (value > threshold) return 'threshold' } break;
+          case "<": { if (value < threshold) return 'threshold' } break;
+          case "<=": { if (value <= threshold) return 'threshold' } break;
+          case ">=": { if (value >= threshold) return 'threshold' } break;
+          case "><": { if (value > sortedThreshold[0] && value < sortedThreshold[1]) return 'threshold' } break;
+          case "<>": { if (value < sortedThreshold[0] || value > sortedThreshold[1]) return 'threshold' } break;
+          case "===": { if (multiValues) {
+            if ( value === threshold[0] ) { return 'threshold' } else if ( value === threshold[1] ) { return 'subtle' }
+          } else if ( value === threshold ) return 'threshold' } break;
+        }
+      } else return;
+}
+
+dimensions = Object({ height: 400, width: 800, margin: 60 })
+
+axisStyle = Object({
+  lines:{
+    stroke:'#858585',
+    'stroke-width':'1px'
+  },
+  font:{
+    'font-size':'16px',
+    'font-weight':400,
+    'fill':'#858585',
+    'stroke-width':'1px',
+    'font-family':'helvetica',
+  }
+})
+
+axisLabelStyle = Object({
+  'font-weight':400,
+  'font-size':'20',
+  'font-family':'helvetica',
+  'fill':'#6F6F6F'
+})
+
+titleStyle = Object({
+  'font-size':'31.25px',
+  'font-weight':400,
+  'font-family':'helvetica, sans-serif',
+  'fill':'#707070'
+})
+
+// the basic style for elements within the chart
+elementStyle = Object({ stroke: "white" })
+
+title = "Sample Waffle Chart"
+/////////////////////////////////////////////////////////////////////////////////
+Here is a labeled version of your program:
+
+```javascript
+// Data set
+data = [
+  {
+    Plants: 450,
+    Bacteria: 70,
+    Fungi: 12,
+    Archaea: 7,
+    Protists: 4,
+    "Animals (including humans)": 2,
+    "All the cars in the US": 0.5
+  }
+];
+
+// Axes configuration
+axes = {
+  axisLeft: { show: false },
+  axisBottom: { show: false },
+  axisRight: { show: false }, // Currently unused
+  axisTop: { show: false } // Currently unused
+};
+
+{
+  // Waffle chart dimensions
+  const waffleDimensions = { height: 15, width: 45 };
+
+  // Create domains for x and y axes
+  const xDomain = d3.range(0, waffleDimensions.width);
+  const yDomain = d3.range(0, waffleDimensions.height);
+
+  // Convert data object entries
+  const dataEntries = Object.entries(data[0]);
+
+  // Compute total value and cumulative values
+  let totalValue = 0;
+  let cumulativeValues = [];
+  dataEntries.map((entry) => {
+    totalValue += entry[1];
+    cumulativeValues.push({ [entry[0]]: totalValue });
+  });
+
+  // Compute the range of values and find the cumulative entries
+  const valueRange = d3.range(0, totalValue);
+  const cumulativeEntries = cumulativeValues.map((v) => Object.entries(v));
+
+  // Map cells to categories and positions
+  const cells = valueRange.map((v, index) => ({
+    category: cumulativeEntries.find((entry) => entry[0][1] >= v)[0][0],
+    x: Math.floor(index / waffleDimensions.height),
+    y: index % waffleDimensions.height
+  }));
+
+  // Create scales for x and y axes
+  const xScale = d3.scaleBand(xDomain, [
+    dimensions.margin,
+    dimensions.width - dimensions.margin
+  ]);
+  const yScale = d3.scaleBand(yDomain, [
+    dimensions.height - dimensions.margin,
+    dimensions.margin
+  ]);
+
+  // Create SVG element
+  const svg = d3.create("svg")
+    .attr("width", dimensions.width)
+    .attr("height", dimensions.height);
+
+  // Add axis elements based on the provided configuration
+  if (axes.axisLeft.show) {
+    svg
+      .append("g")
+      .attr("transform", `translate(${dimensions.margin}, 0)`)
+      .attr("class", "axis")
+      .call(
+        d3.axisLeft(yScale).tickArguments([axes.axisLeft.tickCount, axes.axisLeft.tickFormat])
+      );
+    svg
+      .append("text")
+      .attr("class", "axisLabel left")
+      .attr("text-anchor", "end")
+      .attr("dy", ".75em")
+      .attr("transform", "rotate(-90)")
+      .attr("x", -dimensions.margin)
+      .text(axes.axisLeft.label);
+  }
+  if (axes.axisBottom.show) {
+    svg
+      .append("g")
+      .attr(
+        "transform",
+        `translate(0, ${dimensions.height - dimensions.margin})`
+      )
+      .attr("class", "axis")
+      .call(
+        d3.axisBottom(xScale).tickArguments([
+          axes.axisBottom.tickCount,
+          axes.axisBottom.tickFormat
+        ])
+      );
+    svg
+      .append("text")
+      .attr("class", "axisLabel bottom")
+      .attr("text-anchor", "beginning")
+      .attr("x", dimensions.margin)
+      .attr("y", dimensions.height - dimensions.margin / 3)
+      .text(axes.axisBottom.label);
+  }
+
+  // Style axis paths, tick lines, tick text, and labels based on configuration
+  const axisPath = svg.selectAll(".axis .domain");
+  const axisTickLine = svg.selectAll(".axis .tick").selectAll("line");
+  const axisTickText = svg.selectAll(".axis .tick").selectAll("text");
+  const axisLabel = svg.selectAll(".axisLabel");
+
+  const axisLineStyleArray = Object.entries(axisStyle.lines);
+  const axisFontStyleArray = Object.entries(axisStyle.font);
+  const axisLabelStyleArray = Object.entries(axisLabelStyle);
+
+  axisLineStyleArray.map((style) => {
+    axisPath.style(style[0], style[1]);
+    axisTickLine.style(style[0], style[1]);
+  });
+  axisFontStyleArray.map((style) => {
+    axisTickText.style(style[0], style[1]);
+  });
+  axisLabelStyleArray.map((style) => {
+    axisLabel.style(style[0], style[1]);
+  });
+
+  // Add title to the chart
+  svg
+    .append("text")
+    .text(title)
+    .attr("fontSize", titleStyle["font-size"])
+    .attr("class", "title")
+    .attr("y", dimensions.margin * (2 / 3));
+
+  // Style the title text
+  const titleStyleArray = Object.entries(titleStyle);
+  const titleText = svg.selectAll(".title");
+  titleStyleArray.map((style) => {
+    titleText.style(style[0], style[1]);
+  });
+
+  // Add rectangles representing waffle cells to the chart
+  svg
+    .selectAll("rect")
+    .data(cells)
+    .join("rect")
+    .attr("x", (d) => xScale(d.x))
+    .attr("y", (d) => yScale(d.y))
+    .attr("height", yScale.bandwidth())
+    .attr("width", xScale.bandwidth())
+    .attr("fill", (d) => {
+      return d3.interpolateRainbow(
+        dataEntries.indexOf(dataEntries.find((e) => e[0] === d.category)) /
+          dataEntries.length
+      );
+    })
+    .attr("stroke", "white")
+    .attr("stroke-width", "2px");
+
+  return svg.node();
+}
+
+// Function to check if a value meets the threshold criteria
+function thresholdChecker(dValue, showThreshold, thresholdValue, criteria) {
+  const multiValues = Array.isArray(thresholdValue);
+  const value = dValue;
+  const threshold = thresholdValue;
+  let sortedThreshold = [];
+
+  if (multiValues) {
+    sortedThreshold[0] = Math.min(threshold[0], threshold[1]);
+    sortedThreshold[1] = Math.max(threshold[0], threshold[1]);
+  }
+
+  if (showThreshold) {
+    switch (criteria) {
+      case ">":
+        if (value > threshold) return "threshold";
+        break;
+      case "<":
+        if (value < threshold) return "threshold";
+        break;
+      case "<=":
+        if (value <= threshold) return "threshold";
+        break;
+      case ">=":
+        if (value >= threshold) return "threshold";
+        break;
+      case "><":
+        if (value > sortedThreshold[0] && value < sortedThreshold[1]) return "threshold";
+        break;
+      case "<>":
+        if (value < sortedThreshold[0] || value > sortedThreshold[1]) return "threshold";
+        break;
+      case "===":
+        if (multiValues) {
+          if (value === threshold[0]) return "threshold";
+          else if (value === threshold[1]) return "subtle";
+        } else if (value === threshold) return "threshold";
+        break;
+    }
+  } else return;
+}
+
+// Define chart dimensions and margin
+dimensions = {
+  height: 400,
+  width: 800,
+  margin: 60
+};
+
+// Define styles for the chart axes
+axisStyle = {
+  lines: {
+    stroke: "#858585",
+    "stroke-width": "1px"
+  },
+  font: {
+    "font-size": "16px",
+    "font-weight": 400,
+    fill: "#858585",
+    "stroke-width": "1px",
+    "font-family": "helvetica"
+  }
+};
+
+// Define styles for axis labels
+axisLabelStyle = {
+  "font-weight": 400,
+  "font-size": "20",
+  "font-family": "helvetica",
+  fill: "#6F6F6F"
+};
+
+// Define styles for the title
+titleStyle = {
+  "font-size": "31.25px",
+  "font-weight": 400,
+  "font-family": "helvetica, sans-serif",
+  fill: "#707070"
+};
+
+// Define the basic style for chart elements
+elementStyle = {
+  stroke: "white"
+};
+
+// Define the chart title
+title = "Sample Waffle Chart";
+```

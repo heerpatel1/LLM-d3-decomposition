@@ -1,0 +1,208 @@
+Can you label this program for me?:
+md `# Chord diagram`
+
+ height = width
+
+ viewof groups = html `<input type="number" value="6" min="3">`
+
+ {
+const svg = d3 . create ( 'svg' ) . attr ( 'width' , width ) . attr ( 'height' , height ) ;
+const diagramContainer = svg . append ( 'g' ) ;
+const diagram = diagramContainer . append ( 'g' ) . attr ( 'transform' , `translate(${ width / 2 }, ${ height / 2 })` ) ;
+
+const chords = d3 . chord ( ) . padAngle ( 0.05 ) . sortSubgroups ( d3 . descending ) ( matrix ) ;
+const rimWidth = height / 60 ;
+const tickWidth = height / 120 ;
+const fontSize = height / 60 ;
+const r = Math . min ( width , height ) / 2 - margin - rimWidth - fontSize * 2 ;
+
+// Rims
+diagram . datum ( chords ) . selectAll ( ) . data ( d => d . groups ) . enter ( ) . append ( 'g' )
+. append ( 'path' )
+. attr ( 'd' , d3 . arc ( ) . innerRadius ( r ) . outerRadius ( r + rimWidth ) )
+. attr ( 'fill' , ( _ , i ) => colors [ i ] ) ;
+
+// Ribbons
+const ribbons = diagram . datum ( chords ) . selectAll ( ) . data ( d => d ) . enter ( ) . append ( 'g' )
+. append ( 'path' )
+. attr ( 'd' , d3 . ribbon ( ) . radius ( r ) )
+. attr ( 'fill' , d => colors [ d . source . index ] . copy ( { opacity : 0.6 } ) )
+. on ( 'mouseenter' , function ( ) {
+const selected = this ;
+ribbons . filter ( function ( ) { return this !== selected ; } )
+. transition ( ) . duration ( 100 ) . attr ( 'fill' , ( _ , i ) => (
+d3 . rgb ( ribbons . filter ( ( _ , j ) => j === i ) . attr ( 'fill' ) ) . copy ( { opacity : 0.1 } )
+) )
+} ) . on ( 'mouseleave' , ( ) => (
+ribbons . transition ( ) . duration ( 100 ) . attr ( 'fill' , ( _ , i ) => (
+d3 . rgb ( ribbons . filter ( ( _ , j ) => j === i ) . attr ( 'fill' ) ) . copy ( { opacity : 0.6 } )
+) )
+) ) ;
+
+// Ticks
+const ticksContainer = diagram . datum ( chords ) . selectAll ( ) . data ( d => d . groups ) . enter ( )
+. selectAll ( ) . data ( d => d3 . range ( 0 , d . value , height / 5 ) . map ( value => ( {
+value ,
+angle : d . startAngle + ( d . endAngle - d . startAngle ) / d . value * value
+} ) ) )
+. enter ( ) . append ( 'g' )
+. attr ( 'transform' , d => `rotate(${ d . angle / Math . PI * 180 - 90 }) translate(${ r + rimWidth }, 0)` ) ;
+
+ticksContainer . append ( 'line' ) . attr ( 'x2' , tickWidth ) . attr ( 'stroke' , 'black' ) ;
+ticksContainer . filter ( ( d , i ) => i % ( groups * 400 / height | 0 ) === 0 ) . append ( 'text' )
+. text ( ( d , i ) => + d . value . toFixed ( 2 ) )
+. attr ( 'alignment-baseline' , 'middle' )
+. attr ( 'font-family' , 'Helvetica' )
+. attr ( 'font-size' , fontSize )
+. attr ( 'x' , tickWidth ) ;
+
+// Zoom & drag
+svg . append ( 'g' ) . lower ( )
+. append ( 'rect' ) . attr ( 'width' , width ) . attr ( 'height' , height ) . attr ( 'fill' , '#00000000' )
+. call ( d3 . zoom ( ) . on ( 'zoom' , ( ) => diagramContainer . attr ( 'transform' , d3 . event . transform ) ) ) ;
+
+return svg . node ( ) ;
+}
+
+ matrix = Object . values ( data ) . map ( group => Object . values ( group ) )
+
+ colors = {
+return Array ( groups ) . fill ( ) . map ( ( _ , i ) => d3 . hsl ( 300 / groups * i , .8 , .5 ) ) ;
+}
+
+ data = {
+const data = { } ;
+for ( let label of Array ( groups ) . fill ( ) . map ( ( _ , i ) => String . fromCharCode ( i + 65 ) ) ) {
+data [ label ] = { }
+for ( let sublabel of Array ( groups ) . fill ( ) . map ( ( _ , i ) => String . fromCharCode ( i + 65 ) ) ) {
+data [ label ] [ sublabel ] = Math . random ( ) * 999 | 0
+}
+}
+return data ;
+}
+
+ rgba = ( color , alpha = 1 ) => (
+'rgba'
++ color . slice ( color . indexOf ( '(' ) , color . split ( ',' ) . length === 4 ? color . lastIndexOf ( ',' ) : - 1 )
++ ', ' + alpha + ')'
+)
+
+ margin = width / 20
+
+ d3 = require ( 'd3' )
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Here is your program labeled with shorter comments:
+
+```javascript
+// Label: Set height equal to width
+height = width;
+
+// Label: Create an HTML input element for selecting the number of groups
+viewof groups = html`<input type="number" value="6" min="3">`;
+
+// Label: Create SVG element and diagram containers
+{
+    const svg = d3.create('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+    const diagramContainer = svg.append('g');
+    const diagram = diagramContainer.append('g')
+        .attr('transform', `translate(${width / 2}, ${height / 2})`);
+
+    // Label: Calculate chord layout
+    const chords = d3.chord()
+        .padAngle(0.05)
+        .sortSubgroups(d3.descending)(matrix);
+
+    const rimWidth = height / 60;
+    const tickWidth = height / 120;
+    const fontSize = height / 60;
+    const r = Math.min(width, height) / 2 - margin - rimWidth - fontSize * 2;
+
+    // Label: Draw arcs (rims)
+    diagram.datum(chords).selectAll().data(d => d.groups).enter().append('g')
+        .append('path')
+        .attr('d', d3.arc().innerRadius(r).outerRadius(r + rimWidth))
+        .attr('fill', (_, i) => colors[i]);
+
+    // Label: Draw ribbons
+    const ribbons = diagram.datum(chords).selectAll().data(d => d).enter().append('g')
+        .append('path')
+        .attr('d', d3.ribbon().radius(r))
+        .attr('fill', d => colors[d.source.index].copy({ opacity: 0.6 }))
+        .on('mouseenter', function() {
+            const selected = this;
+            ribbons.filter(function() {
+                return this !== selected;
+            }).transition().duration(100)
+            .attr('fill', (_, i) => d3.rgb(
+                ribbons.filter((_, j) => j === i).attr('fill')
+            ).copy({ opacity: 0.1 }));
+        })
+        .on('mouseleave', () => (
+            ribbons.transition().duration(100)
+            .attr('fill', (_, i) => d3.rgb(
+                ribbons.filter((_, j) => j === i).attr('fill')
+            ).copy({ opacity: 0.6 }))
+        ));
+
+    // Label: Draw ticks
+    const ticksContainer = diagram.datum(chords).selectAll().data(d => d.groups).enter()
+        .selectAll().data(d => d3.range(0, d.value, height / 5).map(value => ({
+            value,
+            angle: d.startAngle + (d.endAngle - d.startAngle) / d.value * value
+        }))).enter().append('g')
+        .attr('transform', d => `rotate(${d.angle / Math.PI * 180 - 90}) translate(${r + rimWidth}, 0)`);
+
+    // Label: Draw tick lines and tick text
+    ticksContainer.append('line')
+        .attr('x2', tickWidth)
+        .attr('stroke', 'black');
+
+    ticksContainer.filter((d, i) => i % (groups * 400 / height | 0) === 0).append('text')
+        .text((d, i) => +d.value.toFixed(2))
+        .attr('alignment-baseline', 'middle')
+        .attr('font-family', 'Helvetica')
+        .attr('font-size', fontSize)
+        .attr('x', tickWidth);
+
+    // Label: Zoom and drag functionality
+    svg.append('g').lower()
+        .append('rect').attr('width', width).attr('height', height)
+        .attr('fill', '#00000000')
+        .call(d3.zoom().on('zoom', () => diagramContainer.attr('transform', d3.event.transform)));
+
+    // Label: Return SVG node
+    return svg.node();
+}
+
+// Label: Create a matrix from data
+matrix = Object.values(data).map(group => Object.values(group));
+
+// Label: Define colors array
+colors = {
+    return Array(groups).fill().map((_, i) => d3.hsl(300 / groups * i, .8, .5));
+}
+
+// Label: Generate data
+data = {
+    const data = {};
+    for (let label of Array(groups).fill().map((_, i) => String.fromCharCode(i + 65))) {
+        data[label] = {};
+        for (let sublabel of Array(groups).fill().map((_, i) => String.fromCharCode(i + 65))) {
+            data[label][sublabel] = Math.random() * 999 | 0;
+        }
+    }
+    return data;
+}
+
+// Label: Convert color to rgba format
+rgba = (color, alpha = 1) => (
+    'rgba' + color.slice(color.indexOf('('), color.split(',').length === 4 ? color.lastIndexOf(',') : -1)
+    + ', ' + alpha + ')'
+);
+
+// Label: Define margin
+margin = width / 20;
+```

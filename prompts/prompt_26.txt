@@ -1,0 +1,126 @@
+Can you label this program for me?:
+
+simulation = d3.forceSimulation()
+        .force("center", d3.forceCenter().x(width * .5).y(height * .5))
+        .force("charge", d3.forceManyBody().strength(-15))
+
+        // .force("forceX", d3.forceX().strength(.1).x(width * .5))
+        // .force("forceY", d3.forceY().strength(.1).y(height * .5));
+  // .force('charge', -300)
+  // .force('linkDistance', 50)
+  // .force('charge', -300)
+  // .charge(-300)
+  // .linkDistance(50)
+  // .size([width, height]);
+
+color = d3.scaleOrdinal()
+    .domain(data.map(d => d.label))
+    .range(d3.quantize(t => d3.interpolateRdGy(t * 0.8 + 0.1), data.length).reverse());
+
+donutChart = {
+  const svg = d3.select(DOM.svg(width, height));
+  const donut = svg.append('g')
+    .classed('donut',true)
+    .attr('transform',`translate(${width/2},${height/2})`)
+    .attr('width',radius)
+    .attr('height',radius);
+  const arcs = d3.pie().sort(null).value(d => d.value)(data);
+ simulation
+          .nodes(data)
+          .force("collide", d3.forceCollide().strength(.1).radius(function(d){ return 25}).iterations(1))
+          // .on("tick", function(d){
+          //   node
+          //       .attr("cx", function(d){ return d.x; })
+          //       .attr("cy", function(d){ return d.y; })
+          // });
+  const generateArc = (d) => {
+    d.innerRadius = radius*.4; //eslint-disable-line
+    const i = d3.interpolate({ startAngle: 0, endAngle: 0 }, d);
+    return t => d3.arc().outerRadius(radius*.8)(i(t));
+  };
+
+ const path = donut.selectAll('.arcs')
+    .data(arcs).enter()
+    .append('g');
+  path
+    .merge(path);
+  path.call(appendValueLables);
+  path.exit().remove();
+
+  donut.selectAll('.arcs')
+    .transition()
+    .duration(1000)
+    .attrTween('d', generateArc);
+
+
+  const summary = donut.append('g')
+    .classed('summary', true);
+
+  return svg.node();
+}
+
+appendValueLables = (d) => {
+    d.append('path')
+      .classed('arcs', true)
+      .attr('fill', d1 => color(d1.data.label))
+      .attr('stroke', 'white');
+
+    const minimalSlices = d.filter(d1 => (
+      (parseFloat(d1.data.value / _.sumBy(data, o => o.value) * 100)).toFixed(2) < 5));
+    const slices = d.filter(d1 => (
+      (parseFloat(d1.data.value / _.sumBy(data, o => o.value) * 100)).toFixed(2) > 5));
+    minimalSlices.append('polyline')
+      .attr('opacity', 0)
+      .transition()
+      .duration(1000)
+      .attr('opacity', 1)
+      .attr('points',
+        d2 => [d3.arc().innerRadius(radius * .8).outerRadius(radius * .8).centroid(d2),
+          d3.arc().innerRadius(radius * .9).outerRadius(radius * .9).centroid(d2)])
+      .attr('stroke', 'gray')
+      .attr('fill', 'none');
+    const mSlice = minimalSlices
+      // .append('g')
+      // mSlice
+        .append('text')
+      // .transition()
+      // .duration(1000)
+      .text(d1 => `${(parseFloat(d1.data.value / _.sumBy(data, o => o.value) * 100)).toFixed(2)} %`)
+    .style('font-family','Arial, san-serif')
+    .style('font-size','12px')
+    // .style('text-anchor','middle')
+    .style('font-weight','200')
+      .attr('stroke', 'none')
+      // .attr('dy', '0.35em')
+      .attr('transform',
+        d1 => `translate(${d3.arc().innerRadius(radius * .95).outerRadius(radius * .95).centroid(d1)})`);
+  simulation.nodes(data)
+  .force("collide", d3.forceCollide().strength(.5).radius(function(d){ d.fx = d.x; d.fy = d.y;return 20; }).iterations(1))
+          .on("tick", function(d1){
+            // console.log('Hi', node);
+            mSlice
+                .attr("dx", function(d){ return d.data.x; })
+                .attr("dy", function(d){ return d.data.y; })
+          });
+    slices
+    .append('g')
+      .append('text')
+      .transition()
+      .duration(1000)
+      .text(d1 => `${(parseFloat(d1.data.value / _.sumBy(data, o => o.value) * 100)).toFixed(2)} %`)
+      .attr('transform', d1 => `translate(${d3.arc().innerRadius(radius * .4).outerRadius(radius * .8).centroid(d1)})`)
+      .attr('dy', '0.35em')
+      .attr('stroke', '#000');
+  };
+
+d3 = require("d3@5")
+
+_ = require('lodash@4')
+
+data = [{label:'Entertainment', value:0.5},{label:'Travel', value:1},{label:'Food', value:1},{label:'Health/Fitness', value:1},{label:'Learning', value:2},{label:'Work', value:8},{label:'Family', value:3},{label:'Resting', value:7.5}]
+
+width = 500;
+
+height = 300;
+
+radius = d3.min([width, height])/2

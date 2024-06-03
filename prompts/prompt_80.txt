@@ -1,0 +1,471 @@
+Can you label this program ENTIRELY while preserving its order?:
+
+chart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  const {nodes, links} = sankey(data);
+
+  const pctFormat = d3.format(",.2%");
+
+  function colorScale(d) {
+    if (d === "Brad Lander") {
+      return "#74C477"}
+    else if (d ==="Corey D. Johnson") {
+      return "#4392C7"}
+    else if (d ==="Michelle Caruso-Cabrera") {
+      return "#D95E0E"}
+    else if (d === "Brian A. Benjamin") {
+      return "#F768A1"}
+    else if (d === "David I. Weprin") {
+      return "#E60001"}
+    else if (d === "Kevin S. Parker") {
+      return "#6B0601"}
+    else if (d === "Reshma Patel") {
+      return "#41B6C4"}
+    else if (d === "Zach Iscol") {
+      return "#8856A7"}
+    else if ( d === "Inactive") {
+      return "lightgray"}
+    else return "#006D2C"
+
+  }
+
+  svg.append("g")
+      //.attr("stroke", "#000")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+      .attr("x", d => d.x0)
+      .attr("y", d => d.y0)
+      .attr("height", d => d.y1 - d.y0)
+      .attr("width", d => d.x1 - d.x0)
+      .attr("fill", d => colorScale(d.label))
+    .append("title")
+      .text(d => `${d.name}\n${format(d.value)} (${pctFormat(d.value/868087)}) of total votes`);
+
+  const link = svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke-opacity", 0.5)
+    .selectAll("g")
+    .data(links)
+    .join("g")
+      .style("mix-blend-mode", "multiply");
+
+   const gradient = link.append("linearGradient")
+        .attr("id", d => (d.uid = DOM.uid("link")).id)
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", d => d.source.x1)
+        .attr("x2", d => d.target.x0);
+
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", d => colorScale(d.source.name.split(" - ")[0]));
+
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", d => colorScale(d.target.name.split(" - ")[0]));
+
+  link.append("path")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke", d => d.uid )
+      .attr("stroke-width", d => Math.max(1, d.width))
+
+  link.append("title")
+      //.text(d => `${d.source.name.split(" - ")[0]} → ${d.target.label}\n${format(d.value)}`);
+      .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
+
+  svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+      .attr("y", d => (d.y1 + d.y0) / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+      .text(function (d) {
+        if (d.name === "Inactive - 2") {
+          return "Inactive"
+          }
+        else if (d.name === "In-person" || d.name === "Absentee") {
+          return d.name;
+          }
+        else if (d.name.substr(-1) === "1" || d.name.substr(-2) === "10") {
+          return d.label
+          }
+        else return null;
+        });
+
+  return svg.node();
+}
+
+sankey = {
+  const sankey = d3.sankey()
+      .nodeId(d => d.name)
+      .nodeAlign(d3.sankeyLeft)
+      .nodeWidth(15)
+      .nodePadding(10)
+      .nodeSort(null)
+      .extent([[1, 5], [width - 1, height - 5]]);
+  return ({nodes, links}) => sankey({
+    nodes: nodes.map(d => Object.assign({}, d)),
+    links: links.map(d => Object.assign({}, d))
+  });
+}
+
+format = {
+  const format = d3.format(",");
+  return data.units ? d => `${format(d)} ${data.units}` : format;
+}
+
+color = {
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
+  return d => {
+    if (d.label === "Inactive") {
+      return "lightgray"; }
+    else return color(d.label)
+  };
+}
+
+data = {
+  const links = await FileAttachment("RCV_links_certified_comptroller@4.csv").csv({typed: true});
+  //grabs unique values from source and target of links then flatMap makes a 1 dimensional array
+  const nodes = Array.from(new Set(links.flatMap(l => [l.source, l.target])), name => ({name, label: name.split(" - ")[0]}));
+  return {nodes, links, units: "votes"};
+}
+
+width = 954
+
+height = 600
+
+d3 = require("d3@6", "d3-sankey@0.12")
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+```javascript
+// Program label continues...
+
+// Define function to create sankey diagram
+sankey = {
+  const sankey = d3.sankey()
+      .nodeId(d => d.name)
+      .nodeAlign(d3.sankeyLeft)
+      .nodeWidth(15)
+      .nodePadding(10)
+      .nodeSort(null)
+      .extent([[1, 5], [width - 1, height - 5]]);
+  return ({nodes, links}) => sankey({
+    nodes: nodes.map(d => Object.assign({}, d)),
+    links: links.map(d => Object.assign({}, d))
+  });
+}
+
+// Define function to format numbers
+format = {
+  const format = d3.format(",");
+  return data.units ? d => `${format(d)} ${data.units}` : format;
+}
+
+// Define function to assign colors based on labels
+color = {
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
+  return d => {
+    if (d.label === "Inactive") {
+      return "lightgray"; }
+    else return color(d.label)
+  };
+}
+
+// Retrieve data from CSV file
+data = {
+  const links = await FileAttachment("RCV_links_certified_comptroller@4.csv").csv({typed: true});
+  // Grabs unique values from source and target of links then flatMap makes a 1-dimensional array
+  const nodes = Array.from(new Set(links.flatMap(l => [l.source, l.target])), name => ({name, label: name.split(" - ")[0]}));
+  return {nodes, links, units: "votes"};
+}
+
+// Set width and height for the SVG
+width = 954
+height = 600
+
+// Import D3 and D3 Sankey modules
+d3 = require("d3@6", "d3-sankey@0.12")
+```
+
+This labels the entire program while preserving its order, including the definition of the sankey diagram, number formatting, color assignment, data retrieval, and setting dimensions.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+You skipped some of the program. Once again, can you apply labels this entire program:
+
+chart = {
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  const {nodes, links} = sankey(data);
+
+  const pctFormat = d3.format(",.2%");
+
+  function colorScale(d) {
+    if (d === "Brad Lander") {
+      return "#74C477"}
+    else if (d ==="Corey D. Johnson") {
+      return "#4392C7"}
+    else if (d ==="Michelle Caruso-Cabrera") {
+      return "#D95E0E"}
+    else if (d === "Brian A. Benjamin") {
+      return "#F768A1"}
+    else if (d === "David I. Weprin") {
+      return "#E60001"}
+    else if (d === "Kevin S. Parker") {
+      return "#6B0601"}
+    else if (d === "Reshma Patel") {
+      return "#41B6C4"}
+    else if (d === "Zach Iscol") {
+      return "#8856A7"}
+    else if ( d === "Inactive") {
+      return "lightgray"}
+    else return "#006D2C"
+
+  }
+
+  svg.append("g")
+      //.attr("stroke", "#000")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+      .attr("x", d => d.x0)
+      .attr("y", d => d.y0)
+      .attr("height", d => d.y1 - d.y0)
+      .attr("width", d => d.x1 - d.x0)
+      .attr("fill", d => colorScale(d.label))
+    .append("title")
+      .text(d => `${d.name}\n${format(d.value)} (${pctFormat(d.value/868087)}) of total votes`);
+
+  const link = svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke-opacity", 0.5)
+    .selectAll("g")
+    .data(links)
+    .join("g")
+      .style("mix-blend-mode", "multiply");
+
+   const gradient = link.append("linearGradient")
+        .attr("id", d => (d.uid = DOM.uid("link")).id)
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", d => d.source.x1)
+        .attr("x2", d => d.target.x0);
+
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", d => colorScale(d.source.name.split(" - ")[0]));
+
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", d => colorScale(d.target.name.split(" - ")[0]));
+
+  link.append("path")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke", d => d.uid )
+      .attr("stroke-width", d => Math.max(1, d.width))
+
+  link.append("title")
+      //.text(d => `${d.source.name.split(" - ")[0]} → ${d.target.label}\n${format(d.value)}`);
+      .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
+
+  svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+      .attr("y", d => (d.y1 + d.y0) / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+      .text(function (d) {
+        if (d.name === "Inactive - 2") {
+          return "Inactive"
+          }
+        else if (d.name === "In-person" || d.name === "Absentee") {
+          return d.name;
+          }
+        else if (d.name.substr(-1) === "1" || d.name.substr(-2) === "10") {
+          return d.label
+          }
+        else return null;
+        });
+
+  return svg.node();
+}
+
+sankey = {
+  const sankey = d3.sankey()
+      .nodeId(d => d.name)
+      .nodeAlign(d3.sankeyLeft)
+      .nodeWidth(15)
+      .nodePadding(10)
+      .nodeSort(null)
+      .extent([[1, 5], [width - 1, height - 5]]);
+  return ({nodes, links}) => sankey({
+    nodes: nodes.map(d => Object.assign({}, d)),
+    links: links.map(d => Object.assign({}, d))
+  });
+}
+
+format = {
+  const format = d3.format(",");
+  return data.units ? d => `${format(d)} ${data.units}` : format;
+}
+
+color = {
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
+  return d => {
+    if (d.label === "Inactive") {
+      return "lightgray"; }
+    else return color(d.label)
+  };
+}
+
+data = {
+  const links = await FileAttachment("RCV_links_certified_comptroller@4.csv").csv({typed: true});
+  //grabs unique values from source and target of links then flatMap makes a 1 dimensional array
+  const nodes = Array.from(new Set(links.flatMap(l => [l.source, l.target])), name => ({name, label: name.split(" - ")[0]}));
+  return {nodes, links, units: "votes"};
+}
+
+width = 954
+
+height = 600
+
+d3 = require("d3@6", "d3-sankey@0.12")
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+```javascript
+// Define function to create chart
+chart = {
+  // Create SVG element
+  const svg = d3.create("svg")
+      .attr("viewBox", [0, 0, width, height]);
+
+  // Generate nodes and links for sankey diagram
+  const {nodes, links} = sankey(data);
+
+  // Define percentage formatting function
+  const pctFormat = d3.format(",.2%");
+
+  // Function to assign color based on label
+  function colorScale(d) {
+    if (d === "Brad Lander") {
+      return "#74C477"}
+    else if (d ==="Corey D. Johnson") {
+      return "#4392C7"}
+    else if (d ==="Michelle Caruso-Cabrera") {
+      return "#D95E0E"}
+    else if (d === "Brian A. Benjamin") {
+      return "#F768A1"}
+    else if (d === "David I. Weprin") {
+      return "#E60001"}
+    else if (d === "Kevin S. Parker") {
+      return "#6B0601"}
+    else if (d === "Reshma Patel") {
+      return "#41B6C4"}
+    else if (d === "Zach Iscol") {
+      return "#8856A7"}
+    else if ( d === "Inactive") {
+      return "lightgray"}
+    else return "#006D2C"
+  }
+
+  // Append groups and rectangles for nodes
+  svg.append("g")
+      //.attr("stroke", "#000")
+    .selectAll("rect")
+    .data(nodes)
+    .join("rect")
+      .attr("x", d => d.x0)
+      .attr("y", d => d.y0)
+      .attr("height", d => d.y1 - d.y0)
+      .attr("width", d => d.x1 - d.x0)
+      .attr("fill", d => colorScale(d.label))
+    .append("title")
+      .text(d => `${d.name}\n${format(d.value)} (${pctFormat(d.value/868087)}) of total votes`);
+
+  // Append groups and paths for links
+  const link = svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke-opacity", 0.5)
+    .selectAll("g")
+    .data(links)
+    .join("g")
+      .style("mix-blend-mode", "multiply");
+
+   // Append linear gradient for links
+   const gradient = link.append("linearGradient")
+        .attr("id", d => (d.uid = DOM.uid("link")).id)
+        .attr("gradientUnits", "userSpaceOnUse")
+        .attr("x1", d => d.source.x1)
+        .attr("x2", d => d.target.x0);
+
+    // Append stops for linear gradient
+    gradient.append("stop")
+        .attr("offset", "0%")
+        .attr("stop-color", d => colorScale(d.source.name.split(" - ")[0]));
+
+    gradient.append("stop")
+        .attr("offset", "100%")
+        .attr("stop-color", d => colorScale(d.target.name.split(" - ")[0]));
+
+  // Append paths for links
+  link.append("path")
+      .attr("d", d3.sankeyLinkHorizontal())
+      .attr("stroke", d => d.uid )
+      .attr("stroke-width", d => Math.max(1, d.width))
+
+  // Append titles for links
+  link.append("title")
+      //.text(d => `${d.source.name.split(" - ")[0]} → ${d.target.label}\n${format(d.value)}`);
+      .text(d => `${d.source.name} → ${d.target.name}\n${format(d.value)}`);
+
+  // Append text labels for nodes
+  svg.append("g")
+      .attr("font-family", "sans-serif")
+      .attr("font-size", 10)
+    .selectAll("text")
+    .data(nodes)
+    .join("text")
+      .attr("x", d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+      .attr("y", d => (d.y1 + d.y0) / 2)
+      .attr("dy", "0.35em")
+      .attr("text-anchor", d => d.x0 < width / 2 ? "start" : "end")
+      .text(function (d) {
+        if (d.name === "Inactive - 2") {
+          return "Inactive"
+          }
+        else if (d.name === "In-person" || d.name === "Absentee") {
+          return d.name;
+          }
+        else if (d.name.substr(-1) === "1" || d.name.substr(-2) === "10") {
+          return d.label
+          }
+        else return null;
+        });
+
+  // Return SVG node
+  return svg.node();
+}
+
+// Define function to create sankey diagram
+sankey = {
+  const sankey = d3.sankey()
+      .nodeId(d => d.name)
+      .nodeAlign(d3.sankeyLeft)
+      .nodeWidth(15)
+      .nodePadding(10)
+      .nodeSort(null)
+      .extent([[1, 5], [width - 1, height - 5]]);
+  return ({nodes, links}) => sankey({
+    nodes: nodes.map(d => Object.assign({}, d)),
+    links: links.map(d => Object
